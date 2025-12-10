@@ -105,10 +105,20 @@ public abstract class Boxy {
      * @return clave del sprite
      */
     public String getSpriteKey() {
-        if (state == BoxState.created) {
-            return boxType.name() + "_created";
+        switch (state) {
+            case destroyed:
+                return "floor_inactive";
+            case created:
+                return boxType.name().toLowerCase() + "_created";
+            case on:
+                return boxType.name().toLowerCase() + "_created";
+            case off:
+                return boxType.name().toLowerCase() + "_inactive";
+            case indestructible:
+                return boxType.name().toLowerCase() + "_inactive";
+            default: // inactive
+                return boxType.name().toLowerCase() + "_inactive";
         }
-        return boxType.name() + "_inactive";
     }
 
     /**

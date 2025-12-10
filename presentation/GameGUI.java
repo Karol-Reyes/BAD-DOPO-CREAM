@@ -153,7 +153,7 @@ private static class GamePanel extends JPanel {
         sprites.put("floor_created", load("/Resources/inicio/suelo.jpg"));
         
         // Ice (hielo)
-        sprites.put("ice_inactive", load("/Resources/inicio/suelo.jpg"));
+        sprites.put("ice_inactive", load("/Resources/box/ice.png"));
         sprites.put("ice_created", load("/Resources/box/ice.png"));
         
         // Iron (bloque indestructible)
