@@ -88,6 +88,8 @@ public class Fearful implements ControllerCream {
 
     private void buscarFrutaSegura() {
         for (Fruit f : game.getFruits()) {
+            game.checkCollisionsFor(player);
+            
             if (f.isEaten()) continue;
 
             if (!esFrutaSegura(f)) continue;

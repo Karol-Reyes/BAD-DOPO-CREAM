@@ -38,6 +38,6 @@ public class Cactus extends Fruit {
         if (state == FruitState.dangerous) {
             return "cactus_thorns";
         }
-        return "cactus_safe";
+        return "cactus";
     }
 }

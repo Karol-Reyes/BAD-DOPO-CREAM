@@ -153,7 +153,7 @@ private static class GamePanel extends JPanel {
         sprites.put("floor_created", load("/Resources/inicio/suelo.jpg"));
         
         // Ice (hielo)
-        sprites.put("ice_inactive", load("/Resources/box/ice.png"));
+        sprites.put("ice_inactive", load("/Resources/inicio/suelo.jpg"));
         sprites.put("ice_created", load("/Resources/box/ice.png"));
         
         // Iron (bloque indestructible)
@@ -177,8 +177,8 @@ private static class GamePanel extends JPanel {
         sprites.put("cactus_thorns", load("/Resources/fruit/cactusPuas.png"));
 
         // ENEMIGOS
-        sprites.put("enemy_flowerpot", load("/Resources/enemy/2.flowerpot/flowerpot_off.jpg"));
-        sprites.put("enemy_flowerpot_charge", load("/Resources/enemy/2.flowerpot/flowerpot_on.png"));
+        sprites.put("enemy_flowerpot", load("/Resources/enemy/flowerpot/flowerpot.jpg"));
+        sprites.put("enemy_flowerpot_charge", load("/Resources/enemy/flowerpot/flowerpot_on.png"));
         sprites.put("enemy_narval", load("/Resources/enemy/narwhal.png"));
         sprites.put("enemy_default", load("/Resources/enemy/troll/static_down.png"));
 
