@@ -177,15 +177,16 @@ private static class GamePanel extends JPanel {
         sprites.put("cactus_thorns", load("/Resources/fruit/cactusPuas.png"));
 
         // ENEMIGOS
-        sprites.put("enemy_flowerpot", load("/Resources/enemy/flowerpot/flowerpot.jpg"));
-        sprites.put("enemy_flowerpot_charge", load("/Resources/enemy/flowerpot/flowerpot_on.png"));
+        sprites.put("flowerpot", load("/Resources/enemy/flowerpot/flowerpot.jpg"));
+        sprites.put("flowerpot_on", load("/Resources/enemy/flowerpot/flowerpot_on.png"));
         sprites.put("enemy_narval", load("/Resources/enemy/narwhal.png"));
         sprites.put("enemy_default", load("/Resources/enemy/troll/static_down.png"));
+        sprites.put("enemy_squid", load("/Resources/enemy/yellow_squid/walk_down.gif"));
 
         // JUGADORES
         sprites.put("player_alive", load("/Resources/user/vainilla/static_down.png"));
         sprites.put("player_dead", load("/Resources/user/vainilla/dead.gif"));
-}
+    }
 
     // Sustituye tu método load actual por este (dentro de GamePanel)
     private Image load(String path) {
@@ -294,9 +295,10 @@ private static class GamePanel extends JPanel {
             switch (e.getType()) {
                 case flowerpot -> {
                     Flowerpot fp = (Flowerpot) e;
-                    key = fp.isCharging() ? "enemy_flowerpot_charge" : "enemy_flowerpot";
+                    key = fp.isCharging() ? "flowerpot_on" : "flowerpot";
                 }
                 case narval -> key = "enemy_narval";
+                case yellowSquid -> key = "enemy_squid";
                 default -> key = "enemy_default";
             }
 

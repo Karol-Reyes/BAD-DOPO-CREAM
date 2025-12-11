@@ -4,7 +4,7 @@ import java.util.Random;
 
 /**
  * Flowerpot: alterna 6s de movimiento aleatorio y 6s persiguiendo al jugador más cercano.
- * Nunca rompe bloques. Usa moveInDirection / move del Enemy real.
+ * Nunca rompe bloques.
  */
 public class Flowerpot extends Enemy {
 
@@ -12,6 +12,7 @@ public class Flowerpot extends Enemy {
 
     private boolean chasingMode = false;
     private long modeTimer;
+    private BadIceCream game; // ← AGREGAR REFERENCIA AL GAME
 
     private final Random random;
     private Direction currentDirection;
@@ -23,6 +24,10 @@ public class Flowerpot extends Enemy {
         this.modeTimer = System.currentTimeMillis();
     }
 
+    public void setGame(BadIceCream game) {
+        this.game = game;
+    }
+
     @Override
     public Direction getCurrentDirection() {
         return currentDirection;
@@ -30,11 +35,11 @@ public class Flowerpot extends Enemy {
 
     @Override
     public void doUpdate() {
-
         long now = System.currentTimeMillis();
+        long elapsed = now - modeTimer;
 
         // Alternar modo cada 6 segundos
-        if (now - modeTimer >= MODE_DURATION) {
+        if (elapsed >= MODE_DURATION) {
             chasingMode = !chasingMode;
             modeTimer = now;
         }
@@ -57,33 +62,112 @@ public class Flowerpot extends Enemy {
         int dr = tp.getRow() - position.getRow();
         int dc = tp.getCol() - position.getCol();
 
-        Direction preferred =
-                Math.abs(dr) > Math.abs(dc)
-                        ? (dr > 0 ? Direction.DOWN : Direction.UP)
-                        : (dc > 0 ? Direction.RIGHT : Direction.LEFT);
+        // Dirección preferida
+        Direction preferred = null;
+        if (Math.abs(dr) > Math.abs(dc)) {
+            preferred = dr > 0 ? Direction.DOWN : Direction.UP;
+        } else if (dc != 0) {
+            preferred = dc > 0 ? Direction.RIGHT : Direction.LEFT;
+        }
 
-        // 1° Preferred
-        if (moveInDirection(preferred)) {
+        // Intentar moverse en dirección preferida
+        if (preferred != null && moveInDirection(preferred)) {
             setAndMove(preferred);
             return;
         }
 
-        // 2° Opuesta
-        Direction opposite = preferred.getOpposite();
-        if (moveInDirection(opposite)) {
-            setAndMove(opposite);
+        // Si no puede ir directo, intentar rutas alternativas
+        if (intentarRutaAlternativa(tp)) {
             return;
         }
 
-        // 3° fallback
-        changeRandomDirection();
+        // Si todo falla, moverse en cualquier dirección
+        moverseEnCualquierDireccion();
     }
 
-    // ----------------------------------------------------
-    // ---------------------- HELPERS ----------------------
-    // ----------------------------------------------------
+    /**
+     * Encuentra al jugador vivo más cercano usando la lista del game
+     */
+    private IceCream findClosestPlayer() {
+        IceCream closest = null;
+        int bestDist = Integer.MAX_VALUE;
 
-    /** Intenta seguir recto; si no puede, gira. */
+        // Buscar en TODO el mapa
+        for (int r = 0; r < gameMap.getRows(); r++) {
+            for (int c = 0; c < gameMap.getCols(); c++) {
+                Position pos = new Position(r, c);
+            
+                if (gameMap.hasPlayer(pos)) {
+                    IceCream player = gameMap.getPlayer(pos);
+                    // Verificar que esté vivo
+                    if (player != null && player.isAlive()) {
+                        int dist = Math.abs(r - position.getRow()) + Math.abs(c - position.getCol());
+                        if (dist < bestDist) {
+                            bestDist = dist;
+                            closest = player;
+                        }
+                    }
+                }
+            }
+        }
+        return closest;
+    }
+
+    /**
+     * Intenta encontrar una ruta alternativa hacia el objetivo
+     */
+    private boolean intentarRutaAlternativa(Position objetivo) {
+        int dr = objetivo.getRow() - position.getRow();
+        int dc = objetivo.getCol() - position.getCol();
+
+        Direction[] prioridades = calcularPrioridades(dr, dc);
+
+        for (Direction dir : prioridades) {
+            if (moveInDirection(dir)) {
+                setAndMove(dir);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Calcula el orden de prioridad de direcciones
+     */
+    private Direction[] calcularPrioridades(int deltaRow, int deltaCol) {
+        Direction vertical = deltaRow > 0 ? Direction.DOWN : Direction.UP;
+        Direction horizontal = deltaCol > 0 ? Direction.RIGHT : Direction.LEFT;
+
+        if (Math.abs(deltaRow) > Math.abs(deltaCol)) {
+            return new Direction[]{
+                vertical,
+                horizontal,
+                horizontal.getOpposite(),
+                vertical.getOpposite()
+            };
+        } else {
+            return new Direction[]{
+                horizontal,
+                vertical,
+                vertical.getOpposite(),
+                horizontal.getOpposite()
+            };
+        }
+    }
+
+    /**
+     * Intenta moverse en CUALQUIER dirección disponible
+     */
+    private void moverseEnCualquierDireccion() {
+        for (Direction dir : Direction.values()) {
+            if (moveInDirection(dir)) {
+                setAndMove(dir);
+                return;
+            }
+        }
+    }
+
     private void tryMoveOrTurn() {
         if (moveInDirection(currentDirection)) {
             setAndMove(currentDirection);
@@ -92,20 +176,12 @@ public class Flowerpot extends Enemy {
         }
     }
 
-    /** Cambia la dirección interna y mueve */
     private void setAndMove(Direction d) {
         currentDirection = d;
         move(d);
     }
 
-    /**
-     * Igual lógica que Troll:
-     * - prueba laterales
-     * - luego opuesta
-     * - luego random
-     */
     private void changeRandomDirection() {
-
         Direction[] laterals = (currentDirection == Direction.UP || currentDirection == Direction.DOWN)
                 ? new Direction[]{Direction.LEFT, Direction.RIGHT}
                 : new Direction[]{Direction.UP, Direction.DOWN};
@@ -123,39 +199,12 @@ public class Flowerpot extends Enemy {
             return;
         }
 
-        // finalmente random
         Direction rand = getRandomDirection();
         if (moveInDirection(rand)) {
             setAndMove(rand);
         }
     }
 
-    /** Búsqueda manual del jugador más cercano */
-    private IceCream findClosestPlayer() {
-
-        IceCream closest = null;
-        int bestDist = Integer.MAX_VALUE;
-
-        for (int r = 0; r < gameMap.getRows(); r++) {
-            for (int c = 0; c < gameMap.getCols(); c++) {
-
-                IceCream p = gameMap.getPlayer(new Position(r, c));
-                if (p == null || !p.isAlive()) continue;
-
-                int dist = Math.abs(p.getPosition().getRow() - position.getRow())
-                        + Math.abs(p.getPosition().getCol() - position.getCol());
-
-                if (dist < bestDist) {
-                    bestDist = dist;
-                    closest = p;
-                }
-            }
-        }
-
-        return closest;
-    }
-
-    /** Random direction */
     private Direction getRandomDirection() {
         Direction[] vals = Direction.values();
         return vals[random.nextInt(vals.length)];
@@ -163,7 +212,7 @@ public class Flowerpot extends Enemy {
 
     @Override
     public String getSpriteKey() {
-        return "flowerpot_" + currentDirection.name().toLowerCase();
+        return chasingMode ? "flowerpot_on" : "flowerpot";
     }
 
     @Override

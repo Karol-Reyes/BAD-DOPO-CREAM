@@ -6,6 +6,6 @@ package domain;
 public enum EnemyType {
     troll,
     flowerpot,
-    yellow_squid,
+    yellowSquid,
     narval
 }

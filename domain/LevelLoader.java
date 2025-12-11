@@ -140,7 +140,7 @@ public class LevelLoader {
         if (nombre == null) return '0';
         switch(nombre) {
             case "Troll": return 'O';
-            case "Flowerpot": return 'W';
+            case "FlowerPot": return 'W';
             case "Narwhal": return 'P';
             case "YellowSquid": return 'U';
             default: return '0';

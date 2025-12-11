@@ -150,9 +150,9 @@ public class Narval extends Enemy {
     @Override
     public String getSpriteKey() {
         if (charging) {
-            return "narval_charging_" + currentDirection.name().toLowerCase();
+            return "narval_charging";
         }
-        return "narval_" + currentDirection.name().toLowerCase();
+        return "narval_";
     }
 
     @Override

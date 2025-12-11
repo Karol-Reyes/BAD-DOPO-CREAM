@@ -134,7 +134,7 @@ public class MapParser {
             case 'O': enemigos.add(new Troll(pos, 0.0001)); break;
             case 'W': enemigos.add(new Flowerpot(pos, 0.0001)); break;
             case 'P': enemigos.add(new Narval(pos, 0.00001)); break;
-            //case 'U': enemigos.add(new YellowSquid(pos, 1)); break;
+            case 'U': enemigos.add(new YellowSquid(pos, 1)); break;
                 
             // ============ VACÍO ============
             case '0': 
