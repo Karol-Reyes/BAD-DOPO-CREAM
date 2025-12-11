@@ -131,16 +131,18 @@ public class IceCream implements SpriteProvider {
             if (b == null || b.getType() == BoxType.floor) {
                 // si hay fruta, la removemos para que el hielo ocupe la celda
                 if (gameMap.hasFruit(next)) {
-                    gameMap.removeFruit(next);
+                    gameMap.setBlock(next, new Ice(next, BoxState.created));
+                    //gameMap.removeFruit(next);
                 }
                 // poner Ice explícitamente
                 gameMap.setBlock(next, new Ice(next, BoxState.created));
                 count++;
             }
             // 6) Si hay un bloque que puede convertirse -> convertirlo en hielo
-            else if (b.canBeCreated()) {
+            else if (b.canBeCreated() && b.getType() != BoxType.iron) {
                 if (gameMap.hasFruit(next)) {
-                    gameMap.removeFruit(next);
+                    gameMap.setBlock(next, new Ice(next, BoxState.created));
+                    //gameMap.removeFruit(next);
                 }
                 gameMap.setBlock(next, new Ice(next, BoxState.created));
                 count++;
