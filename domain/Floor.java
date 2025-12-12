@@ -46,4 +46,7 @@ public class Floor extends Boxy {
         }
     }
 
+    public void onFreeze() {}
+
+    public void update() {}
 }

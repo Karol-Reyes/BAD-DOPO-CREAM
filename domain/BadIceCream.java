@@ -25,6 +25,8 @@ public class BadIceCream {
     private List<Position> initialPlayerPositions;
     private List<Position> initialEnemyPositions;
     private List<Position> initialFruitPositions;
+
+    private boolean paused = false;
     
     /**
      * Crea un controlador de juego para un mapa dado.
@@ -196,6 +198,15 @@ public class BadIceCream {
             }
         }
 
+        for (int r = 0; r < gameMap.getRows(); r++) {
+            for (int c = 0; c < gameMap.getCols(); c++) {
+                Boxy bloque = gameMap.getBlock(new Position(r, c));
+                if (bloque != null && bloque.getType() == BoxType.bonfire) {
+                    ((Bonfire) bloque).update(); // Aquí SÍ usamos casting pero es inevitable
+                }
+            }
+        }
+
         for (IceCream p : players) {
             if (p.isAlive()) {
                 p.update();
@@ -244,6 +255,14 @@ public class BadIceCream {
             f.eat();
             gameMap.removeFruit(pos);
             score += f.getScoreValue();
+        }
+        
+        Boxy b = gameMap.getBlock(pos);
+        if (b == null) return;
+        if (b.getType() == BoxType.bonfire && b.getState() == BoxState.on) {
+            p.die();
+            gameLost = true;
+            return;
         }
     }
 
@@ -326,4 +345,11 @@ public class BadIceCream {
      * @return true si el jugador ha perdido
      */
     public boolean isGameLost() { return gameLost; }
+
+    /**
+     * Cambia el estado de pausa del juego
+     */
+    public void setPaused(boolean p) { paused = p; }
+    
+    public boolean isPaused() { return paused; }
 }

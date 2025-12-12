@@ -36,4 +36,8 @@ public class Fire extends Boxy {
     public boolean canBeCreated() {
         return false;
     }
+
+    public void onFreeze() {}
+
+    public void update() {}
 }

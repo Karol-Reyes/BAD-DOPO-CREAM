@@ -38,6 +38,34 @@ public class MapParser {
         BadIceCream game = new BadIceCream(gameMap);
 
         for (int i = 0; i < jugadores.size(); i++) {
+            IceCream p = jugadores.get(i);
+            String flavor = (i == 0) ? config.getCharacter1() : config.getCharacter2();
+            // Puede ser null si no hay segundo jugador; es aceptable
+            p.setFlavor(flavor);
+        }
+
+        for (int i = 0; i < jugadores.size(); i++) {
+
+            IceCream p = jugadores.get(i);
+            char tipo = tiposJugadores.get(i);
+
+            // Jugadores humanos (C, S, V)
+            if (tipo == 'C' || tipo == 'S' || tipo == 'V') {
+                String flavor = (i == 0) 
+                                ? config.getCharacter1() 
+                                : config.getCharacter2();
+
+                if (flavor == null) flavor = "Vanilla";
+
+                p.setFlavor(flavor);
+            } 
+            else {
+                // Bots siempre usan default
+                p.setFlavor("Vanilla");
+            }
+        }
+
+        for (int i = 0; i < jugadores.size(); i++) {
             IceCream player = jugadores.get(i);
             char tipo = tiposJugadores.get(i);
         
@@ -83,6 +111,8 @@ public class MapParser {
                                    List<IceCream> jugadores, List<Fruit> frutas, 
                                    List<Enemy> enemigos) {
         
+        map.setBlock(pos, new Floor(pos, BoxState.inactive));
+
         switch (ch) {
             // ============ BLOQUES ============
             case 'H': // Hierro
@@ -94,32 +124,42 @@ public class MapParser {
                 break;
                 
             case 'K': // Fuego
-                map.setBlock(pos, new Fire(pos, BoxState.off));
+                Fire f = new Fire(pos, BoxState.on);
+                f.setGameMap(map);
+                map.setBlock(pos, f);
                 break;
                 
             case 'L': // Fogata
-                map.setBlock(pos, new Bonfire(pos, BoxState.on));
+                Bonfire b = new Bonfire(pos, BoxState.on);
+                b.setGameMap(map);
+                map.setBlock(pos, b);
                 break;
                 
             // ============ JUGADORES ============
-            case 'C': case 'S': case 'V':
+            case 'C': 
+            case 'S': 
+            case 'V':
                 IceCream jugador = new IceCream(pos);
                 jugador.setGameMap(map);
                 jugadores.add(jugador);
                 break;
+
             case 'R': 
                 IceCream hungry = new IceCream(pos);
                 hungry.setGameMap(map);
+                hungry.setFlavor("Vanilla");
                 jugadores.add(hungry);
                 break;
             case 'J': 
                 IceCream fearful = new IceCream(pos);
                 fearful.setGameMap(map);
+                fearful.setFlavor("Vanilla");
                 jugadores.add(fearful);
                 break;
             case 'E':
                 IceCream expert = new IceCream(pos);
                 expert.setGameMap(map);
+                expert.setFlavor("Vanilla");
                 jugadores.add(expert);
                 break;
 
@@ -134,7 +174,7 @@ public class MapParser {
             case 'O': enemigos.add(new Troll(pos, 0.0001)); break;
             case 'W': enemigos.add(new Flowerpot(pos, 0.0001)); break;
             case 'P': enemigos.add(new Narval(pos, 0.00001)); break;
-            case 'U': enemigos.add(new YellowSquid(pos, 1)); break;
+            case 'U': enemigos.add(new YellowSquid(pos, 0.00001)); break;
                 
             // ============ VACÍO ============
             case '0': 

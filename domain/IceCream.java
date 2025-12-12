@@ -14,10 +14,13 @@ public class IceCream implements SpriteProvider {
     private GameMap gameMap;
     private Direction facingDirection;
     private boolean moving;
+
+    private String flavor;
     
     /** Construye un IceCream en la posición dada. */
     public IceCream(Position position) {
         this.position = position;
+        this.flavor = flavor;
         this.speed = 1;
         this.alive = true;
         this.facingDirection = Direction.DOWN;
@@ -114,52 +117,49 @@ public class IceCream implements SpriteProvider {
                 pos.getRow() + d.getRowDelta(),
                 pos.getCol() + d.getColDelta()
             );
-
-            // 1) Fuera del mapa -> parar
             if (!gameMap.isValid(next)) break;
-
-            // 2) Si hay enemigo o jugador -> parar (no crear en esa celda)
             if (gameMap.hasEnemy(next) || gameMap.hasPlayer(next)) break;
 
-            // 3) obtener el bloque actual (puede ser null o Floor u otro)
             Boxy b = gameMap.getBlock(next);
 
-            // 4) Si ya hay un bloque creado (hielo ya creado) -> parar
+            if (b != null && b.getType() == BoxType.fire) {
+                pos = next;
+                continue;
+            }
+
+            if (b != null && b.getType() == BoxType.bonfire && b.isCreated()) {        
+                Ice hielo = new Ice(next, BoxState.created);
+                gameMap.setBlock(next, hielo);
+        
+                b.off();          // apagar fuego
+                b.iniciarTimer(); // metodo propio del bonfire
+
+                count++;
+                pos = next;
+                continue;
+            }
+
             if (b != null && b.isCreated()) break;
 
-            // 5) Si es celda vacía o suelo -> crear hielo
             if (b == null || b.getType() == BoxType.floor) {
-                // si hay fruta, la removemos para que el hielo ocupe la celda
                 if (gameMap.hasFruit(next)) {
                     gameMap.setBlock(next, new Ice(next, BoxState.created));
-                    //gameMap.removeFruit(next);
                 }
-                // poner Ice explícitamente
                 gameMap.setBlock(next, new Ice(next, BoxState.created));
                 count++;
             }
-            // 6) Si hay un bloque que puede convertirse -> convertirlo en hielo
             else if (b.canBeCreated() && b.getType() != BoxType.iron) {
                 if (gameMap.hasFruit(next)) {
                     gameMap.setBlock(next, new Ice(next, BoxState.created));
-                    //gameMap.removeFruit(next);
                 }
                 gameMap.setBlock(next, new Ice(next, BoxState.created));
                 count++;
             }
-            // 7) Bloque no convertible (iron / indestructible u otro) -> parar
-            else {
-                break;
-            }
-
-            // 8) avanza la referencia y sigue en línea
+            else { break; }
             pos = next;
         }
-
         return count;
     }
-
-
 
     /**
      * Destruye bloques de hielo en la dirección indicada.
@@ -197,5 +197,14 @@ public class IceCream implements SpriteProvider {
     @Override
     public boolean isAnimated() {
         return moving;
+    }
+
+    /** @return el sabor del jugador. */
+    public String getFlavor() {
+        return flavor;
+    }
+
+    public void setFlavor(String flavor) {
+        this.flavor = flavor;
     }
 }

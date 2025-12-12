@@ -77,7 +77,11 @@ public class GameMap {
      */
     public boolean isBlocked(Position p) {
         Boxy b = blocks[p.getRow()][p.getCol()];
-        return (b != null && b.isCreated())  || (b != null && !b.canWalk());
+    
+        if (b != null && (b.getType() == BoxType.bonfire || b.getType() == BoxType.fire)) {
+            return false; // Se puede caminar sobre ellas
+        }
+        return (b != null && b.isCreated()) || (b != null && !b.canWalk());
     }
 
     /**
@@ -295,4 +299,5 @@ public class GameMap {
 
     /** @return jugador en la posición dada. */
     public IceCream getPlayer(Position pos) { return players[pos.getRow()][pos.getCol()]; }
+    
 }

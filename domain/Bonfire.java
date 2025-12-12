@@ -1,30 +1,30 @@
 package domain;
 
-/**
- * Representa un bloque tipo caja dentro del mapa del juego. Maneja su tipo,
- * estado y posición, así como las operaciones básicas de creación y destrucción.
- */
 public class Bonfire extends Boxy {
 
-    /**
-     * Constructor segun una posicion dada
-     * @param position del hielo
-     */
+    private long freezeTimestamp; 
+    private static final long FREEZE_DURATION = 10000; // 10 segundos
+
     public Bonfire(Position position, BoxState state) {
         super(BoxType.bonfire, position, state);
+        this.freezeTimestamp = 0;
     }
 
-    /**
-     * Indica si se puede caminar sobre el bloque.
-     * @return true si se puede caminar, false en caso contrario
-     */
-    public boolean canWalk() {
-        return false;
+    @Override
+    public boolean canWalk() { 
+        return false; 
     }
 
-    /**
-     * Crea el fuego del bloque.
-     */
+    @Override
+    public boolean canBeCreated() { 
+        return false; 
+    }
+
+    @Override
+    public boolean canBeDestroyed() { 
+        return false; 
+    }
+
     @Override
     public void on() {
         if (state != BoxState.on) {
@@ -32,13 +32,39 @@ public class Bonfire extends Boxy {
         }
     }
 
-    /**
-     * Destruye fuego del bloque.
-     */
     @Override
-    public void off(){
+    public void off() {
         if (state != BoxState.off) {
             super.off();
+        }
+    }
+
+    /**
+     * Se llama cuando el hielo lo congela.
+     */
+    @Override
+    public void onFreeze() {
+        off(); // se apaga
+        freezeTimestamp = System.currentTimeMillis();
+    }
+
+    /**
+     * Reinicia el temporizador de estar apagado.
+     */
+    public void iniciarTimer() {
+        freezeTimestamp = System.currentTimeMillis();
+    }
+
+    /**
+     * Se llama desde GameMap.update() para ver si ya debe reencenderse.
+     */
+    @Override
+    public void update() {
+        if (state == BoxState.off) {
+            long elapsed = System.currentTimeMillis() - freezeTimestamp;
+            if (elapsed >= FREEZE_DURATION) {
+                on(); // se vuelve a encender
+            }
         }
     }
 }

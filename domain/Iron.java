@@ -47,4 +47,7 @@ public class Iron  extends Boxy {
         }
     }
 
+    public void onFreeze() {}
+
+    public void update() {}
 }

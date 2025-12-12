@@ -19,6 +19,10 @@ public class Ice extends Boxy {
         return state != BoxState.created;
     }
 
+    public void onFreeze() {}
+
+    public void update() {}
+
     /**
      * Indica si el bloque se puede destruir.
      * @return true si se puede destruir, false en caso contrario

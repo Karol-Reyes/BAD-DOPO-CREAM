@@ -3,10 +3,6 @@ package  presentation;
 import domain.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.image.BufferedImage;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
 import javax.swing.*;
 
 public class GameGUI extends JPanel {
@@ -15,6 +11,12 @@ public class GameGUI extends JPanel {
     private GamePanel panel;
     private Timer timer;
     private GameControl gameControl;
+    private SpriteManager spriteManager;  
+    
+    private JLabel pauseOverlay;
+    private boolean isPaused = false;
+
+
 
     /**
      * Constructor que recibe la configuración del juego
@@ -22,15 +24,18 @@ public class GameGUI extends JPanel {
     public GameGUI(GameControl gameControl) {
         this.gameControl = gameControl;
         setLayout(new BorderLayout());
-        
+
+        // Maneja sprites una sola vez
+        spriteManager = new SpriteManager();
+
         // Imprimir la configuración seleccionada
         gameControl.printSelections();
-        
+
         // Cargar el nivel según la configuración
         loadGame();
 
-        // Crear el panel de visualización
-        panel = new GamePanel(game);
+        // Crear el panel de visualización con SpriteManager
+        panel = new GamePanel(game, spriteManager);
         add(panel, BorderLayout.CENTER);
 
         // Configurar controles
@@ -46,33 +51,26 @@ public class GameGUI extends JPanel {
         timer.start();
     }
 
-    // =============== CARGAR NIVEL =================
-    // =============== CARGAR NIVEL =================
+
+    // CARGAR NIVEL 
+
     private void loadGame() {
-        
-        // Convertir GameControl (presentation) a GameConfig (domain)
+
         GameConfig config = gameControl.toGameConfig();
-        
-        // Cargar el nivel completo usando LevelLoader
         game = LevelLoader.cargarNivelCompleto(config.getLevel(), config);
-        
-        // Configurar el mapa para cada jugador
+
         for (IceCream p : game.getPlayers()) {
             p.setGameMap(game.getMap());
         }
-        
-        // IMPORTANTE: Actualizar la referencia del juego en el panel
+
         if (panel != null) {
             panel.setGame(game);
         }
-        
-        // Configurar el mapa para cada jugador
-        for (IceCream p : game.getPlayers()) {
-            p.setGameMap(game.getMap());
-        }
     }
 
-    // =============== TECLAS ==========================
+    // =====================================================
+    // TECLAS
+    // =====================================================
     private void setupKeyBindings() {
         InputMap im = this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
         ActionMap am = this.getActionMap();
@@ -85,9 +83,19 @@ public class GameGUI extends JPanel {
 
         bind(im, am, "FREEZE", KeyEvent.VK_SPACE, () -> game.playerCreateIce(0));
         bind(im, am, "BREAK", KeyEvent.VK_X, () -> game.playerDestroyIce(0));
+
+        // controles del jugador 2
+        bind(im, am, "P2_UP", KeyEvent.VK_W, () -> game.movePlayer(1, Direction.UP));
+        bind(im, am, "P2_DOWN", KeyEvent.VK_S, () -> game.movePlayer(1, Direction.DOWN));
+        bind(im, am, "P2_LEFT", KeyEvent.VK_A, () -> game.movePlayer(1, Direction.LEFT));
+        bind(im, am, "P2_RIGHT", KeyEvent.VK_D, () -> game.movePlayer(1, Direction.RIGHT));
+
+        bind(im, am, "P2_FREEZE", KeyEvent.VK_F, () -> game.playerCreateIce(1));
+        bind(im, am, "P2_BREAK", KeyEvent.VK_G, () -> game.playerDestroyIce(1));
         
-        // Reiniciar el juego
+        // controles generales de la partida
         bind(im, am, "RESET", KeyEvent.VK_R, this::loadGame);
+        bind(im, am, "PAUSE", KeyEvent.VK_P, this::togglePause);
 
     }
 
@@ -95,212 +103,179 @@ public class GameGUI extends JPanel {
         im.put(KeyStroke.getKeyStroke(key, 0), name);
         am.put(name, new AbstractAction() {
             @Override
-            public void actionPerformed(ActionEvent e) { 
-                action.run(); 
-                panel.repaint(); // Actualizar la visualización
+            public void actionPerformed(ActionEvent e) {
+                action.run();
+                panel.repaint();
             }
         });
     }
 
+    /* pausa o reanuda el juego */
+    private void togglePause() {
+        isPaused = !isPaused;
 
-    // ======================== PANEL INTERNO ==============================
-private static class GamePanel extends JPanel {
+        game.setPaused(isPaused);
 
-    private BadIceCream game;
-    private static final int TILE = 32;
-
-    private final Map<String, Image> sprites = new HashMap<>();
-
-    public GamePanel(BadIceCream game) {
-        this.game = game;
-        setBackground(Color.WHITE);
-
-        loadSprites();
+        if (isPaused) {
+            timer.stop();              // detener repintado
+            showPauseOverlay();
+        } else {
+            hidePauseOverlay();
+            timer.start();
+        }
     }
 
-    /**
-     * Actualiza la referencia al juego (usado para reiniciar)
-     */
-    public void setGame(BadIceCream newGame) {
-        this.game = newGame;
-        repaint();
+    private void showPauseOverlay() {
+        pauseOverlay = new JLabel();
+        pauseBackground();
+        buttonContinue();
+        buttonExit();
     }
 
+    private void pauseBackground() {
+        pauseOverlay.setBounds(0, 0, getWidth(), getHeight());
+        pauseOverlay.setLayout(null);
+        pauseOverlay.setOpaque(true);
+        pauseOverlay.setBackground(new Color(0, 0, 0, 150));
+
+        JLabel backgroundLabel = ImageUtils.createScaledImageLabel("/Resources/inicio/fondo_opciones.png",
+        400, 250, 130, 180);
+        pauseOverlay.add(backgroundLabel);
+        pauseOverlay.revalidate();
+        pauseOverlay.repaint();
+    }
     
+    private void buttonContinue() {
+        PixelButton btnContinue = new PixelButton("/Resources/textos/Continuar.png",
+         150, 70);
+        btnContinue.setBounds(220, 230, 150, 70);
+        btnContinue.addActionListener(e -> togglePause());
+        pauseOverlay.add(btnContinue);
+        pauseOverlay.setComponentZOrder(btnContinue, 0);
+        pauseOverlay.revalidate();
+        pauseOverlay.repaint();
+    }
+    
+    private void buttonExit() {
+        PixelButton btnExit = new PixelButton("/Resources/textos/Salir.png", 100, 50);
+        btnExit.setBounds(290, 360, 100, 50);
+        btnExit.addActionListener(e -> exitToLevelSelection());
+        pauseOverlay.add(btnExit);
+        pauseOverlay.setComponentZOrder(btnExit, 0);
+        pauseOverlay.revalidate();
+        pauseOverlay.repaint();
 
-    // ==========================================================
-    // CARGAR TODOS LOS SPRITES
-    // ==========================================================
-    private void loadSprites() {
-
-        // BLOQUES - Según lo que devuelve getSpriteKey()
-        // Floor (suelo)
-        sprites.put("floor_inactive", load("/Resources/inicio/suelo.jpg")); 
-        sprites.put("floor_created", load("/Resources/inicio/suelo.jpg"));
-        
-        // Ice (hielo)
-        sprites.put("ice_inactive", load("/Resources/box/ice.png"));
-        sprites.put("ice_created", load("/Resources/box/ice.png"));
-        
-        // Iron (bloque indestructible)
-        sprites.put("iron_inactive", load("/Resources/box/block.png"));
-        sprites.put("iron_created", load("/Resources/box/block.png"));
-        
-        // Fire
-        sprites.put("fire_inactive", load("/Resources/box/fire.png"));
-        sprites.put("fire_created", load("/Resources/box/fire.png"));
-        
-        // Bonfire
-        sprites.put("bonfire_inactive", load("/Resources/box/bonfire.png"));
-        sprites.put("bonfire_created", load("/Resources/box/bonfire.png"));
-
-        // FRUTAS
-        sprites.put("banana", load("/Resources/fruit/Banana.jpg"));
-        sprites.put("grape", load("/Resources/fruit/Grape.jpg"));
-        sprites.put("cherry", load("/Resources/fruit/Cherry.jpg"));
-        sprites.put("pineapple", load("/Resources/fruit/Pineapple.jpg"));
-        sprites.put("cactus", load("/Resources/fruit/cactus.png"));
-        sprites.put("cactus_thorns", load("/Resources/fruit/cactusPuas.png"));
-
-        // ENEMIGOS
-        sprites.put("flowerpot", load("/Resources/enemy/flowerpot/flowerpot.jpg"));
-        sprites.put("flowerpot_on", load("/Resources/enemy/flowerpot/flowerpot_on.png"));
-        sprites.put("enemy_narval", load("/Resources/enemy/narwhal.png"));
-        sprites.put("enemy_default", load("/Resources/enemy/troll/static_down.png"));
-        sprites.put("enemy_squid", load("/Resources/enemy/yellow_squid/walk_down.gif"));
-
-        // JUGADORES
-        sprites.put("player_alive", load("/Resources/user/vainilla/static_down.png"));
-        sprites.put("player_dead", load("/Resources/user/vainilla/dead.gif"));
+        this.add(pauseOverlay);
+        this.setComponentZOrder(pauseOverlay, 0);
+        this.repaint();
     }
 
-    // Sustituye tu método load actual por este (dentro de GamePanel)
-    private Image load(String path) {
-        // Usa getResource (ruta desde classpath). Ej: "/Resources/fruit/Banana.png"
-        URL url = getClass().getResource(path);
+    private void hidePauseOverlay() {
+        if (pauseOverlay != null) {
+            this.remove(pauseOverlay);
+            pauseOverlay = null;
+            this.revalidate();
+            this.repaint();
+        }
+    }
 
-        if (url == null) {
-            // Mensaje claro para depuración (verás qué ruta falta)
-            System.err.println("NO SE ENCONTRÓ: " + path);
+    private void exitToLevelSelection() {
+        Container parent = getParent();
+        if (parent != null) {
+            parent.remove(GameGUI.this);
+            LevelSelectionGUI lvl = new LevelSelectionGUI(gameControl);
+            parent.add(lvl);
+            parent.revalidate();
+            parent.repaint();
+        }
+    }
 
-            // Retorna una imagen placeholder (para que la app no explote y se vea algo)
-            return createPlaceholderImage();
+    // =====================================================
+    // PANEL INTERNO (FINAL)
+    // =====================================================
+    public class GamePanel extends JPanel {
+
+        private BadIceCream game;
+        private final SpriteManager spriteManager;
+        private static final int TILE = 32;
+
+        public GamePanel(BadIceCream game, SpriteManager spriteManager) {
+            this.game = game;
+            this.spriteManager = spriteManager;
+            setBackground(Color.BLACK);
         }
 
-        return new ImageIcon(url).getImage();
-    }
+        public void setGame(BadIceCream newGame) {
+            this.game = newGame;
+            repaint();
+        }
 
-    // Método helper que crea una imagen simple cuando falta el sprite.
-    // Devuelve un BufferedImage pequeña (TILE x TILE) con un patrón visible.
-    private Image createPlaceholderImage() {
-        int size = TILE; // usa tu constante TILE = 32
-        BufferedImage img = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2 = img.createGraphics();
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
 
-        // Fondo semitransparente
-        g2.setColor(new Color(200, 0, 0, 180));
-        g2.fillRect(0, 0, size, size);
+            GameMap map = game.getMap();
 
-        // Cruz para indicar "falta imagen"
-        g2.setStroke(new BasicStroke(3));
-        g2.setColor(Color.WHITE);
-        g2.drawLine(4, 4, size - 4, size - 4);
-        g2.drawLine(size - 4, 4, 4, size - 4);
+            // =============== MAPA ===============
+            for (int r = 0; r < map.getRows(); r++) {
+                for (int c = 0; c < map.getCols(); c++) {
 
-        g2.dispose();
-        return img;
-    }
+                    Position pos = new Position(r, c);
+                    Boxy b = map.getBlock(pos);
 
-    // ==========================================================
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
+                    if (b == null) continue;
 
-        GameMap map = game.getMap();
-
-        // ---------------- MAPA (BLOQUES) ----------------
-        for (int r = 0; r < map.getRows(); r++) {
-            for (int c = 0; c < map.getCols(); c++) {
-                Position pos = new Position(r, c);
-                Boxy b = map.getBlock(pos);
-
-                Image img = null;
-                
-                // Determinar qué sprite usar según el tipo de bloque
-                if (b != null) {
-                    // Usar un método getSpriteKey() similar a como lo hacen las frutas
-                    String spriteKey = b.getSpriteKey(); // Debes agregar este método a Boxy
-                    img = sprites.get(spriteKey);
-                    
-                    // Fallback por si el sprite no existe
-                    if (img == null) {
-                        img = sprites.get("block");
-                    }
-                } else {
-                    // Si no hay bloque (null), es espacio vacío - no dibujar nada
-                    continue; // Salta al siguiente, deja el fondo negro
-                }
-
-                // Dibujar el sprite correspondiente
-                if (img != null) {
-                    g.drawImage(img, 
-                        c * TILE, r * TILE, 
-                        TILE, TILE, 
-                        null
-                    );
+                    Image img = spriteManager.get(b.getSpriteKey());
+                    g.drawImage(img, c * TILE, r * TILE, TILE, TILE, null);
                 }
             }
-        }
 
-        // ---------------- FRUTAS ----------------
-        for (Fruit f : game.getFruits()) {
-            if (!f.isEaten()) {
-                String key = f.getSpriteKey();
-                Image img = sprites.get(key);
-                Position p = f.getPosition();
+            // =============== FRUTAS ===============
+            for (Fruit f : game.getFruits()) {
+                if (!f.isEaten()) {
+                    Image img = spriteManager.get(f.getSpriteKey());
+                    Position p = f.getPosition();
+                    g.drawImage(img, p.getCol() * TILE, p.getRow() * TILE, TILE, TILE, null);
+                }
+            }
+
+            // =============== ENEMIGOS ===============
+            for (Enemy e : game.getEnemies()) {
+
+                String key;
+                switch (e.getType()) {
+                    case flowerpot -> {
+                        Flowerpot fp = (Flowerpot) e;
+                        key = fp.isCharging() ? "flowerpot_on" : "flowerpot";
+                    }
+                    case narval -> key = "enemy_narval";
+                    case yellowSquid -> key = "enemy_squid";
+                    default -> key = "enemy_default";
+                }
+
+                Image img = spriteManager.get(key);
+                Position p = e.getPosition();
+                g.drawImage(img, p.getCol() * TILE, p.getRow() * TILE, TILE, TILE, null);
+            }
+
+            // =============== JUGADORES (CON FLAVOR) ===============
+            for (IceCream pl : game.getPlayers()) {
+
+                String flavor = pl.getFlavor();               
+                String state = pl.isAlive() ? "alive" : "dead";
+
+                String key = flavor + "_" + state;           
+
+                Image img = spriteManager.get(key);
+
+                Position pos = pl.getPosition();
 
                 g.drawImage(img,
-                    p.getCol() * TILE,
-                    p.getRow() * TILE,
+                    pos.getCol() * TILE,
+                    pos.getRow() * TILE,
                     TILE, TILE,
                     null
                 );
-            }
-        }
-
-        // ---------------- ENEMIGOS ----------------
-        for (Enemy e : game.getEnemies()) {
-            Position p = e.getPosition();
-            int x = p.getCol() * TILE;
-            int y = p.getRow() * TILE;
-
-            String key;
-
-            switch (e.getType()) {
-                case flowerpot -> {
-                    Flowerpot fp = (Flowerpot) e;
-                    key = fp.isCharging() ? "flowerpot_on" : "flowerpot";
-                }
-                case narval -> key = "enemy_narval";
-                case yellowSquid -> key = "enemy_squid";
-                default -> key = "enemy_default";
-            }
-
-            g.drawImage(sprites.get(key), x, y, TILE, TILE, null);
-        }
-
-        // ---------------- JUGADORES ----------------
-        for (IceCream pl : game.getPlayers()) {
-            String key = pl.isAlive() ? "player_alive" : "player_dead";
-            Image img = sprites.get(key);
-            Position pos = pl.getPosition();
-
-            g.drawImage(img,
-                pos.getCol() * TILE,
-                pos.getRow() * TILE,
-                TILE, TILE,
-                null
-            );
             }
         }
     }

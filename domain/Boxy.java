@@ -9,6 +9,7 @@ public abstract class Boxy {
     protected BoxType boxType;
     protected BoxState state;
     protected Position position;
+    protected GameMap map;
 
     /**
      * Crea una caja con un tipo específico y posición inicial.
@@ -19,6 +20,10 @@ public abstract class Boxy {
         this.boxType = boxType;
         this.state = state;
         this.position = position;
+    }
+
+    public void setGameMap (GameMap m) {
+        this.map = m;
     }
 
     /**
@@ -80,17 +85,11 @@ public abstract class Boxy {
      * Indica si el bloque puede ser creado.
      * @return false por defecto
      */
-    public boolean canBeCreated() { 
-        return false; 
-    }
+    public abstract boolean canBeCreated();
 
-    public boolean canBeDestroyed() {
-        return false;
-    }
+    public abstract boolean canBeDestroyed();
 
-    public boolean canWalk() {
-        return false;
-    }
+    public abstract boolean canWalk();
 
     public void on() {
         this.state = BoxState.on;
@@ -99,6 +98,12 @@ public abstract class Boxy {
     public void off() {
         this.state = BoxState.off;
     }
+
+    public abstract void onFreeze();
+
+    public abstract void update();
+
+    public void iniciarTimer() { }
 
     /**
      * Obtiene la clave del sprite correspondiente al estado actual del bloque.
