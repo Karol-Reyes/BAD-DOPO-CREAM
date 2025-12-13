@@ -11,6 +11,8 @@ public abstract class Fruit {
     protected int speed;
     protected boolean isStatic;
     protected int scoreValue;
+    protected boolean frozen = false;
+    protected boolean active = false;
 
     /**
      * Inicializa una fruta con tipo, posición, velocidad y comportamiento.
@@ -25,26 +27,34 @@ public abstract class Fruit {
         this.position = pos;
         this.speed = speed;
         this.isStatic = isStatic;
-        this.scoreValue = calculateScoreValue(type);
     }
 
-    /**
-     * Calcula el valor de puntaje según el tipo de fruta.
-     * @param type tipo de fruta
-     * @return valor de puntaje
-     */
-    private int calculateScoreValue(FruitType type) {
-        switch (type) {
-            case banana: return 100;
-            case grape: return 50;
-            case cherry: return 150;
-            case pineapple: return 200;
-            case cactus: return 250;
-            default: return 0;
-        }
-    }
-
+    public abstract int getScore();
     
+    public void freeze() {
+        frozen = true;
+    }
+
+    public void unfreeze() {
+        frozen = false;
+    }
+
+    public boolean isFrozen() {
+        return frozen;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void activate() {
+        active = true;
+    }
+
+    public void deactivate() {
+        active = false;
+    }
+
     /**
     * Indica si la fruta es peligrosa al tocarla.
     * Por defecto, verifica el estado dangerous.

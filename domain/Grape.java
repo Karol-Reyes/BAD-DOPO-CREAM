@@ -8,5 +8,10 @@ public class Grape extends Fruit{
      */
     public Grape(Position position) {
         super(FruitType.grape, position, 0, true);
+        this.scoreValue = 50;
+    }
+
+    public int getScore() {
+        return scoreValue;
     }
 }

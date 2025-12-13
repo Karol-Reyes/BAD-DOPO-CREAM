@@ -103,7 +103,8 @@ public class MapParser {
             game.addEnemy(enemy);
             gameMap.addEnemy(enemy);
         }
-        
+
+        game.initializeAfterMapLoad();   
         return game;
     }
     

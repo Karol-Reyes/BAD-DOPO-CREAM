@@ -300,4 +300,11 @@ public class GameMap {
     /** @return jugador en la posición dada. */
     public IceCream getPlayer(Position pos) { return players[pos.getRow()][pos.getCol()]; }
     
+    public void removeAllFruits() {
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                fruits[r][c] = null;
+            }
+        }
+    }
 }

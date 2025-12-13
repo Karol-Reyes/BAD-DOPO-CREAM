@@ -8,5 +8,10 @@ public class Banana extends Fruit{
      */
     public Banana(Position position) {
         super(FruitType.banana, position, 0, true);
+        this.scoreValue = 100;
+    }
+
+    public int getScore() {
+        return scoreValue;
     }
 }

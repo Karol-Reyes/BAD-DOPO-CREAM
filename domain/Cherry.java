@@ -13,16 +13,23 @@ public class Cherry extends Fruit {
     public Cherry(Position position) {
         super(FruitType.cherry, position, 0, false);
         this.lastTeleportTime = System.currentTimeMillis();
+        this.scoreValue = 150;
     }
     
+    public int getScore() {
+        return scoreValue;
+    }
+
     public void setGameMap(GameMap map) {
         this.gameMap = map;
     }
     
     @Override
     public void update() {
+        if (!active) return;
         if (state == FruitState.eaten || gameMap == null) return;
-        
+        if (frozen) return;
+
         long currentTime = System.currentTimeMillis();
         
         // Si pasaron 20 segundos, teletransportarse

@@ -12,14 +12,21 @@ public class Cactus extends Fruit {
     
     public Cactus(Position position) {
         super(FruitType.cactus, position, 0, true);
+        this.scoreValue = 250;
         this.state = FruitState.active; // Empieza seguro
         this.lastStateChangeTime = System.currentTimeMillis();
     }
     
+    public int getScore() {
+        return scoreValue;
+    }
+
     @Override
     public void update() {
+        if (!active) return;
         if (state == FruitState.eaten) return;
-        
+        if (frozen) return;
+
         long currentTime = System.currentTimeMillis();
         
         // Alternar entre active y dangerous cada 30 segundos

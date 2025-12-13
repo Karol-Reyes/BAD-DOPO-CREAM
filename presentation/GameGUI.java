@@ -232,11 +232,13 @@ public class GameGUI extends JPanel {
 
             // =============== FRUTAS ===============
             for (Fruit f : game.getFruits()) {
-                if (!f.isEaten()) {
-                    Image img = spriteManager.get(f.getSpriteKey());
-                    Position p = f.getPosition();
-                    g.drawImage(img, p.getCol() * TILE, p.getRow() * TILE, TILE, TILE, null);
-                }
+                if (!f.isActive()) continue;
+                if (f.isEaten()) continue;
+
+                Image img = spriteManager.get(f.getSpriteKey());
+                Position p = f.getPosition();
+                
+                g.drawImage(img, p.getCol() * TILE, p.getRow() * TILE, TILE, TILE, null);
             }
 
             // =============== ENEMIGOS ===============

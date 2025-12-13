@@ -15,6 +15,8 @@ public class IceCream implements SpriteProvider {
     private Direction facingDirection;
     private boolean moving;
 
+    private int score;
+
     private String flavor;
     
     /** Construye un IceCream en la posición dada. */
@@ -23,8 +25,17 @@ public class IceCream implements SpriteProvider {
         this.flavor = flavor;
         this.speed = 1;
         this.alive = true;
+        this.score = 0;
         this.facingDirection = Direction.DOWN;
         this.moving = false;
+    }
+
+    public int getScorePlayer() {
+        return score;
+    }
+
+    public void setScorePlayer (int s) {
+        this.score += s;
     }
 
     public void setController(ControllerCream controller) {
@@ -141,16 +152,10 @@ public class IceCream implements SpriteProvider {
 
             if (b != null && b.isCreated()) break;
 
-            if (b == null || b.getType() == BoxType.floor) {
+            if ((b == null || b.getType() == BoxType.floor) || (b.canBeCreated() && b.getType() != BoxType.iron)) {
                 if (gameMap.hasFruit(next)) {
-                    gameMap.setBlock(next, new Ice(next, BoxState.created));
-                }
-                gameMap.setBlock(next, new Ice(next, BoxState.created));
-                count++;
-            }
-            else if (b.canBeCreated() && b.getType() != BoxType.iron) {
-                if (gameMap.hasFruit(next)) {
-                    gameMap.setBlock(next, new Ice(next, BoxState.created));
+                    Fruit f = gameMap.getFruit(next);
+                    f.freeze();
                 }
                 gameMap.setBlock(next, new Ice(next, BoxState.created));
                 count++;
@@ -180,6 +185,10 @@ public class IceCream implements SpriteProvider {
             Boxy b = gameMap.getBlock(next);
 
             if (b == null || !b.canBeDestroyed()) break;
+            if (gameMap.hasFruit(next)) {
+                Fruit f = gameMap.getFruit(next);
+                f.unfreeze();
+            }
             gameMap.clearBlock(next);
             count++;
             pos = next;

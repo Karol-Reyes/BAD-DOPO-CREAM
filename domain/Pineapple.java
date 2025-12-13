@@ -10,6 +10,11 @@ public class Pineapple extends Fruit {
     
     public Pineapple(Position position) {
         super(FruitType.pineapple, position, 1, false);
+        this.scoreValue = 200;
+    }
+
+    public int getScore() {
+        return scoreValue;
     }
     
     /**
@@ -27,7 +32,10 @@ public class Pineapple extends Fruit {
     
     @Override
     public void update() {
+        if (!active) return;
         if (isEaten() || gameMap == null) return;
+
+        if (frozen) return;
         
         Direction[] directions = Direction.values();
         Direction randomDir = directions[(int)(Math.random() * directions.length)];

@@ -27,6 +27,11 @@ public class BadIceCream {
     private List<Position> initialFruitPositions;
 
     private boolean paused = false;
+
+
+    private int currentWave = 0;
+    private List<Class<? extends Fruit>> fruitWaves = new ArrayList<>();
+
     
     /**
      * Crea un controlador de juego para un mapa dado.
@@ -44,6 +49,44 @@ public class BadIceCream {
         this.score = 0;
         this.gameWon = false;
         this.gameLost = false;
+    }
+
+
+    private void buildFruitWaves() {
+        fruitWaves.clear();
+        List<Class<? extends Fruit>> seen = new ArrayList<>();
+    
+        for (Fruit f : fruits) {
+            Class<? extends Fruit> type = f.getClass();
+            if (!seen.contains(type)) {
+                seen.add(type);
+                fruitWaves.add(type);
+            }
+        }
+    }
+
+    private void spawnCurrentWave() {
+        gameMap.removeAllFruits(); // solo limpia el mapa, NO la lista
+        if (currentWave >= fruitWaves.size()) return;
+        Class<? extends Fruit> currentType = fruitWaves.get(currentWave);
+
+        for (Fruit f : fruits) {
+            if (f.getClass() == currentType && !f.isEaten()) {
+                f.activate();
+                gameMap.addFruit(f);
+            } else {
+                f.deactivate();
+            }
+        }
+    }
+
+    public void initializeAfterMapLoad() {
+        buildFruitWaves();
+        currentWave = 0;
+
+        if (!fruitWaves.isEmpty()) {
+            spawnCurrentWave();
+        }
     }
 
     /**
@@ -176,6 +219,8 @@ public class BadIceCream {
     public void updateGame() {
         if (gameLost || gameWon) return;
 
+        if (fruitWaves.isEmpty()) return;
+
         for (ControllerCream c : controllers) {
             c.update();
         }
@@ -213,7 +258,7 @@ public class BadIceCream {
                 checkCollisionsFor(p);
             }
         }
-        
+        totalScore();
         checkWinCondition();
     }
 
@@ -253,6 +298,7 @@ public class BadIceCream {
                 return;
             }
             f.eat();
+            p.setScorePlayer(f.getScore());
             gameMap.removeFruit(pos);
             score += f.getScoreValue();
         }
@@ -266,14 +312,57 @@ public class BadIceCream {
         }
     }
 
+    public int totalScore() {
+        int total = 0;
+        for (IceCream c : players) {
+            total += c.getScorePlayer();
+        }
+        return total;
+    }
+
     /**
      * Verifica si todas las frutas han sido recogidas para determinar si se ganó el nivel.
      */
     private void checkWinCondition() {
+        /*
         for (Fruit f : fruits) {
             if (!f.isEaten()) return;
         }
         gameWon = true;
+        */
+
+        if (gameWon) return;
+
+
+        Class<? extends Fruit> currentType = fruitWaves.get(currentWave);
+
+
+        for (Fruit f : fruits) {
+
+            if (f.getClass() == currentType && !f.isEaten()) {
+
+                return; // aún quedan frutas de esta oleada
+
+            }
+
+        }
+
+
+        // Oleada terminada
+
+        currentWave++;
+
+
+        if (currentWave >= fruitWaves.size()) {
+
+            gameWon = true;
+
+            return;
+
+        }
+
+
+        spawnCurrentWave();
     }
 
     /**
