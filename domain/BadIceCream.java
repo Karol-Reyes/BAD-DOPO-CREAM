@@ -32,6 +32,12 @@ public class BadIceCream {
     private int currentWave = 0;
     private List<Class<? extends Fruit>> fruitWaves = new ArrayList<>();
 
+    private static final long MAX_TIME_MS = 180000; // 3 minutos (3*60*1000)
+    private long startTime;
+    private long remainingTime;
+    private long pauseStartTime;
+    private boolean timeExpired = false;
+
     
     /**
      * Crea un controlador de juego para un mapa dado.
@@ -84,6 +90,9 @@ public class BadIceCream {
         buildFruitWaves();
         currentWave = 0;
 
+        startTime = System.currentTimeMillis();
+        remainingTime = MAX_TIME_MS;
+
         if (!fruitWaves.isEmpty()) {
             spawnCurrentWave();
         }
@@ -127,6 +136,7 @@ public class BadIceCream {
      */
     public void addEnemy(Enemy e) {
         e.setGameMap(gameMap);
+        e.setGame(this);
         enemies.add(e);
         initialEnemyPositions.add(new Position(
             e.getPosition().getRow(),
@@ -212,12 +222,30 @@ public class BadIceCream {
         return p.destroyIce(p.getFacingDirection());
     }
 
+    private void timeOver() {
+        for (IceCream p : players) {
+            p.die();
+        }
+        gameLost = true;
+    }
+
     /**
      * Actualiza el estado del juego moviendo enemigos,
      * procesando colisiones y comprobando condiciones de victoria.
      */
     public void updateGame() {
         if (gameLost || gameWon) return;
+
+        if (paused) return;
+
+        long now = System.currentTimeMillis();
+        remainingTime = MAX_TIME_MS - (now - startTime);
+
+        if (remainingTime <= 0 && !timeExpired) {
+            timeExpired = true;
+            timeOver();
+            return;
+        }
 
         if (fruitWaves.isEmpty()) return;
 
@@ -226,10 +254,14 @@ public class BadIceCream {
         }
 
         for (Enemy e : enemies) {
-            Direction d = e.getNextDirection();
-            if (d != null) {
-                e.move(d);
-                e.update();
+            if (e.usesAutoMovement()) {
+                Direction d = e.getNextDirection();
+                if (d != null) {
+                    e.move(d);
+                    e.update();
+                }
+            } else {
+                e.update();  // Flowerpot maneja todo internamente
             }
         }
 
@@ -373,6 +405,10 @@ public class BadIceCream {
         gameWon = false;
         gameLost = false;
 
+        startTime = System.currentTimeMillis();
+        remainingTime = MAX_TIME_MS;
+        timeExpired = false;
+
         gameMap.clearEntities();
         gameMap.resetBlocks();
 
@@ -438,7 +474,24 @@ public class BadIceCream {
     /**
      * Cambia el estado de pausa del juego
      */
-    public void setPaused(boolean p) { paused = p; }
+    public void setPaused(boolean p) { 
+        if (!paused && p) {
+            pauseStartTime = System.currentTimeMillis();
+        }
+        if (paused && !p) {
+            long pauseDuration = System.currentTimeMillis() - pauseStartTime;
+            startTime += pauseDuration;
+        }
+        paused = p; 
+    }
     
     public boolean isPaused() { return paused; }
+
+    public long getRemainingTimeMs() {
+        return Math.max(0, remainingTime);
+    }
+
+    public long getGameTime() {
+        return System.currentTimeMillis() - startTime;
+    }
 }

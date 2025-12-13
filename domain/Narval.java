@@ -13,8 +13,11 @@ public class Narval extends Enemy {
     private Direction chargeDirection;
     private final Random random;
 
-    public Narval(Position position, double speed) {
-        super(EnemyType.narval, position, speed);
+    private int tick = 0;
+    private int speed = 6;
+
+    public Narval(Position position) {
+        super(EnemyType.narval, position);
         this.charging = false;
         this.random = new Random();
         this.chargeDirection = null;
@@ -28,6 +31,11 @@ public class Narval extends Enemy {
 
     @Override
     public void doUpdate() {
+
+        tick++;
+        if (tick < speed) return;
+        tick = 0;
+        
         if (charging) {
             if (canContinueCharging()) {
                 performChargeStep();

@@ -13,9 +13,12 @@ public class Troll extends Enemy {
     private Direction currentDirection;
     private final Random random;
 
+    private int tick = 0;
+    private int speed = 7;
+
     /** Construye un Troll con posición y velocidad específicas. */
-    public Troll(Position position, double speed) {
-        super(EnemyType.troll, position, speed);
+    public Troll(Position position) {
+        super(EnemyType.troll, position);
         this.random = new Random();
         this.currentDirection = getRandomDirection();
     }
@@ -28,7 +31,12 @@ public class Troll extends Enemy {
 
     /** Actualiza el comportamiento del troll según su lógica de movimiento. */
     @Override
-    public void doUpdate() {       
+    public void doUpdate() { 
+        
+        tick++;
+        if (tick < speed) return;
+        tick = 0;
+
         checkTrapped();
         if (trapped) return;
 

@@ -17,9 +17,12 @@ public class YellowSquid extends Enemy {
     private int ticksEsperando;
     private static final int TICKS_PARA_ROMPER = 3; // Espera 3 ticks antes de romper
     private Position bloqueObjetivo; // Bloque que va a romper
+
+    private int tick = 0;
+    private int speed = 7;
     
-    public YellowSquid(Position position, double speed) {
-        super(EnemyType.yellowSquid, position, speed);
+    public YellowSquid(Position position) {
+        super(EnemyType.yellowSquid, position);
         this.estadoActual = Estado.PERSIGUIENDO;
         this.ticksEsperando = 0;
         this.bloqueObjetivo = null;
@@ -33,6 +36,11 @@ public class YellowSquid extends Enemy {
     
     @Override
     public void doUpdate() {
+
+        tick++;
+        if (tick < speed) return;
+        tick = 0;
+        
         switch (estadoActual) {
             case PERSIGUIENDO:
                 actualizarPersecucion();

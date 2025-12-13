@@ -7,12 +7,10 @@ public abstract class Enemy implements SpriteProvider {
 
     protected EnemyType type;
     protected Position position;
-    protected double speed;
     protected boolean trapped;
     protected GameMap gameMap;
     protected Direction currentDirection;
     //protected int skipCounter = 0;
-    private double speedAccumulator = 0;
 
     /**
      * Inicializa un enemigo con tipo, posición y velocidad.
@@ -20,10 +18,9 @@ public abstract class Enemy implements SpriteProvider {
      * @param position posición inicial
      * @param speed    velocidad de movimiento
      */
-    public Enemy(EnemyType type, Position position, double speed) {
+    public Enemy(EnemyType type, Position position) {
         this.type = type;
         this.position = position;
-        this.speed = speed;
         this.trapped = false;
         this.currentDirection = Direction.DOWN;
     }
@@ -43,9 +40,6 @@ public abstract class Enemy implements SpriteProvider {
     /** Asigna el mapa donde se mueve el enemigo. */
     public void setGameMap(GameMap gameMap) { this.gameMap = gameMap; }
 
-    /** Retorna la velocidad del enemigo. */
-    public double getSpeed() { return speed; }
-
     /** Retorna la dirección actual del enemigo. */
     public Direction getCurrentDirection() { return currentDirection; }
 
@@ -53,13 +47,7 @@ public abstract class Enemy implements SpriteProvider {
     public boolean isTrapped() { return trapped; }
 
     public void update() {
-
-        speedAccumulator += speed;
-        
-        if (speedAccumulator >= 1.0) {
-            speedAccumulator -= 1.0;
-            doUpdate();
-        }
+        doUpdate();
     }
 
     protected abstract void doUpdate();
@@ -166,5 +154,11 @@ public abstract class Enemy implements SpriteProvider {
     public int moveRight() {
         move(Direction.RIGHT);
         return position.getCol();
+    }
+
+    public void setGame(BadIceCream game) {}
+
+    protected boolean usesAutoMovement() {
+        return true;
     }
 }

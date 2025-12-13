@@ -18,15 +18,21 @@ public class Flowerpot extends Enemy {
     private final Random random;
     private Direction currentDirection;
 
-    public Flowerpot(Position position, double speed) {
-        super(EnemyType.flowerpot, position, speed);
+    public Flowerpot(Position position) {
+        super(EnemyType.flowerpot, position);
         this.random = new Random();
         this.currentDirection = getRandomDirection();
         this.modeTimer = System.currentTimeMillis();
     }
 
+    @Override
     public void setGame(BadIceCream game) {
         this.game = game;
+    }
+
+    @Override
+    protected boolean usesAutoMovement() {
+        return false;  // Flowerpot maneja su propio movimiento
     }
 
     @Override
