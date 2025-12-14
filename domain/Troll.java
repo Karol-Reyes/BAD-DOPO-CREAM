@@ -12,15 +12,26 @@ public class Troll extends Enemy {
 
     private Direction currentDirection;
     private final Random random;
+    private BadIceCream game;
 
     private int tick = 0;
-    private int speed = 7;
+    private int speed = 3;
 
     /** Construye un Troll con posición y velocidad específicas. */
     public Troll(Position position) {
         super(EnemyType.troll, position);
         this.random = new Random();
-        this.currentDirection = getRandomDirection();
+        this.currentDirection = Direction.DOWN;
+    }
+
+    @Override
+    public void setGame(BadIceCream game) {
+        this.game = game;
+    }
+
+    @Override
+    protected boolean usesAutoMovement() {
+        return false;
     }
 
     /** @return la dirección actual del troll. */
@@ -52,9 +63,11 @@ public class Troll extends Enemy {
             return;    
         }
 
+        // Intenta moverse en la dirección actual
         if (moveInDirection(currentDirection)) {
             move(currentDirection);
         } else {
+            // Si no puede, cambia de dirección
             changeDirection();
         }
     }
@@ -72,17 +85,31 @@ public class Troll extends Enemy {
 
     /** Cambia la dirección del troll cuando su camino está bloqueado. */
     private void changeDirection() {
-        for (Direction d : getLateral(currentDirection)) {
+        // Primero intenta las direcciones laterales
+        List<Direction> laterals = getLateral(currentDirection);
+        for (Direction d : laterals) {
             if (moveInDirection(d)) {
                 currentDirection = d;
                 move(d);
                 return;
             }
         }
+        
+        // Si las laterales están bloqueadas, intenta la dirección opuesta
         Direction opposite = currentDirection.getOpposite();
         if (moveInDirection(opposite)) {
             currentDirection = opposite;
             move(opposite);
+            return;
+        }
+        
+        // Si todo está bloqueado, intenta CUALQUIER dirección disponible
+        for (Direction d : Direction.values()) {
+            if (moveInDirection(d)) {
+                currentDirection = d;
+                move(d);
+                return;
+            }
         }
     }
 
@@ -97,6 +124,7 @@ public class Troll extends Enemy {
             list.add(Direction.DOWN);
         }
 
+        // Aleatoriza el orden
         if (random.nextBoolean()) {
             Direction t = list.get(0);
             list.set(0, list.get(1));

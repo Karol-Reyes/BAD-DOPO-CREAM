@@ -13,7 +13,10 @@ public class Flowerpot extends Enemy {
 
     private boolean chasingMode = false;
     private long modeTimer;
-    private BadIceCream game; // ← AGREGAR REFERENCIA AL GAME
+    private BadIceCream game;
+
+    private int tick = 1;
+    private int speed = 2;
 
     private final Random random;
     private Direction currentDirection;
@@ -21,7 +24,7 @@ public class Flowerpot extends Enemy {
     public Flowerpot(Position position) {
         super(EnemyType.flowerpot, position);
         this.random = new Random();
-        this.currentDirection = getRandomDirection();
+        this.currentDirection = Direction.UP;
         this.modeTimer = System.currentTimeMillis();
     }
 
@@ -42,6 +45,11 @@ public class Flowerpot extends Enemy {
 
     @Override
     public void doUpdate() {
+
+        tick++;
+        if (tick < speed) return;
+        tick = 0;
+
         long now = System.currentTimeMillis();
         long elapsed = now - modeTimer;
 
@@ -49,6 +57,8 @@ public class Flowerpot extends Enemy {
         if (elapsed >= MODE_DURATION) {
             chasingMode = !chasingMode;
             modeTimer = now;
+
+            speed = chasingMode ? 1 : 2;
         }
 
         // ---------------- RANDOM MODE ----------------

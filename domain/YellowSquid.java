@@ -15,11 +15,11 @@ public class YellowSquid extends Enemy {
     
     private Estado estadoActual;
     private int ticksEsperando;
-    private static final int TICKS_PARA_ROMPER = 3; // Espera 3 ticks antes de romper
+    private static final int TICKS_PARA_ROMPER = 2; // Espera 3 ticks antes de romper
     private Position bloqueObjetivo; // Bloque que va a romper
 
     private int tick = 0;
-    private int speed = 7;
+    private int speed = 2;
     
     public YellowSquid(Position position) {
         super(EnemyType.yellowSquid, position);
@@ -27,6 +27,16 @@ public class YellowSquid extends Enemy {
         this.ticksEsperando = 0;
         this.bloqueObjetivo = null;
         this.currentDirection = Direction.DOWN;
+    }
+
+    @Override
+    public void setGame(BadIceCream game) {
+        // No necesita game, pero implementamos el método
+    }
+
+    @Override
+    protected boolean usesAutoMovement() {
+        return false;  // Maneja su propio movimiento
     }
     
     @Override
@@ -40,7 +50,7 @@ public class YellowSquid extends Enemy {
         tick++;
         if (tick < speed) return;
         tick = 0;
-        
+
         switch (estadoActual) {
             case PERSIGUIENDO:
                 actualizarPersecucion();
@@ -63,39 +73,69 @@ public class YellowSquid extends Enemy {
         IceCream jugadorCercano = encontrarJugadorCercano();
         
         if (jugadorCercano == null || !jugadorCercano.isAlive()) {
-            // No hay jugador, quedarse quieto
             return;
         }
         
         // Calcular dirección hacia el jugador
-        Direction direccion = calcularDireccionHacia(jugadorCercano.getPosition());
+        Direction direccionPreferida = calcularDireccionHacia(jugadorCercano.getPosition());
         
-        if (direccion == null) return;
+        if (direccionPreferida == null) return;
         
-        // Verificar si hay un bloque en el camino
+        // Intentar moverse en la dirección preferida
+        if (intentarMovimiento(direccionPreferida)) {
+            return;
+        }
+        
+        // Si no puede, intentar direcciones alternativas
+        Direction[] alternativas = calcularDireccionesAlternativas(jugadorCercano.getPosition());
+        for (Direction dir : alternativas) {
+            if (intentarMovimiento(dir)) {
+                return;
+            }
+        }
+        
+        // Si todo falla, intentar cualquier dirección disponible
+        for (Direction dir : Direction.values()) {
+            if (intentarMovimiento(dir)) {
+                return;
+            }
+        }
+    }
+    
+    /**
+     * Intenta moverse en una dirección, manejando bloques de hielo
+     */
+    private boolean intentarMovimiento(Direction direccion) {
         Position siguiente = new Position(
             position.getRow() + direccion.getRowDelta(),
             position.getCol() + direccion.getColDelta()
         );
         
-        if (!gameMap.isValid(siguiente)) return;
+        if (!gameMap.isValid(siguiente)) return false;
+        
+        // Verificar si hay un enemigo
+        if (gameMap.hasEnemy(siguiente)) return false;
         
         Boxy bloque = gameMap.getBlock(siguiente);
         
-        // Si hay un bloque de hielo que puede destruir, detenerse
+        // Si hay un bloque de hielo que puede destruir, detenerse para romperlo
         if (bloque != null && bloque.isCreated() && bloque.canBeDestroyed()) {
             estadoActual = Estado.DETENIDO;
             ticksEsperando = 0;
             bloqueObjetivo = siguiente;
             currentDirection = direccion;
-            return;
+            return true; // Sí "hizo algo" (se detuvo para romper)
         }
         
-        // Si no hay obstáculo, moverse normalmente
-        if (moveInDirection(direccion)) {
-            currentDirection = direccion;
-            move(direccion);
+        // Si hay un bloque que NO puede romper, no puede pasar
+        if (gameMap.isBlocked(siguiente)) {
+            return false;
         }
+        
+        // Camino libre, moverse
+        currentDirection = direccion;
+        move(direccion);
+        return true;
     }
     
     /**
@@ -162,7 +202,7 @@ public class YellowSquid extends Enemy {
     }
     
     /**
-     * Calcula la dirección hacia un objetivo
+     * Calcula la dirección óptima hacia un objetivo
      */
     private Direction calcularDireccionHacia(Position objetivo) {
         int deltaRow = objetivo.getRow() - position.getRow();
@@ -175,7 +215,34 @@ public class YellowSquid extends Enemy {
             return deltaCol > 0 ? Direction.RIGHT : Direction.LEFT;
         }
         
-        return null; // Ya está en la misma posición
+        return null;
+    }
+    
+    /**
+     * Calcula direcciones alternativas hacia el objetivo
+     */
+    private Direction[] calcularDireccionesAlternativas(Position objetivo) {
+        int deltaRow = objetivo.getRow() - position.getRow();
+        int deltaCol = objetivo.getCol() - position.getCol();
+        
+        Direction vertical = deltaRow > 0 ? Direction.DOWN : Direction.UP;
+        Direction horizontal = deltaCol > 0 ? Direction.RIGHT : Direction.LEFT;
+        
+        if (Math.abs(deltaRow) > Math.abs(deltaCol)) {
+            // Prefiere vertical, alternativas: horizontal, opuesto horizontal, opuesto vertical
+            return new Direction[]{
+                horizontal,
+                horizontal.getOpposite(),
+                vertical.getOpposite()
+            };
+        } else {
+            // Prefiere horizontal, alternativas: vertical, opuesto vertical, opuesto horizontal
+            return new Direction[]{
+                vertical,
+                vertical.getOpposite(),
+                horizontal.getOpposite()
+            };
+        }
     }
     
     /**

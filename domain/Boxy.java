@@ -106,6 +106,16 @@ public abstract class Boxy {
     public void iniciarTimer() { }
 
     /**
+    * Método llamado cuando el bloque va a ser destruido.
+    * Por defecto, simplemente se elimina del mapa.
+    */
+    public void onDestroy(GameMap map) {
+        map.clearBlock(position);
+    }
+
+    public void onUnfreeze() { }
+
+    /**
      * Obtiene la clave del sprite correspondiente al estado actual del bloque.
      * @return clave del sprite
      */

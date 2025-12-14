@@ -2,12 +2,36 @@ package domain;
 
 public class Ice extends Boxy {
 
+    private Boxy underlyingBlock;
+
     /**
      * Constructor segun una posicion dada
      * @param position del hielo
      */
     public Ice(Position position, BoxState state) {
         super(BoxType.ice, position, state);
+        this.underlyingBlock = null;
+    }
+
+    public Ice(Position position, BoxState state, Boxy underlying) {
+        super(BoxType.ice, position, state);
+        this.underlyingBlock = underlying;
+    }
+
+    public Boxy getUnderlyingBlock() {
+        return underlyingBlock;
+    }
+
+    @Override
+    public void onDestroy(GameMap map) {
+        // Si había una bonfire debajo, restaurarla
+        if (underlyingBlock != null && underlyingBlock.getType() == BoxType.bonfire) {
+            map.setBlock(position, underlyingBlock);
+            underlyingBlock.onUnfreeze(); // Nuevo método para reiniciar el timer
+        } else {
+            // No había nada especial, eliminar normalmente
+            map.clearBlock(position);
+        }
     }
 
     /**

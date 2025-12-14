@@ -12,7 +12,7 @@ public class Bonfire extends Boxy {
 
     @Override
     public boolean canWalk() { 
-        return false; 
+        return state == BoxState.off; // Solo se puede caminar si está apagada
     }
 
     @Override
@@ -29,6 +29,7 @@ public class Bonfire extends Boxy {
     public void on() {
         if (state != BoxState.on) {
             super.on();
+            freezeTimestamp = 0; // Resetear timestamp al encenderse
         }
     }
 
@@ -40,7 +41,7 @@ public class Bonfire extends Boxy {
     }
 
     /**
-     * Se llama cuando el hielo lo congela.
+     * Se llama cuando el hielo la congela.
      */
     @Override
     public void onFreeze() {
@@ -56,15 +57,23 @@ public class Bonfire extends Boxy {
     }
 
     /**
-     * Se llama desde GameMap.update() para ver si ya debe reencenderse.
+     * Se llama desde BadIceCream.updateGame() para ver si ya debe reencenderse.
      */
     @Override
     public void update() {
-        if (state == BoxState.off) {
+        if (state == BoxState.off && freezeTimestamp > 0) {
             long elapsed = System.currentTimeMillis() - freezeTimestamp;
             if (elapsed >= FREEZE_DURATION) {
                 on(); // se vuelve a encender
             }
         }
+    }
+
+    /**
+    * Se llama cuando se destruye el hielo que la congelaba.
+    */
+    public void onUnfreeze() {
+        // Reiniciar el timer desde este momento
+        freezeTimestamp = System.currentTimeMillis();
     }
 }

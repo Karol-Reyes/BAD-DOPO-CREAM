@@ -119,10 +119,9 @@ public class IceCream implements SpriteProvider {
      */
     public int createIce(Direction d) {
         if (gameMap == null) return 0;
-
         int count = 0;
         Position pos = this.position;
-
+    
         while (true) {
             Position next = new Position(
                 pos.getRow() + d.getRowDelta(),
@@ -130,28 +129,27 @@ public class IceCream implements SpriteProvider {
             );
             if (!gameMap.isValid(next)) break;
             if (gameMap.hasEnemy(next) || gameMap.hasPlayer(next)) break;
-
             Boxy b = gameMap.getBlock(next);
-
+    
+            // Si es fuego simple, continuar sin crear hielo
             if (b != null && b.getType() == BoxType.fire) {
                 pos = next;
                 continue;
             }
-
-            if (b != null && b.getType() == BoxType.bonfire && b.isCreated()) {        
-                Ice hielo = new Ice(next, BoxState.created);
-                gameMap.setBlock(next, hielo);
-        
-                b.off();          // apagar fuego
-                b.iniciarTimer(); // metodo propio del bonfire
-
+    
+            // Si es una bonfire ENCENDIDA, congelarla
+            if (b != null && b.getType() == BoxType.bonfire && b.getState() == BoxState.on) {
+                gameMap.setBlock(next, new Ice(next, BoxState.created, b));
+                b.onFreeze(); // ← CAMBIO: usar onFreeze() en vez de off()
                 count++;
                 pos = next;
-                continue;
+                continue; // ← IMPORTANTE: continue para NO colocar hielo encima
             }
 
+            // Si ya hay un bloque creado, detenerse
             if (b != null && b.isCreated()) break;
-
+    
+            // Crear hielo en espacios válidos
             if ((b == null || b.getType() == BoxType.floor) || (b.canBeCreated() && b.getType() != BoxType.iron)) {
                 if (gameMap.hasFruit(next)) {
                     Fruit f = gameMap.getFruit(next);
@@ -189,6 +187,7 @@ public class IceCream implements SpriteProvider {
                 Fruit f = gameMap.getFruit(next);
                 f.unfreeze();
             }
+            b.onDestroy(gameMap);
             gameMap.clearBlock(next);
             count++;
             pos = next;
