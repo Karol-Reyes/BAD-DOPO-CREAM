@@ -13,8 +13,16 @@ public class GameGUI extends JPanel {
     private GameControl gameControl;
     private SpriteManager spriteManager;  
     
+    // Overlay de pausa
     private JLabel pauseOverlay;
     private boolean isPaused = false;
+
+    // imagenes y botones del juego
+    private JLabel fruitBar;
+    private PixelButton btnPause;
+    private JLabel winOverlay;
+    private boolean winShown = false;
+
 
 
 
@@ -38,16 +46,29 @@ public class GameGUI extends JPanel {
         panel = new GamePanel(game, spriteManager);
         add(panel, BorderLayout.CENTER);
 
+        // Crear la barra de frutas
+        addFruitBar();
+        PauseButton();
+
         // Configurar controles
         setupKeyBindings();
 
         // Iniciar el timer del juego
         timer = new Timer(150, e -> {
-            if (!game.isGameWon() && !game.isGameLost()) {
-                game.updateGame();
-            }
-            panel.repaint();
-        });
+
+        if (!game.isGameWon() && !game.isGameLost()) {
+            game.updateGame();
+        }
+
+        if (game.isGameWon() && !winShown) {
+            showWinOverlay();
+            winShown = true;
+            
+        }
+
+        panel.repaint();
+    });
+
         timer.start();
     }
 
@@ -55,7 +76,7 @@ public class GameGUI extends JPanel {
     // CARGAR NIVEL 
 
     private void loadGame() {
-
+        resetWinState();
         GameConfig config = gameControl.toGameConfig();
         game = LevelLoader.cargarNivelCompleto(config.getLevel(), config);
 
@@ -104,6 +125,7 @@ public class GameGUI extends JPanel {
         am.put(name, new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                if (winShown) return;
                 action.run();
                 panel.repaint();
             }
@@ -128,6 +150,7 @@ public class GameGUI extends JPanel {
     private void showPauseOverlay() {
         pauseOverlay = new JLabel();
         pauseBackground();
+        textPause();
         buttonContinue();
         buttonExit();
     }
@@ -144,11 +167,18 @@ public class GameGUI extends JPanel {
         pauseOverlay.revalidate();
         pauseOverlay.repaint();
     }
+
+    private void textPause() {
+        JLabel text = ImageUtils.createScaledImageLabel("/Resources/textos/Pausa.png",
+        130, 40, 270, 200);
+        pauseOverlay.add(text);
+        pauseOverlay.setComponentZOrder(text, 0);
+    }
     
     private void buttonContinue() {
         PixelButton btnContinue = new PixelButton("/Resources/textos/Continuar.png",
-         150, 70);
-        btnContinue.setBounds(220, 230, 150, 70);
+         140, 60);
+        btnContinue.setBounds(260, 270, 140, 60);
         btnContinue.addActionListener(e -> togglePause());
         pauseOverlay.add(btnContinue);
         pauseOverlay.setComponentZOrder(btnContinue, 0);
@@ -158,7 +188,7 @@ public class GameGUI extends JPanel {
     
     private void buttonExit() {
         PixelButton btnExit = new PixelButton("/Resources/textos/Salir.png", 100, 50);
-        btnExit.setBounds(290, 360, 100, 50);
+        btnExit.setBounds(280, 340, 100, 50);
         btnExit.addActionListener(e -> exitToLevelSelection());
         pauseOverlay.add(btnExit);
         pauseOverlay.setComponentZOrder(btnExit, 0);
@@ -169,6 +199,24 @@ public class GameGUI extends JPanel {
         this.setComponentZOrder(pauseOverlay, 0);
         this.repaint();
     }
+
+    private void resetWinState() {
+        winShown = false;
+
+        if (winOverlay != null) {
+            this.remove(winOverlay);
+            winOverlay = null;
+        }
+
+        if (timer != null && !timer.isRunning()) {
+            timer.start();
+        }
+
+        isPaused = false;
+        this.setFocusable(true);
+        this.requestFocusInWindow();
+    }
+
 
     private void hidePauseOverlay() {
         if (pauseOverlay != null) {
@@ -188,6 +236,108 @@ public class GameGUI extends JPanel {
             parent.revalidate();
             parent.repaint();
         }
+    }
+
+    private void addFruitBar() {
+        panel.setLayout(null);
+
+        fruitBar = ImageUtils.createScaledImageLabel(
+            "/Resources/game/fondoFrutas.png", 
+            580, 70,                         
+            0, 580                           
+        );
+        panel.add(fruitBar);
+        panel.setComponentZOrder(fruitBar, 0);
+        panel.repaint();
+    }
+
+    private void PauseButton() {
+        btnPause = new PixelButton("/Resources/game/BotonPausa.png", 100, 50);
+        btnPause.setBounds(600, 50, 50, 50);
+        btnPause.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnPause.setDisabledIcon(btnPause.getIcon());
+        btnPause.addActionListener(e -> togglePause());
+        panel.add(btnPause);
+        panel.setComponentZOrder(btnPause, 0);
+        panel.repaint();
+    }
+
+    private void showWinOverlay() {
+        timer.stop();
+        btnPause.setEnabled(false);
+        game.setPaused(true);
+        this.setFocusable(false);
+        winOverlay = new JLabel();
+        winOverlay.setBounds(0, 0, getWidth(), getHeight());
+        winOverlay.setLayout(null);
+        winOverlay.setOpaque(true);
+        winOverlay.setBackground(new Color(0, 0, 0, 150));
+        backgroundWin();
+        textWin();
+        ImageWin();
+        buttonMenu();
+        buttonRestart();
+        this.add(winOverlay);
+        this.setComponentZOrder(winOverlay, 0);
+        this.revalidate();
+        this.repaint();
+    }
+    
+    private void backgroundWin() {
+        JLabel bg = ImageUtils.createScaledImageLabel(
+            "/Resources/inicio/fondo_eleccion.png",
+            550, 350,
+            60, 160
+        );
+        winOverlay.add(bg);
+    }
+    private void textWin() {
+        JLabel text = ImageUtils.createScaledImageLabel(
+            "/Resources/textos/NivelCompletado.png",
+            260, 50,
+            205, 160
+        );
+        winOverlay.add(text);
+        winOverlay.setComponentZOrder(text, 0);
+
+    }
+
+    private void ImageWin() {
+        JLabel image = ImageUtils.createScaledImageLabel(
+            "/Resources/game/Victoria.png",
+            400, 220,
+            140, 210
+        );
+        winOverlay.add(image);
+        winOverlay.setComponentZOrder(image, 0);
+
+    }
+
+    private void buttonMenu() {
+        PixelButton btnExit = new PixelButton("/Resources/textos/VolverMenu.png",
+        120, 50);
+        btnExit.setBounds(120, 425, 120, 50);
+        btnExit.addActionListener(e -> exitToLevelSelection());
+        winOverlay.add(btnExit);
+        winOverlay.setComponentZOrder(btnExit, 0);
+        winOverlay.revalidate();
+        winOverlay.repaint();
+    }
+
+    private void buttonRestart() {
+        PixelButton btnRestart = new PixelButton("/Resources/textos/Reiniciar.png",
+        120, 50);
+        btnRestart.setBounds(390, 425, 150, 50);
+        btnRestart.addActionListener(e -> resetGame());
+        winOverlay.add(btnRestart);
+        winOverlay.setComponentZOrder(btnRestart, 0);
+        winOverlay.revalidate();
+        winOverlay.repaint();
+    }
+
+    private void resetGame() {
+        btnPause.setEnabled(true);
+        loadGame();
     }
 
     // =====================================================

@@ -15,7 +15,7 @@ public class Flowerpot extends Enemy {
     private long modeTimer;
     private BadIceCream game;
 
-    private int tick = 1;
+    private int tick = 2;
     private int speed = 2;
 
     private final Random random;

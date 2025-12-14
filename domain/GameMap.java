@@ -191,7 +191,7 @@ public class GameMap {
         Boxy b = blocks[pos.getRow()][pos.getCol()];
         if (b != null && b.canBeDestroyed()) b.destroy();
     }
-
+    
     /**
      * Inserta un enemigo en el mapa.
      * @param e enemigo a agregar

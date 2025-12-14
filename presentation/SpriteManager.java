@@ -50,23 +50,32 @@ public class SpriteManager {
         sprites.put("flowerpot_on", load("/Resources/enemy/flowerpot/flowerpot_on.png"));
         sprites.put("enemy_narval", load("/Resources/enemy/narwhal.png"));
         sprites.put("enemy_default", load("/Resources/enemy/troll/static_down.png"));
-        sprites.put("enemy_squid", load("/Resources/enemy/yellow_squid/walk_down.gif"));
+        sprites.put("enemy_squid", load("/Resources/enemy/yellow_squid/static_down.png"));
 
         // JUGADOR DEFAULT 
 
         sprites.put("player_alive", load("/Resources/user/vainilla/static_down.png"));
-        sprites.put("player_dead", load("/Resources/user/vainilla/dead.gif"));
+        sprites.put("player_dead", load("/Resources/user/vainilla/dead.png"));
 
         // JUGADORES
 
         sprites.put("Chocolate_alive", load("/Resources/user/chocolate/static_down.png"));
-        sprites.put("Chocolate_dead", load("/Resources/user/chocolate/dead.gif"));
+        sprites.put("Chocolate_dead", load("/Resources/user/chocolate/dead.png"));
 
         sprites.put("Strawberry_alive", load("/Resources/user/strawberry/static_down.png"));
-        sprites.put("Strawberry_dead", load("/Resources/user/strawberry/dead.gif"));
+        sprites.put("Strawberry_dead", load("/Resources/user/strawberry/dead.png"));
 
         sprites.put("Vanilla_alive", load("/Resources/user/vainilla/static_down.png"));
-        sprites.put("Vanilla_dead", load("/Resources/user/vainilla/dead.gif"));
+        sprites.put("Vanilla_dead", load("/Resources/user/vainilla/dead.png"));
+
+        sprites.put("Hungry_alive", load("/Resources/user/hungry/static_down.png"));
+        sprites.put("Hungry_dead", load("/Resources/user/hungry/dead.png"));
+
+        sprites.put("Fearful_alive", load("/Resources/user/fearful/static_down.png"));
+        sprites.put("Fearful_dead", load("/Resources/user/fearful/dead.png"));
+
+        sprites.put("Expert_alive", load("/Resources/user/expert/static_down.png"));
+        sprites.put("Expert_dead", load("/Resources/user/expert/dead.png"));
     }
 
     // ==========================================================

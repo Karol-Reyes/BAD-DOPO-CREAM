@@ -49,7 +49,7 @@ public class MapParser {
             IceCream p = jugadores.get(i);
             char tipo = tiposJugadores.get(i);
 
-            // Jugadores humanos (C, S, V)
+            // Jugadores humanos 
             if (tipo == 'C' || tipo == 'S' || tipo == 'V') {
                 String flavor = (i == 0) 
                                 ? config.getCharacter1() 
@@ -59,9 +59,15 @@ public class MapParser {
 
                 p.setFlavor(flavor);
             } 
-            else {
+            else if (tipo == 'R' || tipo == 'J' || tipo == 'E') {
                 // Bots siempre usan default
-                p.setFlavor("Vanilla");
+                String flavor = (i == 0) 
+                                ? config.getCharacter1() 
+                                : config.getCharacter2();
+
+                if (flavor == null) flavor = "Vanilla";
+
+                p.setFlavor(flavor);
             }
         }
 
@@ -148,19 +154,19 @@ public class MapParser {
             case 'R': 
                 IceCream hungry = new IceCream(pos);
                 hungry.setGameMap(map);
-                hungry.setFlavor("Vanilla");
+                hungry.setFlavor("hungry");
                 jugadores.add(hungry);
                 break;
             case 'J': 
                 IceCream fearful = new IceCream(pos);
                 fearful.setGameMap(map);
-                fearful.setFlavor("Vanilla");
+                fearful.setFlavor("fearful");
                 jugadores.add(fearful);
                 break;
             case 'E':
                 IceCream expert = new IceCream(pos);
                 expert.setGameMap(map);
-                expert.setFlavor("Vanilla");
+                expert.setFlavor("expert");
                 jugadores.add(expert);
                 break;
 
