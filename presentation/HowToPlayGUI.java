@@ -3,6 +3,10 @@ package presentation;
 import java.awt.*;
 import javax.swing.*;
 
+/**
+ * Clase que representa la interfaz gráfica de usuario (GUI) para las instrucciones de cómo jugar.
+ * Extiende ResourcesGUI y maneja la secuencia de visualización de las instrucciones.
+ */
 public class HowToPlayGUI extends ResourcesGUI {
 
     private Timer gifTimer;
@@ -26,7 +30,11 @@ public class HowToPlayGUI extends ResourcesGUI {
     private JLabel gifdie;
     private JLabel textdie;
 
-    
+    /**
+     * Crea la pantalla de instrucciones del juego y configura
+     * sus propiedades visuales iniciales.
+     */
+    @SuppressWarnings("OverridableMethodCallInConstructor")
     public HowToPlayGUI() {
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
@@ -34,6 +42,10 @@ public class HowToPlayGUI extends ResourcesGUI {
         startSequence();
     }
 
+    /**
+     * Inicia la secuencia visual del tutorial mostrando una animación inicial
+     * antes de presentar la primera instrucción.
+     */
     @Override
     protected void startSequence() {
         startChocolateGif();   
@@ -47,13 +59,15 @@ public class HowToPlayGUI extends ResourcesGUI {
             gifMove();
             textMove();
             buttonContinue1();
-        
         });
 
         gifTimer.setRepeats(false);
         gifTimer.start();
     }
     
+    /**
+     * Muestra el GIF que explica el movimiento del jugador.
+     */
     public void gifMove() {
         gifLabelMove = ImageUtils.createAnimatedGifLabel(
             "/Resources/inicio/moveTutorial.gif",
@@ -67,6 +81,9 @@ public class HowToPlayGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Muestra el texto explicativo sobre cómo moverse en el juego.
+     */
     public void textMove() {
         textLabelMove = ImageUtils.createScaledImageLabel(
             "/Resources/textos/ComoMoverse.png",
@@ -79,7 +96,9 @@ public class HowToPlayGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
-
+    /**
+     * Crea el botón para continuar a la siguiente instrucción del tutorial.
+     */
     public void buttonContinue1() {
         btnContinue1 = new PixelButton("/Resources/textos/Continuar.png", 210, 30);
         btnContinue1.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -93,6 +112,10 @@ public class HowToPlayGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Maneja la transición desde la instrucción de movimiento
+     * a la instrucción de congelar.
+     */
     private void onContinuePressed1() {
         contentLabel.remove(gifLabelMove);
         contentLabel.remove(textLabelMove);
@@ -104,6 +127,9 @@ public class HowToPlayGUI extends ResourcesGUI {
         buttonContinue2();
     }
 
+    /**
+     * Muestra el GIF que explica cómo congelar bloques.
+     */
     private void gifIce() {
         gifLabelIce = ImageUtils.createAnimatedGifLabel(
             "/Resources/inicio/iceTutorial.gif",
@@ -117,6 +143,9 @@ public class HowToPlayGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Muestra el texto explicativo sobre cómo congelar.
+     */
     private void textIce() {
         textLabelIce = ImageUtils.createScaledImageLabel(
             "/Resources/textos/ComoCongelar.png",
@@ -129,6 +158,9 @@ public class HowToPlayGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Crea el botón para continuar a la instrucción de romper bloques.
+     */
     private void buttonContinue2() {
         btnContinue2 = new PixelButton("/Resources/textos/Continuar.png", 210, 30);
         btnContinue2.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -142,6 +174,10 @@ public class HowToPlayGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Maneja la transición desde la instrucción de congelar
+     * a la instrucción de romper bloques.
+     */
     private void onContinuePressed2() {
         contentLabel.remove(gifLabelIce);
         contentLabel.remove(textLabelIce);
@@ -153,6 +189,9 @@ public class HowToPlayGUI extends ResourcesGUI {
         buttonContinue3();
     }
 
+    /**
+     * Muestra el GIF que explica cómo romper bloques.
+     */
     private void breakIce() {
         gifBreak = ImageUtils.createAnimatedGifLabel(
             "/Resources/inicio/BreakGif.gif",
@@ -166,6 +205,9 @@ public class HowToPlayGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Muestra el texto explicativo sobre cómo romper bloques.
+     */
     private void textBreak() {
         textBreak = ImageUtils.createScaledImageLabel(
             "/Resources/textos/ComoRomper.png",
@@ -178,6 +220,9 @@ public class HowToPlayGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Crea el botón para continuar a la instrucción de comer frutas.
+     */
     private void buttonContinue3() {
         btnContinue3 = new PixelButton("/Resources/textos/Continuar.png", 210, 30);
         btnContinue3.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -191,6 +236,10 @@ public class HowToPlayGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Maneja la transición desde la instrucción de romper bloques
+     * a la instrucción de comer frutas.
+     */
     private void onContinuePressed3() {
         contentLabel.remove(gifBreak);
         contentLabel.remove(textBreak);
@@ -202,6 +251,9 @@ public class HowToPlayGUI extends ResourcesGUI {
         buttonContinue4();
     }
 
+    /**
+     * Muestra el GIF que explica cómo comer frutas.
+     */
     private void eatFruit() {
         gifFruit = ImageUtils.createAnimatedGifLabel(
             "/Resources/inicio/gifFruit.gif",
@@ -215,6 +267,9 @@ public class HowToPlayGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Muestra el texto explicativo sobre cómo comer frutas.
+     */
     private void textFruit() {
         textFruit = ImageUtils.createScaledImageLabel(
             "/Resources/textos/ComoComer.png",
@@ -227,6 +282,9 @@ public class HowToPlayGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Crea el botón para continuar a la instrucción final del tutorial.
+     */
     private void buttonContinue4() {
         btnContinue4 = new PixelButton("/Resources/textos/Continuar.png", 210, 30);
         btnContinue4.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -240,6 +298,9 @@ public class HowToPlayGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Maneja la transición hacia la instrucción de muerte del jugador.
+     */
     private void onContinuePressed4() {
         contentLabel.remove(gifFruit);
         contentLabel.remove(textFruit);
@@ -250,6 +311,9 @@ public class HowToPlayGUI extends ResourcesGUI {
         textdie();
     }
 
+    /**
+     * Muestra el GIF que explica cómo el jugador puede morir.
+     */
     private void die() {
         gifdie = ImageUtils.createAnimatedGifLabel(
             "/Resources/inicio/DieGif.gif",
@@ -263,6 +327,9 @@ public class HowToPlayGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Muestra el texto explicativo sobre cómo ocurre la muerte del jugador.
+     */
     private void textdie() {
         textdie = ImageUtils.createScaledImageLabel(
             "/Resources/textos/ComoMorir.png",

@@ -1,5 +1,9 @@
 package domain;
 
+/**
+ * Representa una uva dentro del mapa del juego.
+ * La uva es estatica
+ */
 public class Grape extends Fruit{
     
     /**
@@ -11,6 +15,10 @@ public class Grape extends Fruit{
         this.scoreValue = 50;
     }
 
+    /**
+     * @return el valor de puntuación de la uva
+     */
+    @Override
     public int getScore() {
         return scoreValue;
     }

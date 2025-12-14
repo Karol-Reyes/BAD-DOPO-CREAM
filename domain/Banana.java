@@ -1,5 +1,9 @@
 package domain;
 
+/**
+ * Representa una banana dentro del mapa del juego.
+ * La banana es estatica
+ */
 public class Banana extends Fruit{
     
     /**
@@ -11,6 +15,10 @@ public class Banana extends Fruit{
         this.scoreValue = 100;
     }
 
+    /**
+     * @return el valor de puntuación de la banana
+     */
+    @Override
     public int getScore() {
         return scoreValue;
     }

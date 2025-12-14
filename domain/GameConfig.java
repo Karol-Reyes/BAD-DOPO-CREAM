@@ -1,42 +1,121 @@
 package domain;
 
+/**
+ * Configuración del juego, incluyendo modo, personajes, nivel, frutas, enemigos y objetos.
+ */
 public class GameConfig {
-    private String gameMode;
-    private String character1;
-    private String character2;
+
+    private String mode;
+    private String charA;
+    private String charB;
     private int level;
-    private String fruit1;
-    private String fruit2;
-    private String enemy1;
-    private String enemy2;
-    private String object;
-    
-    // Constructor vacío
-    public GameConfig() {}
-    
-    // Constructor completo
-    public GameConfig(String gameMode, String character1, String character2, 
-                      int level, String fruit1, String fruit2, 
-                      String enemy1, String enemy2, String object) {
-        this.gameMode = gameMode;
-        this.character1 = character1;
-        this.character2 = character2;
-        this.level = level;
-        this.fruit1 = fruit1;
-        this.fruit2 = fruit2;
-        this.enemy1 = enemy1;
-        this.enemy2 = enemy2;
-        this.object = object;
+    private String fruitA;
+    private String fruitB;
+    private String enemyA;
+    private String enemyB;
+    private String item;
+
+    /**
+     * Crea una configuración vacía del juego.
+     */
+    public GameConfig() {
     }
-    
-    // Getters
-    public String getGameMode() { return gameMode; }
-    public String getCharacter1() { return character1; }
-    public String getCharacter2() { return character2; }
-    public int getLevel() { return level; }
-    public String getFruit1() { return fruit1; }
-    public String getFruit2() { return fruit2; }
-    public String getEnemy1() { return enemy1; }
-    public String getEnemy2() { return enemy2; }
-    public String getObject() { return object; }
+
+    /**
+     * Crea una configuración completa del juego.
+     * @param mode modo de juego
+     * @param charA primer personaje
+     * @param charB segundo personaje
+     * @param level nivel seleccionado
+     * @param fruitA primera fruta
+     * @param fruitB segunda fruta
+     * @param enemyA primer enemigo
+     * @param enemyB segundo enemigo
+     * @param item objeto especial
+     */
+    public GameConfig(String mode, String charA, String charB,
+                      int level, String fruitA, String fruitB,
+                      String enemyA, String enemyB, String item) {
+        this.mode = mode;
+        this.charA = charA;
+        this.charB = charB;
+        this.level = level;
+        this.fruitA = fruitA;
+        this.fruitB = fruitB;
+        this.enemyA = enemyA;
+        this.enemyB = enemyB;
+        this.item = item;
+    }
+
+    /**
+     * Obtiene el modo de juego.
+     * @return modo de juego
+     */
+    public String getMode() {
+        return mode;
+    }
+
+    /**
+     * Obtiene el primer personaje.
+     * @return personaje A
+     */
+    public String getCharacter1() {
+        return charA;
+    }
+
+    /**
+     * Obtiene el segundo personaje.
+     * @return personaje B
+     */
+    public String getCharacter2() {
+        return charB;
+    }
+
+    /**
+     * Obtiene el nivel configurado.
+     * @return nivel del juego
+     */
+    public int getLevel() {
+        return level;
+    }
+
+    /**
+     * Obtiene la primera fruta.
+     * @return fruta A
+     */
+    public String getFruit1() {
+        return fruitA;
+    }
+
+    /**
+     * Obtiene la segunda fruta.
+     * @return fruta B
+     */
+    public String getFruit2() {
+        return fruitB;
+    }
+
+    /**
+     * Obtiene el primer enemigo.
+     * @return enemigo A
+     */
+    public String getEnemy1() {
+        return enemyA;
+    }
+
+    /**
+     * Obtiene el segundo enemigo.
+     * @return enemigo B
+     */
+    public String getEnemy2() {
+        return enemyB;
+    }
+
+    /**
+     * Obtiene el objeto especial.
+     * @return objeto del juego
+     */
+    public String getObject() {
+        return item;
+    }
 }

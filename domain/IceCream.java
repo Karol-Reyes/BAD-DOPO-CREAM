@@ -1,218 +1,348 @@
 package domain;
 
 /**
- * Representa al jugador principal del juego. Gestiona su posición, movimiento,
- * dirección, estado y la interacción con el mapa (creación y destrucción de hielo).
+ * Representa al jugador principal del juego, un helado.
  */
 public class IceCream implements SpriteProvider {
 
-    private Position position;
-    private int speed;
+    private Position pos;
     private boolean alive;
-    private ControllerCream controller;
-
-    private GameMap gameMap;
-    private Direction facingDirection;
+    private ControllerCream ctrl;
+    private GameMap map;
+    private Direction dir;
     private boolean moving;
-
     private int score;
-
     private String flavor;
-    
-    /** Construye un IceCream en la posición dada. */
-    public IceCream(Position position) {
-        this.position = position;
-        this.flavor = flavor;
-        this.speed = 1;
+
+    /**
+     * Crea un jugador en una posición inicial.
+     * @param pos posición inicial
+     */
+    public IceCream(Position pos) {
+        this.pos = pos;
         this.alive = true;
         this.score = 0;
-        this.facingDirection = Direction.DOWN;
+        this.dir = Direction.DOWN;
         this.moving = false;
     }
 
-    public int getScorePlayer() {
+    /**
+     * Retorna el puntaje actual del jugador.
+     * @return puntaje acumulado
+     */
+    public int getScore() {
         return score;
     }
 
-    public void setScorePlayer (int s) {
-        this.score += s;
+    /**
+     * Suma puntaje al jugador.
+     * @param value valor a agregar
+     */
+    public void addScore(int value) {
+        this.score += value;
     }
 
-    public void setController(ControllerCream controller) {
-        this.controller = controller;
+    /**
+     * Asigna el controlador de comportamiento del jugador.
+     * @param ctrl controlador a usar
+     */
+    public void setController(ControllerCream ctrl) {
+        this.ctrl = ctrl;
     }
 
-    public ControllerCream getController() { 
-        return this.controller; 
+    /**
+     * Retorna el controlador asignado.
+     * @return controlador actual
+     */
+    public ControllerCream getController() {
+        return ctrl;
     }
 
+    /** Asocia el jugador con el mapa donde se mueve. */
+    public void setGameMap(GameMap gameMap) { 
+        this.map = gameMap; 
+    }
+
+    /**
+     * Actualiza el comportamiento del jugador.
+     */
     public void update() {
-        if (controller != null && alive) {
-            controller.update();
+        if (ctrl != null && alive) {
+            ctrl.update();
         }
     }
-    
-    /** Asocia el jugador con el mapa donde se mueve. */
-    public void setGameMap(GameMap gameMap) {
-        this.gameMap = gameMap;
+
+    /**
+     * Asocia el jugador con el mapa del juego.
+     * @param map mapa del juego
+     */
+    public void setMap(GameMap map) {
+        this.map = map;
     }
 
-    /** @return posición actual del jugador */
-    public Position getPosition() { return position; }
-    /** Establece una nueva posición. */
-    public void setPosition(Position position) { this.position = position; }
-
-    /** @return true si el jugador está vivo. */
-    public boolean isAlive() { return alive; }
-    /** Marca al jugador como vivo. */
-    public void alive() { this.alive = true; }
-    /** Marca al jugador como muerto. */
-    public void die() { this.alive = false; }
-
-    /** @return dirección hacia donde mira el jugador. */
-    public Direction getFacingDirection() { return facingDirection; }
-    /** Cambia la dirección del jugador. */
-    public void setFacingDirection(Direction direction) { this.facingDirection = direction; }
-
-    /** Cambia el estado de movimiento. */
-    public void setMoving(boolean moving) { this.moving = moving; }
-    /** @return true si el jugador está avanzando. */
-    public boolean isMoving() { return moving; }
-    
     /**
-     * Intenta mover al jugador en la dirección indicada.
-     * @return true si el movimiento fue exitoso.
+     * Retorna la posición actual del jugador.
+     * @return posición actual
+     */
+    public Position getPosition() {
+        return pos;
+    }
+
+    /**
+     * Actualiza la posición del jugador.
+     * @param pos nueva posición
+     */
+    public void setPosition(Position pos) {
+        this.pos = pos;
+    }
+
+    /**
+     * Indica si el jugador está vivo.
+     * @return true si está vivo
+     */
+    public boolean isAlive() {
+        return alive;
+    }
+
+    /**
+     * Marca al jugador como vivo.
+     */
+    public void revive() {
+        alive = true;
+    }
+
+    /**
+     * Marca al jugador como muerto.
+     */
+    public void die() {
+        alive = false;
+    }
+
+    /**
+     * Retorna la dirección actual del jugador.
+     * @return dirección actual
+     */
+    public Direction getDir() {
+        return dir;
+    }
+
+    /**
+     * Cambia la dirección del jugador.
+     * @param dir nueva dirección
+     */
+    public void setDir(Direction dir) {
+        this.dir = dir;
+    }
+
+    /**
+     * Define si el jugador está en movimiento.
+     * @param moving estado de movimiento
+     */
+    public void setMoving(boolean moving) {
+        this.moving = moving;
+    }
+
+    /**
+     * Indica si el jugador se está moviendo.
+     * @return true si se mueve
+     */
+    public boolean isMoving() {
+        return moving;
+    }
+
+    /**
+     * Intenta mover al jugador en una dirección.
+     * @param d dirección de movimiento
+     * @return true si se movió
      */
     public boolean move(Direction d) {
-        if (gameMap == null || !alive) return false;
-        this.facingDirection = d;
-        return gameMap.movePlayer(this, d);
+        if (map == null || !alive) return false;
+        this.dir = d;
+        return map.movePlayer(this, d);
     }
 
-    /** Mueve al jugador hacia arriba y devuelve la nueva fila. */
+    /**
+     * Mueve al jugador hacia arriba.
+     * @return fila actual
+     */
     public int moveUp() {
         move(Direction.UP);
-        return position.getRow();
+        return pos.getRow();
     }
 
-    /** Mueve al jugador hacia abajo y devuelve la nueva fila. */
+    /**
+     * Mueve al jugador hacia abajo.
+     * @return fila actual
+     */
     public int moveDown() {
         move(Direction.DOWN);
-        return position.getRow();
+        return pos.getRow();
     }
 
-    /** Mueve al jugador hacia la izquierda y devuelve la nueva columna. */
+    /**
+     * Mueve al jugador hacia la izquierda.
+     * @return columna actual
+     */
     public int moveLeft() {
         move(Direction.LEFT);
-        return position.getCol();
+        return pos.getCol();
     }
 
-    /** Mueve al jugador hacia la derecha y devuelve la nueva columna. */
+    /**
+     * Mueve al jugador hacia la derecha.
+     * @return columna actual
+     */
     public int moveRight() {
         move(Direction.RIGHT);
-        return position.getCol();
+        return pos.getCol();
     }
 
     /**
-     * Crea bloques de hielo avanzando en la dirección dada.
-     * @return cantidad de bloques creados.
+     * Crea hielo en la dirección indicada.
+     * @param d dirección de creación
+     * @return cantidad de bloques creados
      */
     public int createIce(Direction d) {
-        if (gameMap == null) return 0;
+        if (map == null) return 0;
+
         int count = 0;
-        Position pos = this.position;
-    
+        Position p = pos;
+
         while (true) {
             Position next = new Position(
-                pos.getRow() + d.getRowDelta(),
-                pos.getCol() + d.getColDelta()
+                p.getRow() + d.getRowDelta(),
+                p.getCol() + d.getColDelta()
             );
-            if (!gameMap.isValid(next)) break;
-            if (gameMap.hasEnemy(next) || gameMap.hasPlayer(next)) break;
-            Boxy b = gameMap.getBlock(next);
-    
-            // Si es fuego simple, continuar sin crear hielo
+
+            if (!map.isValid(next)) break;
+            if (map.hasEnemy(next) || map.hasPlayer(next)) break;
+
+            Boxy b = map.getBlock(next);
+
             if (b != null && b.getType() == BoxType.fire) {
-                pos = next;
+                p = next;
                 continue;
             }
-    
-            // Si es una bonfire ENCENDIDA, congelarla
+
             if (b != null && b.getType() == BoxType.bonfire && b.getState() == BoxState.on) {
-                gameMap.setBlock(next, new Ice(next, BoxState.created, b));
-                b.onFreeze(); // ← CAMBIO: usar onFreeze() en vez de off()
+                map.setBlock(next, new Ice(next, BoxState.created, b));
+                b.onFreeze();
                 count++;
-                pos = next;
-                continue; // ← IMPORTANTE: continue para NO colocar hielo encima
+                p = next;
+                continue;
             }
 
-            // Si ya hay un bloque creado, detenerse
             if (b != null && b.isCreated()) break;
-    
-            // Crear hielo en espacios válidos
-            if ((b == null || b.getType() == BoxType.floor) || (b.canBeCreated() && b.getType() != BoxType.iron)) {
-                if (gameMap.hasFruit(next)) {
-                    Fruit f = gameMap.getFruit(next);
-                    f.freeze();
+
+            if (b == null || b.getType() == BoxType.floor || b.canBeCreated()) {
+                if (map.hasFruit(next)) {
+                    map.getFruit(next).freeze();
                 }
-                gameMap.setBlock(next, new Ice(next, BoxState.created));
+                map.setBlock(next, new Ice(next, BoxState.created));
                 count++;
+            } else {
+                break;
             }
-            else { break; }
-            pos = next;
+
+            p = next;
         }
+
         return count;
     }
 
     /**
-     * Destruye bloques de hielo en la dirección indicada.
-     * @return cantidad de bloques destruidos.
+     * Destruye hielo en la dirección indicada.
+     * @param d dirección de destrucción
+     * @return cantidad de bloques destruidos
      */
     public int destroyIce(Direction d) {
-        if (gameMap == null) return 0;
+        if (map == null) return 0;
 
         int count = 0;
-        Position pos = this.position;
+        Position p = pos;
 
         while (true) {
             Position next = new Position(
-                pos.getRow() + d.getRowDelta(),
-                pos.getCol() + d.getColDelta()
+                p.getRow() + d.getRowDelta(),
+                p.getCol() + d.getColDelta()
             );
-            if (!gameMap.isValid(next)) break;
-            Boxy b = gameMap.getBlock(next);
 
+            if (!map.isValid(next)) break;
+
+            Boxy b = map.getBlock(next);
             if (b == null || !b.canBeDestroyed()) break;
-            if (gameMap.hasFruit(next)) {
-                Fruit f = gameMap.getFruit(next);
-                f.unfreeze();
+
+            if (map.hasFruit(next)) {
+                map.getFruit(next).unfreeze();
             }
-            b.onDestroy(gameMap);
-            gameMap.clearBlock(next);
+
+            b.onDestroy(map);
+            map.clearBlock(next);
             count++;
-            pos = next;
+            p = next;
         }
+
         return count;
     }
 
-    /** @return clave del sprite según la dirección. */
+    /**
+     * Retorna la clave del sprite del jugador.
+     * @return clave del sprite
+     */
     @Override
     public String getSpriteKey() {
-         return "player_" + facingDirection.name().toLowerCase();
+        return "player_" + dir.name().toLowerCase();
     }
 
-    /** @return true si el sprite debe animarse. */
+    /**
+     * Indica si el sprite debe animarse.
+     * @return true si está animado
+     */
     @Override
     public boolean isAnimated() {
         return moving;
     }
 
-    /** @return el sabor del jugador. */
+    /**
+     * Retorna el sabor del jugador.
+     * @return sabor actual
+     */
     public String getFlavor() {
         return flavor;
     }
 
+    /**
+     * Asigna el sabor del jugador.
+     * @param flavor nuevo sabor
+     */
     public void setFlavor(String flavor) {
         this.flavor = flavor;
+    }
+
+    /** 
+     * @return dirección hacia donde mira el jugador. 
+     */
+    public Direction getFacingDirection() { 
+        return dir; 
+    }
+
+    /**
+     * @return puntaje del jugador
+     */
+    public int getScorePlayer() { 
+        return score; 
+    } 
+    
+    /**
+     * Sets el puntaje del jugador.
+     * @param s puntaje a asignar
+     */
+    public void setScorePlayer (int s) { 
+        this.score += s; 
+    }
+
+    /** Marca al jugador como vivo. */ 
+    public void alive() { 
+        this.alive = true; 
     }
 }

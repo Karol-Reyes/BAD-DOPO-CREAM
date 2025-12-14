@@ -1,33 +1,44 @@
 package domain;
-
 import java.util.*;
 
 /**
- * IA que prioriza recolectar frutas de la manera más eficiente posible.
- * Agresivo, directo, y obsesionado con comer.
+ * IA agresiva enfocada en recolectar frutas.
  */
 public class Hungry implements ControllerCream {
+
     private IceCream player;
-    private GameMap map;
-    private BadIceCream game;
+    private final GameMap map;
+    private final BadIceCream game;
 
-    private int tick = 0;
-    private int speed = 3; // Rápido y agresivo
+    private int tick;
+    private final int speed = 3;
 
-    private Position ultimaPosicion = null;
-    private int ticksAtascado = 0;
-    private Position frutaObjetivo = null;
-    
+    private Position lastPos;
+    private int stuckTicks;
+    private Position targetFruit;
+
+    /**
+     * Crea una IA agresiva enfocada en recolectar frutas.
+     * @param map mapa del juego
+     * @param game instancia principal del juego
+     */
     public Hungry(GameMap map, BadIceCream game) {
         this.map = map;
         this.game = game;
     }
-    
+
+    /**
+     * Asigna el jugador controlado por la IA.
+     * @param player jugador a controlar
+     */
     @Override
     public void setPlayer(IceCream player) {
         this.player = player;
     }
-    
+
+    /**
+     * Actualiza el comportamiento de la IA en cada ciclo.
+     */
     @Override
     public void update() {
         tick++;
@@ -35,313 +46,266 @@ public class Hungry implements ControllerCream {
         tick = 0;
 
         if (player == null || !player.isAlive()) return;
+        Position current = player.getPosition();
 
-        Position actual = player.getPosition();
-
-        // Detectar si está atascado
-        if (actual.equals(ultimaPosicion)) {
-            ticksAtascado++;
-            if (ticksAtascado > 6) {
-                desatascar();
-                ticksAtascado = 0;
-                frutaObjetivo = null; // Cambiar de objetivo
+        if (current.equals(lastPos)) {
+            stuckTicks++;
+            if (stuckTicks > 6) {
+                unstuck();
+                stuckTicks = 0;
+                targetFruit = null;
             }
         } else {
-            ticksAtascado = 0;
+            stuckTicks = 0;
         }
-        ultimaPosicion = new Position(actual.getRow(), actual.getCol());
 
-        // Verificar colisiones
+        lastPos = new Position(current.getRow(), current.getCol());
         game.checkCollisionsFor(player);
+        Fruit fruit = chooseFruit();
 
-        // Buscar fruta objetivo
-        Fruit fruta = seleccionarMejorFruta();
-        
-        if (fruta != null) {
-            frutaObjetivo = fruta.getPosition();
-            irAgresivamenteHacia(fruta.getPosition());
+        if (fruit != null) {
+            targetFruit = fruit.getPosition();
+            moveToFruit(fruit.getPosition());
         } else {
-            // No hay frutas, explorar agresivamente
-            explorarAgresivo();
+            explore();
         }
     }
 
     /**
-     * Selecciona la mejor fruta considerando distancia y accesibilidad
+     * Selecciona la fruta más conveniente según distancia y obstáculos.
+     * @return fruta objetivo o null si no hay frutas válidas
      */
-    private Fruit seleccionarMejorFruta() {
-        Fruit mejor = null;
-        int mejorScore = Integer.MIN_VALUE;
-        Position actual = player.getPosition();
+    private Fruit chooseFruit() {
+        Fruit best = null;
+        int bestScore = Integer.MIN_VALUE;
+        Position cur = player.getPosition();
 
         for (Fruit f : game.getFruits()) {
             if (f.isEaten() || !f.isActive()) continue;
 
-            int distancia = calcularDistancia(actual, f.getPosition());
-            int obstaculos = contarObstaculosEnCamino(actual, f.getPosition());
+            int dist = distance(cur, f.getPosition());
+            int blocks = countBlocks(cur, f.getPosition());
+            int score = (100 - dist * 2) - (blocks * 5);
 
-            // Score: priorizar cercanía y menos obstáculos
-            int score = (100 - distancia * 2) - (obstaculos * 5);
-
-            // Bonificación si es la misma fruta objetivo (persistencia)
-            if (frutaObjetivo != null && f.getPosition().equals(frutaObjetivo)) {
+            if (targetFruit != null && f.getPosition().equals(targetFruit)) {
                 score += 30;
             }
 
-            if (score > mejorScore) {
-                mejorScore = score;
-                mejor = f;
+            if (score > bestScore) {
+                bestScore = score;
+                best = f;
             }
         }
-
-        return mejor;
+        return best;
     }
 
     /**
-     * Cuenta obstáculos aproximados en el camino
+     * Cuenta obstáculos aproximados entre dos posiciones.
+     * @param from posición inicial
+     * @param to posición destino
+     * @return cantidad estimada de obstáculos
      */
-    private int contarObstaculosEnCamino(Position origen, Position destino) {
-        int obstaculos = 0;
-        int pasos = Math.max(Math.abs(destino.getRow() - origen.getRow()), 
-                           Math.abs(destino.getCol() - origen.getCol()));
-        
-        for (int i = 1; i <= pasos; i++) {
-            float t = (float)i / pasos;
-            int r = (int)(origen.getRow() + t * (destino.getRow() - origen.getRow()));
-            int c = (int)(origen.getCol() + t * (destino.getCol() - origen.getCol()));
-            Position pos = new Position(r, c);
-            
-            if (map.isValid(pos) && map.isBlocked(pos)) {
-                obstaculos++;
+    private int countBlocks(Position from, Position to) {
+        int blocks = 0;
+        int steps = Math.max(
+                Math.abs(to.getRow() - from.getRow()),
+                Math.abs(to.getCol() - from.getCol())
+        );
+
+        for (int i = 1; i <= steps; i++) {
+            float t = (float) i / steps;
+            int r = (int) (from.getRow() + t * (to.getRow() - from.getRow()));
+            int c = (int) (from.getCol() + t * (to.getCol() - from.getCol()));
+            Position p = new Position(r, c);
+
+            if (map.isValid(p) && map.isBlocked(p)) {
+                blocks++;
             }
         }
-        
-        return obstaculos;
+        return blocks;
     }
 
     /**
-     * Se mueve agresivamente hacia la fruta, destruyendo todo en el camino
+     * Avanza agresivamente hacia una fruta objetivo.
+     * @param dest posición destino
      */
-    private void irAgresivamenteHacia(Position destino) {
-        Position actual = player.getPosition();
+    private void moveToFruit(Position dest) {
+        Position cur = player.getPosition();
+        Direction dir = bestDir(cur, dest);
 
-        // Calcular la mejor dirección
-        Direction dirOptima = calcularDireccionOptima(actual, destino);
-        
-        if (dirOptima == null) {
-            explorarAgresivo();
+        if (dir == null) {
+            explore();
             return;
         }
 
-        Position siguiente = new Position(
-            actual.getRow() + dirOptima.getRowDelta(),
-            actual.getCol() + dirOptima.getColDelta()
+        Position next = new Position(
+                cur.getRow() + dir.getRowDelta(),
+                cur.getCol() + dir.getColDelta()
         );
 
-        // Verificar si hay un enemigo en la siguiente posición
-        if (map.isValid(siguiente) && map.hasEnemy(siguiente)) {
-            // Intentar crear barrera y buscar ruta alternativa
-            player.createIce(dirOptima);
-            
-            // Probar direcciones alternativas
-            Direction[] alternativas = calcularDireccionesAlternativas(destino);
-            for (Direction alt : alternativas) {
-                Position posAlt = new Position(
-                    actual.getRow() + alt.getRowDelta(),
-                    actual.getCol() + alt.getColDelta()
+        if (map.isValid(next) && map.hasEnemy(next)) {
+            player.createIce(dir);
+
+            for (Direction alt : altDirs(dest)) {
+                Position p = new Position(
+                        cur.getRow() + alt.getRowDelta(),
+                        cur.getCol() + alt.getColDelta()
                 );
-                
-                if (map.isValid(posAlt) && !map.hasEnemy(posAlt)) {
-                    if (intentarMoverYDestruir(alt)) {
-                        return;
-                    }
+
+                if (map.isValid(p) && !map.hasEnemy(p)) {
+                    if (tryMove(alt)) return;
                 }
             }
             return;
         }
-
-        // Intentar moverse en la dirección óptima
-        intentarMoverYDestruir(dirOptima);
+        tryMove(dir);
     }
 
     /**
-     * Intenta moverse en una dirección, destruyendo hielo si es necesario
+     * Intenta moverse en una dirección destruyendo obstáculos si es necesario.
+     * @param dir dirección a intentar
+     * @return true si logró moverse
      */
-    private boolean intentarMoverYDestruir(Direction dir) {
-        boolean movido = player.move(dir);
-        
-        if (!movido) {
-            Position siguiente = new Position(
-                player.getPosition().getRow() + dir.getRowDelta(),
-                player.getPosition().getCol() + dir.getColDelta()
+    private boolean tryMove(Direction dir) {
+        boolean moved = player.move(dir);
+
+        if (!moved) {
+            Position next = new Position(
+                    player.getPosition().getRow() + dir.getRowDelta(),
+                    player.getPosition().getCol() + dir.getColDelta()
             );
-            
-            if (map.isValid(siguiente) && map.isBlocked(siguiente)) {
-                // Destruir el obstáculo
+
+            if (map.isValid(next) && map.isBlocked(next)) {
                 player.destroyIce(dir);
-                // Intentar moverse de nuevo
                 return player.move(dir);
             }
         }
-        
-        return movido;
+        return moved;
     }
 
     /**
-     * Calcula la dirección óptima considerando múltiples factores
+     * Calcula la mejor dirección hacia un destino.
+     * @param from posición actual
+     * @param to posición destino
+     * @return dirección óptima o null
      */
-    private Direction calcularDireccionOptima(Position origen, Position destino) {
-        int dr = destino.getRow() - origen.getRow();
-        int dc = destino.getCol() - origen.getCol();
+    private Direction bestDir(Position from, Position to) {
+        int dr = to.getRow() - from.getRow();
+        int dc = to.getCol() - from.getCol();
 
         if (dr == 0 && dc == 0) return null;
 
-        Direction[] candidatos;
-        
+        Direction[] dirs;
+
         if (Math.abs(dr) > Math.abs(dc)) {
-            // Priorizar vertical
-            Direction vertical = dr > 0 ? Direction.DOWN : Direction.UP;
-            Direction horizontal = dc > 0 ? Direction.RIGHT : (dc < 0 ? Direction.LEFT : null);
-            
-            if (horizontal != null) {
-                candidatos = new Direction[]{vertical, horizontal};
-            } else {
-                candidatos = new Direction[]{vertical};
-            }
+            Direction v = dr > 0 ? Direction.DOWN : Direction.UP;
+            Direction h = dc != 0 ? (dc > 0 ? Direction.RIGHT : Direction.LEFT) : null;
+            dirs = h != null ? new Direction[]{v, h} : new Direction[]{v};
         } else {
-            // Priorizar horizontal
-            Direction horizontal = dc > 0 ? Direction.RIGHT : Direction.LEFT;
-            Direction vertical = dr > 0 ? Direction.DOWN : (dr < 0 ? Direction.UP : null);
-            
-            if (vertical != null) {
-                candidatos = new Direction[]{horizontal, vertical};
-            } else {
-                candidatos = new Direction[]{horizontal};
-            }
+            Direction h = dc > 0 ? Direction.RIGHT : Direction.LEFT;
+            Direction v = dr != 0 ? (dr > 0 ? Direction.DOWN : Direction.UP) : null;
+            dirs = v != null ? new Direction[]{h, v} : new Direction[]{h};
         }
 
-        // Elegir la mejor de las candidatas que no tenga enemigo
-        for (Direction dir : candidatos) {
-            Position pos = new Position(
-                origen.getRow() + dir.getRowDelta(),
-                origen.getCol() + dir.getColDelta()
+        for (Direction d : dirs) {
+            Position p = new Position(
+                    from.getRow() + d.getRowDelta(),
+                    from.getCol() + d.getColDelta()
             );
-            
-            if (map.isValid(pos) && !map.hasEnemy(pos)) {
-                return dir;
-            }
+            if (map.isValid(p) && !map.hasEnemy(p)) return d;
         }
 
-        // Si todas tienen enemigos, retornar la primera
-        return candidatos.length > 0 ? candidatos[0] : null;
+        return dirs.length > 0 ? dirs[0] : null;
     }
 
     /**
-     * Calcula direcciones alternativas hacia el destino
+     * Calcula direcciones alternativas hacia un destino.
+     * @param dest posición destino
+     * @return arreglo de direcciones alternativas
      */
-    private Direction[] calcularDireccionesAlternativas(Position destino) {
-        Position actual = player.getPosition();
-        int dr = destino.getRow() - actual.getRow();
-        int dc = destino.getCol() - actual.getCol();
+    private Direction[] altDirs(Position dest) {
+        Position cur = player.getPosition();
+        int dr = dest.getRow() - cur.getRow();
+        int dc = dest.getCol() - cur.getCol();
 
-        Direction vertical = dr > 0 ? Direction.DOWN : Direction.UP;
-        Direction horizontal = dc > 0 ? Direction.RIGHT : Direction.LEFT;
+        Direction v = dr > 0 ? Direction.DOWN : Direction.UP;
+        Direction h = dc > 0 ? Direction.RIGHT : Direction.LEFT;
 
-        if (Math.abs(dr) > Math.abs(dc)) {
-            return new Direction[]{
-                horizontal,
-                vertical.getOpposite(),
-                horizontal.getOpposite()
-            };
-        } else {
-            return new Direction[]{
-                vertical,
-                horizontal.getOpposite(),
-                vertical.getOpposite()
-            };
-        }
+        return Math.abs(dr) > Math.abs(dc)
+                ? new Direction[]{h, v.getOpposite(), h.getOpposite()}
+                : new Direction[]{v, h.getOpposite(), v.getOpposite()};
     }
 
     /**
-     * Exploración agresiva cuando no hay fruta objetivo
+     * Explora el mapa de forma agresiva cuando no hay frutas.
      */
-    private void explorarAgresivo() {
-        // Evaluar todas las direcciones
-        List<DireccionScore> opciones = new ArrayList<>();
-        Position actual = player.getPosition();
+    private void explore() {
+        List<DirScore> options = new ArrayList<>();
+        Position cur = player.getPosition();
 
-        for (Direction dir : Direction.values()) {
-            Position siguiente = new Position(
-                actual.getRow() + dir.getRowDelta(),
-                actual.getCol() + dir.getColDelta()
+        for (Direction d : Direction.values()) {
+            Position next = new Position(
+                    cur.getRow() + d.getRowDelta(),
+                    cur.getCol() + d.getColDelta()
             );
 
-            if (!map.isValid(siguiente)) continue;
-
+            if (!map.isValid(next)) continue;
             int score = 0;
+            if (!map.isBlocked(next)) score += 100;
+            if (map.hasEnemy(next)) score -= 1000;
 
-            // Preferir espacios libres
-            if (!map.isBlocked(siguiente)) score += 100;
-            
-            // Evitar enemigos directos
-            if (map.hasEnemy(siguiente)) score -= 1000;
-
-            // Preferir direcciones que se alejen de la última posición
-            if (ultimaPosicion != null) {
-                int distOrigen = calcularDistancia(siguiente, ultimaPosicion);
-                score += distOrigen * 10;
+            if (lastPos != null) {
+                score += distance(next, lastPos) * 10;
             }
 
-            opciones.add(new DireccionScore(dir, score));
+            options.add(new DirScore(d, score));
         }
 
-        // Ordenar por score
-        opciones.sort((a, b) -> Integer.compare(b.score, a.score));
+        options.sort((a, b) -> Integer.compare(b.score, a.score));
 
-        // Intentar moverse en la mejor dirección
-        for (DireccionScore ds : opciones) {
-            if (intentarMoverYDestruir(ds.direccion)) {
+        for (DirScore ds : options) {
+            if (tryMove(ds.dir)) return;
+        }
+    }
+
+    /**
+     * Libera al jugador cuando queda completamente bloqueado.
+     */
+    private void unstuck() {
+        for (Direction d : Direction.values()) {
+            Position p = new Position(
+                    player.getPosition().getRow() + d.getRowDelta(),
+                    player.getPosition().getCol() + d.getColDelta()
+            );
+
+            if (map.isValid(p) && map.isBlocked(p)) {
+                player.destroyIce(d);
+                player.move(d);
                 return;
             }
         }
+
+        Direction d = Direction.values()[new Random().nextInt(4)];
+        player.createIce(d);
     }
 
     /**
-     * Desatascar cuando está completamente bloqueado
+     * Calcula la distancia Manhattan entre dos posiciones.
+     * @param a primera posición
+     * @param b segunda posición
+     * @return distancia calculada
      */
-    private void desatascar() {
-        // Intentar destruir en todas las direcciones
-        for (Direction dir : Direction.values()) {
-            Position pos = new Position(
-                player.getPosition().getRow() + dir.getRowDelta(),
-                player.getPosition().getCol() + dir.getColDelta()
-            );
-            
-            if (map.isValid(pos)) {
-                if (map.isBlocked(pos)) {
-                    player.destroyIce(dir);
-                    player.move(dir);
-                    return;
-                }
-            }
-        }
-
-        // Si nada funciona, intentar crear hielo para cambiar el entorno
-        Direction randomDir = Direction.values()[new Random().nextInt(4)];
-        player.createIce(randomDir);
+    private int distance(Position a, Position b) {
+        return Math.abs(a.getRow() - b.getRow()) + Math.abs(a.getCol() - b.getCol());
     }
 
-    private static class DireccionScore {
-        Direction direccion;
+    private static class DirScore {
+        Direction dir;
         int score;
 
-        DireccionScore(Direction direccion, int score) {
-            this.direccion = direccion;
+        DirScore(Direction dir, int score) {
+            this.dir = dir;
             this.score = score;
         }
-    }
-    
-    private int calcularDistancia(Position a, Position b) {
-        return Math.abs(a.getRow() - b.getRow()) + Math.abs(a.getCol() - b.getCol());
     }
 }

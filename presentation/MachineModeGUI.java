@@ -3,6 +3,10 @@ package presentation;
 import java.awt.*;
 import javax.swing.*;
 
+/**
+ * Clase de la interfaz gráfica de usuario (GUI) para la selección de personajes en modo máquina.
+ * Extiende ResourcesGUI e incluye botones para seleccionar personajes máquina.
+ */
 public class MachineModeGUI extends ResourcesGUI {
 
     private Timer gifTimer;
@@ -17,10 +21,18 @@ public class MachineModeGUI extends ResourcesGUI {
 
     private final GameControl gameControl;
 
+    /**
+     * Crea la interfaz gráfica para la selección de personajes en modo máquina.
+     * @param gameControl controlador principal del juego
+     */
     public MachineModeGUI(GameControl gameControl) {
         this.gameControl = gameControl;
     }
 
+    /**
+     * Inicia la secuencia visual inicial mostrando la animación
+     * y posteriormente todos los elementos de selección.
+     */
     @Override
     protected void startSequence() {
         startChocolateGif();
@@ -53,25 +65,36 @@ public class MachineModeGUI extends ResourcesGUI {
         gifTimer.setRepeats(false);
         gifTimer.start();
     }
-    
+
+    /**
+     * Muestra el texto principal de la pantalla de selección de modo.
+     */
     public void main_Text() {
-        JLabel textLabel = ImageUtils.createScaledImageLabel("/Resources/textos/seleccionModo.png",
-         320, 30, 175, 45);
+        JLabel textLabel = ImageUtils.createScaledImageLabel(
+                "/Resources/textos/seleccionModo.png",
+                320, 30, 175, 45);
         contentLabel.add(textLabel);
         contentLabel.setComponentZOrder(textLabel, 0);
         contentLabel.revalidate();
         contentLabel.repaint();
     }
 
+    /**
+     * Añade el perchero decorativo correspondiente al primer jugador máquina.
+     */
     public void lampPost1() {
-        JLabel labelLampPost = ImageUtils.createScaledImageLabel("/Resources/inicio/perchero.png",
-         150, 300, 400, 100);
+        JLabel labelLampPost = ImageUtils.createScaledImageLabel(
+                "/Resources/inicio/perchero.png",
+                150, 300, 400, 100);
         contentLabel.add(labelLampPost);
         contentLabel.setComponentZOrder(labelLampPost, 0);
         contentLabel.revalidate();
         contentLabel.repaint();
     }
 
+    /**
+     * Crea el botón de selección del personaje Hungry para el primer jugador máquina.
+     */
     private void hungryButton1() {
         btnHB1 = new PixelButton("/Resources/seleccion_jugador/hungry.png", 80, 100);
         btnHB1.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -88,6 +111,9 @@ public class MachineModeGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Crea el botón de selección del personaje Fearful para el primer jugador máquina.
+     */
     private void fearfulButton1() {
         btnFB1 = new PixelButton("/Resources/seleccion_jugador/fearful.png", 80, 80);
         btnFB1.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -103,7 +129,10 @@ public class MachineModeGUI extends ResourcesGUI {
         contentLabel.revalidate();
         contentLabel.repaint();
     }
-    
+
+    /**
+     * Crea el botón de selección del personaje Expert para el primer jugador máquina.
+     */
     private void expertButton1() {
         btnEB1 = new PixelButton("/Resources/seleccion_jugador/expert.png", 80, 80);
         btnEB1.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -120,51 +149,74 @@ public class MachineModeGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Muestra el texto identificador del primer jugador máquina.
+     */
     private void textMachine1() {
-        JLabel textLabel = ImageUtils.createScaledImageLabel("/Resources/textos/maquina.png",
-         140, 30, 400, 405);
+        JLabel textLabel = ImageUtils.createScaledImageLabel(
+                "/Resources/textos/maquina.png",
+                140, 30, 400, 405);
         contentLabel.add(textLabel);
         contentLabel.setComponentZOrder(textLabel, 0);
         contentLabel.revalidate();
         contentLabel.repaint();
     }
 
+    /**
+     * Muestra el texto del personaje Hungry para el primer jugador máquina.
+     */
     private void textHungry1() {
-        JLabel textLabel = ImageUtils.createScaledImageLabel("/Resources/textos/hungry.png",
-         80, 30, 370, 120);
+        JLabel textLabel = ImageUtils.createScaledImageLabel(
+                "/Resources/textos/hungry.png",
+                80, 30, 370, 120);
         contentLabel.add(textLabel);
         contentLabel.setComponentZOrder(textLabel, 0);
         contentLabel.revalidate();
         contentLabel.repaint();
     }
 
+    /**
+     * Muestra el texto del personaje Fearful para el primer jugador máquina.
+     */
     private void textFearful1() {
-        JLabel textLabel = ImageUtils.createScaledImageLabel("/Resources/textos/fearful.png",
-         80, 30, 490, 220);
+        JLabel textLabel = ImageUtils.createScaledImageLabel(
+                "/Resources/textos/fearful.png",
+                80, 30, 490, 220);
         contentLabel.add(textLabel);
         contentLabel.setComponentZOrder(textLabel, 0);
         contentLabel.revalidate();
         contentLabel.repaint();
     }
 
+    /**
+     * Muestra el texto del personaje Expert para el primer jugador máquina.
+     */
     private void textExpert1() {
-        JLabel textLabel = ImageUtils.createScaledImageLabel("/Resources/textos/expert.png",
-         80, 30, 370, 310);
+        JLabel textLabel = ImageUtils.createScaledImageLabel(
+                "/Resources/textos/expert.png",
+                80, 30, 370, 310);
         contentLabel.add(textLabel);
         contentLabel.setComponentZOrder(textLabel, 0);
         contentLabel.revalidate();
         contentLabel.repaint();
     }
 
+    /**
+     * Añade el perchero decorativo correspondiente al segundo jugador máquina.
+     */
     private void lampPost2() {
-        JLabel labelLampPost = ImageUtils.createScaledImageLabel("/Resources/inicio/perchero.png",
-         150, 300, 100, 100);
+        JLabel labelLampPost = ImageUtils.createScaledImageLabel(
+                "/Resources/inicio/perchero.png",
+                150, 300, 100, 100);
         contentLabel.add(labelLampPost);
         contentLabel.setComponentZOrder(labelLampPost, 0);
         contentLabel.revalidate();
         contentLabel.repaint();
     }
 
+    /**
+     * Crea el botón de selección del personaje Hungry para el segundo jugador máquina.
+     */
     private void hungryButton2() {
         btnHB2 = new PixelButton("/Resources/seleccion_jugador/hungry.png", 80, 100);
         btnHB2.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -181,6 +233,9 @@ public class MachineModeGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Crea el botón de selección del personaje Fearful para el segundo jugador máquina.
+     */
     private void fearfulButton2() {
         btnFB2 = new PixelButton("/Resources/seleccion_jugador/fearful.png", 80, 80);
         btnFB2.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -196,7 +251,10 @@ public class MachineModeGUI extends ResourcesGUI {
         contentLabel.revalidate();
         contentLabel.repaint();
     }
-    
+
+    /**
+     * Crea el botón de selección del personaje Expert para el segundo jugador máquina.
+     */
     private void expertButton2() {
         btnEB2 = new PixelButton("/Resources/seleccion_jugador/expert.png", 80, 80);
         btnEB2.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -213,42 +271,63 @@ public class MachineModeGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Muestra el texto identificador del segundo jugador máquina.
+     */
     private void textMachine2() {
-        JLabel textLabel = ImageUtils.createScaledImageLabel("/Resources/textos/maquina.png",
-         140, 30, 100, 405);
+        JLabel textLabel = ImageUtils.createScaledImageLabel(
+                "/Resources/textos/maquina.png",
+                140, 30, 100, 405);
         contentLabel.add(textLabel);
         contentLabel.setComponentZOrder(textLabel, 0);
         contentLabel.revalidate();
         contentLabel.repaint();
     }
 
+    /**
+     * Muestra el texto del personaje Hungry para el segundo jugador máquina.
+     */
     private void textHungry2() {
-        JLabel textLabel = ImageUtils.createScaledImageLabel("/Resources/textos/hungry.png",
-         80, 30, 70, 120);
+        JLabel textLabel = ImageUtils.createScaledImageLabel(
+                "/Resources/textos/hungry.png",
+                80, 30, 70, 120);
         contentLabel.add(textLabel);
         contentLabel.setComponentZOrder(textLabel, 0);
         contentLabel.revalidate();
         contentLabel.repaint();
     }
 
+    /**
+     * Muestra el texto del personaje Fearful para el segundo jugador máquina.
+     */
     private void textFearful2() {
-        JLabel textLabel = ImageUtils.createScaledImageLabel("/Resources/textos/fearful.png",
-         80, 30, 190, 220);
+        JLabel textLabel = ImageUtils.createScaledImageLabel(
+                "/Resources/textos/fearful.png",
+                80, 30, 190, 220);
         contentLabel.add(textLabel);
         contentLabel.setComponentZOrder(textLabel, 0);
         contentLabel.revalidate();
         contentLabel.repaint();
     }
 
+    /**
+     * Muestra el texto del personaje Expert para el segundo jugador máquina.
+     */
     private void textExpert2() {
-        JLabel textLabel = ImageUtils.createScaledImageLabel("/Resources/textos/expert.png",
-         80, 30, 70, 310);
+        JLabel textLabel = ImageUtils.createScaledImageLabel(
+                "/Resources/textos/expert.png",
+                80, 30, 70, 310);
         contentLabel.add(textLabel);
         contentLabel.setComponentZOrder(textLabel, 0);
         contentLabel.revalidate();
         contentLabel.repaint();
-    } 
-    
+    }
+
+    /**
+     * Registra la selección de un personaje máquina y controla
+     * el paso a la selección de nivel cuando ambos están definidos.
+     * @param character identificador del personaje seleccionado
+     */
     private void selectCharacter(String character) {
         if (bot1 == null) {
             bot1 = character;
@@ -262,12 +341,16 @@ public class MachineModeGUI extends ResourcesGUI {
         }
     }
 
-     private void disableButtons(String character) {
+    /**
+     * Deshabilita los botones correspondientes al personaje seleccionado.
+     * @param character identificador del personaje seleccionado
+     */
+    private void disableButtons(String character) {
         switch (character) {
             case "Hungry1" -> {
                 btnHB1.setEnabled(false);
                 btnFB1.setEnabled(false);
-                btnEB1.setEnabled(false);     
+                btnEB1.setEnabled(false);
             }
             case "Fearful1" -> {
                 btnFB1.setEnabled(false);
@@ -297,7 +380,10 @@ public class MachineModeGUI extends ResourcesGUI {
         }
     }
 
-
+    /**
+     * Cambia a la pantalla de selección de nivel una vez
+     * que ambos personajes máquina han sido seleccionados.
+     */
     private void levelSelection() {
         if (gifTimer != null && gifTimer.isRunning()) {
             gifTimer.stop();
@@ -308,7 +394,7 @@ public class MachineModeGUI extends ResourcesGUI {
             parent.remove(this);
 
             LevelSelectionGUI levelSelectionPanel = new LevelSelectionGUI(gameControl);
-            parent.add(levelSelectionPanel); 
+            parent.add(levelSelectionPanel);
             parent.revalidate();
             parent.repaint();
         }

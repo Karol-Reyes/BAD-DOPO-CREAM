@@ -1,178 +1,162 @@
 package domain;
-
-
 import java.io.*;
 
+/**
+ * Clase responsable de cargar niveles desde archivos y aplicar configuraciones.
+ */
 public class LevelLoader {
-    
+
     /**
-     * Carga un nivel completo desde archivo con configuración aplicada
-     * @param nivel Número del nivel (1, 2, 3, etc.)
-     * @param config Configuración del juego
-     * @return BadIceCream configurado y listo para jugar
+     * Carga un nivel desde archivo y aplica la configuración indicada.
+     * @param level número del nivel a cargar
+     * @param cfg configuración del juego
+     * @return instancia del juego lista para jugar o null si falla
      */
-    public static BadIceCream cargarNivelCompleto(int nivel, GameConfig config) {
-        
-        String nombreArchivo = "mapa" + nivel + ".txt";
-        // 1. Leer el mapa base desde el archivo
-        String mapaOriginal = leerMapaDesdeArchivo(nombreArchivo);
-        
-        if (mapaOriginal.isEmpty()) {
-            System.err.println("No se pudo cargar el mapa " + nombreArchivo);
+    public static BadIceCream loadLevel(int level, GameConfig cfg) {
+        String file = "mapa" + level + ".txt";
+        String baseMap = readMap(file);
+
+        if (baseMap.isEmpty()) {
             return null;
         }
-        
-        
-        // 2. Aplicar la configuración (reemplazar X, Y, F, G, T, N, K, L)
-        String mapaConfigurado = aplicarConfiguracionAlMapa(mapaOriginal, config);
 
-        // 3. Parsear el mapa y crear el juego
-        BadIceCream game = MapParser.parseMap(mapaConfigurado, config);
-        
-        if (game != null) {
-            System.out.println("Nivel " + nivel + " cargado exitosamente\n");
-        }
-        
-        return game;
+        String finalMap = applyConfig(baseMap, cfg);
+        return MapParser.parseMap(finalMap, cfg);
     }
-    
+
     /**
-     * Aplica la configuración del juego al mapa original
+     * Aplica la configuración del juego sobre el mapa base.
+     * @param map mapa original
+     * @param cfg configuración del juego
+     * @return mapa modificado según la configuración
      */
-    public static String aplicarConfiguracionAlMapa(String mapaOriginal, GameConfig config) {
-        String mapa = mapaOriginal;
-        
-        // ========== JUGADOR 1 ==========
-        char letraP1 = getLetraPersonaje(config.getCharacter1());
-        mapa = mapa.replace('X', letraP1);
-        
-        // ========== JUGADOR 2 ==========
-        if (config.getCharacter2() == null || config.getCharacter2().equals("null")) {
-            mapa = mapa.replace('Y', '0');
-        } else {
-            char letraP2 = getLetraPersonaje(config.getCharacter2());
-            mapa = mapa.replace('Y', letraP2);
+    public static String applyConfig(String map, GameConfig cfg) {
+        String result = map;
+
+        result = result.replace('X', charPlayer(cfg.getCharacter1()));
+
+        result = result.replace(
+                'Y',
+                cfg.getCharacter2() == null || cfg.getCharacter2().equals("null")
+                        ? '0'
+                        : charPlayer(cfg.getCharacter2())
+        );
+
+        result = result.replace(
+                'F',
+                cfg.getFruit1() == null || cfg.getFruit1().equals("Only1")
+                        ? '0'
+                        : charFruit(cfg.getFruit1())
+        );
+
+        result = result.replace(
+                'G',
+                cfg.getFruit2() == null || cfg.getFruit2().equals("Only1")
+                        ? '0'
+                        : charFruit(cfg.getFruit2())
+        );
+
+        result = result.replace(
+                'T',
+                cfg.getEnemy1() == null || cfg.getEnemy1().equals("Only1")
+                        ? '0'
+                        : charEnemy(cfg.getEnemy1())
+        );
+
+        result = result.replace(
+                'N',
+                cfg.getEnemy2() == null || cfg.getEnemy2().equals("Only1")
+                        ? '0'
+                        : charEnemy(cfg.getEnemy2())
+        );
+
+        if (null == cfg.getObject()) {
+            result = result.replace('K', '0').replace('L', '0');
+        } else switch (cfg.getObject()) {
+            case "Nothing" -> result = result.replace('K', '0').replace('L', '0');
+            case "Fire" -> result = result.replace('L', '0');
+            case "Bonfire" -> result = result.replace('K', '0');
+            default -> {
+            }
         }
-        
-        // ========== FRUTA 1 ==========
-        if (config.getFruit1() == null || config.getFruit1().equals("Only1")) {
-            mapa = mapa.replace('F', '0');
-        } else {
-            char letraF1 = getLetraFruta(config.getFruit1());
-            mapa = mapa.replace('F', letraF1);
-        }
-        
-        // ========== FRUTA 2 ==========
-        if (config.getFruit2() == null || config.getFruit2().equals("Only1")) {
-            mapa = mapa.replace('G', '0');
-        } else {
-            char letraF2 = getLetraFruta(config.getFruit2());
-            mapa = mapa.replace('G', letraF2);
-        }
-        
-        // ========== ENEMIGO 1 ==========
-        if (config.getEnemy1() == null || config.getEnemy1().equals("Only1")) {
-            mapa = mapa.replace('T', '0');
-        } else {
-            char letraE1 = getLetraEnemigo(config.getEnemy1());
-            mapa = mapa.replace('T', letraE1);
-        }
-        
-        // ========== ENEMIGO 2 ==========
-        if (config.getEnemy2() == null || config.getEnemy2().equals("Only1")) {
-            mapa = mapa.replace('N', '0');
-        } else {
-            char letraE2 = getLetraEnemigo(config.getEnemy2());
-            mapa = mapa.replace('N', letraE2);
-        }
-        
-        // ========== OBSTÁCULOS ==========
-        if (config.getObject() == null || config.getObject().equals("Nothing")) {
-            // Eliminar ambos obstáculos
-            mapa = mapa.replace('K', '0');
-            mapa = mapa.replace('L', '0');
-        } else if (config.getObject().equals("Fire")) {
-            // Solo mantener K (Fire), eliminar L (Bonfire)
-            mapa = mapa.replace('L', '0');
-        } else if (config.getObject().equals("Bonfire")) {
-            // Solo mantener L (Bonfire), eliminar K (Fire)
-            mapa = mapa.replace('K', '0');
-        }
-        
-        return mapa;
+
+        return result;
     }
-    
+
     /**
-     * Convierte el nombre del personaje a su letra correspondiente
+     * Obtiene el carácter asociado a un jugador.
+     * @param name nombre del personaje
+     * @return letra representativa del personaje
      */
-    private static char getLetraPersonaje(String nombre) {
-        if (nombre == null) return '0';
-        switch(nombre) {
-            case "Chocolate": return 'C';
-            case "Strawberry": return 'S';
-            case "Vanilla": return 'V';
-            case "Hungry": return 'R';
-            case "Fearful": return 'J';
-            case "Expert": return 'E';
-            default: return '0';
-        }
+    private static char charPlayer(String name) {
+        if (name == null) return '0';
+        return switch (name) {
+            case "Chocolate" -> 'C';
+            case "Strawberry" -> 'S';
+            case "Vanilla" -> 'V';
+            case "Hungry" -> 'R';
+            case "Fearful" -> 'J';
+            case "Expert" -> 'E';
+            default -> '0';
+        };
     }
-    
+
     /**
-     * Convierte el nombre de la fruta a su letra correspondiente
+     * Obtiene el carácter asociado a una fruta.
+     * @param name nombre de la fruta
+     * @return letra representativa de la fruta
      */
-    private static char getLetraFruta(String nombre) {
-        if (nombre == null) return '0';
-        switch(nombre) {
-            case "Banana": return 'B';
-            case "Grape": return 'A';
-            case "Cherry": return 'D';
-            case "Pineapple": return 'Z';
-            case "Cactus": return 'Q';
-            default: return '0';
-        }
+    private static char charFruit(String name) {
+        if (name == null) return '0';
+        return switch (name) {
+            case "Banana" -> 'B';
+            case "Grape" -> 'A';
+            case "Cherry" -> 'D';
+            case "Pineapple" -> 'Z';
+            case "Cactus" -> 'Q';
+            default -> '0';
+        };
     }
-    
+
     /**
-     * Convierte el nombre del enemigo a su letra correspondiente
+     * Obtiene el carácter asociado a un enemigo.
+     * @param name nombre del enemigo
+     * @return letra representativa del enemigo
      */
-    private static char getLetraEnemigo(String nombre) {
-        if (nombre == null) return '0';
-        switch(nombre) {
-            case "Troll": return 'O';
-            case "FlowerPot": return 'W';
-            case "Narwhal": return 'P';
-            case "YellowSquid": return 'U';
-            default: return '0';
-        }
+    private static char charEnemy(String name) {
+        if (name == null) return '0';
+        return switch (name) {
+            case "Troll" -> 'O';
+            case "FlowerPot" -> 'W';
+            case "Narwhal" -> 'P';
+            case "YellowSquid" -> 'U';
+            default -> '0';
+        };
     }
-    
+
     /**
-     * Lee un mapa desde un archivo en Resources/
+     * Lee un mapa desde el directorio de recursos.
+     * @param file nombre del archivo del mapa
+     * @return contenido del mapa o cadena vacía si falla
      */
-    public static String leerMapaDesdeArchivo(String nombreArchivo) {
-        StringBuilder contenido = new StringBuilder();
-        try {
-            // Leer desde Resources/
-            InputStream is = LevelLoader.class.getResourceAsStream("/Resources/maps/" + nombreArchivo);
-            
+    public static String readMap(String file) {
+        StringBuilder text = new StringBuilder();
+
+        try (InputStream is = LevelLoader.class.getResourceAsStream("/Resources/maps/" + file)) {
             if (is == null) {
-                System.err.println("No se encontró el archivo: /Resources/maps/" + nombreArchivo);
                 return "";
             }
-            
+
             BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-            String linea;
-            while ((linea = reader.readLine()) != null) {
-                contenido.append(linea).append("\n");
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+                text.append(line).append("\n");
             }
-            reader.close();
-            
-            
         } catch (Exception e) {
-            System.err.println("Error al leer nivel: " + e.getMessage());
-            e.printStackTrace();
+            return "";
         }
-        return contenido.toString();
+
+        return text.toString();
     }
 }

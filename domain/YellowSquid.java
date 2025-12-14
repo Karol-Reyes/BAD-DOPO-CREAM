@@ -1,288 +1,272 @@
 package domain;
 
 /**
- * Calamar Naranja: Persigue al jugador y destruye bloques de hielo en su camino.
- * Se detiene 3 ticks antes de romper un bloque.
+ * Enemigo tipo Calamar Amarillo. Persigue al jugador más cercano,
+ * esperando para romper bloques destructibles en su camino.
  */
 public class YellowSquid extends Enemy {
-    
-    // Estados del calamar
-    private enum Estado {
-        PERSIGUIENDO,   // Persiguiendo al jugador
-        DETENIDO,       // Detenido frente a un bloque
-        ROMPIENDO       // Rompiendo el bloque
-    }
-    
-    private Estado estadoActual;
-    private int ticksEsperando;
-    private static final int TICKS_PARA_ROMPER = 2; // Espera 3 ticks antes de romper
-    private Position bloqueObjetivo; // Bloque que va a romper
 
-    private int tick = 0;
-    private int speed = 2;
-    
-    public YellowSquid(Position position) {
-        super(EnemyType.yellowSquid, position);
-        this.estadoActual = Estado.PERSIGUIENDO;
-        this.ticksEsperando = 0;
-        this.bloqueObjetivo = null;
+    private enum State {
+        CHASE,
+        WAIT,
+        BREAK
+    }
+
+    private State state;
+    private int waitTicks;
+    private static final int BREAK_DELAY = 2;
+    private Position targetBlock;
+
+    private int tick;
+    private final int delay;
+
+    /**
+     * Crea un Calamar Amarillo en la posición indicada.
+     * @param pos posición inicial del enemigo
+     */
+    public YellowSquid(Position pos) {
+        super(EnemyType.yellowSquid, pos);
+        this.state = State.CHASE;
+        this.waitTicks = 0;
+        this.targetBlock = null;
         this.currentDirection = Direction.DOWN;
+        this.tick = 0;
+        this.delay = 2;
     }
 
+    /**
+     * Asigna el juego al enemigo.
+     * @param game instancia del juego
+     */
     @Override
     public void setGame(BadIceCream game) {
-        // No necesita game, pero implementamos el método
     }
 
+    /**
+     * Indica si el enemigo usa movimiento automático.
+     * @return false, ya que controla su propio movimiento
+     */
     @Override
     protected boolean usesAutoMovement() {
-        return false;  // Maneja su propio movimiento
+        return false;
     }
-    
+
+    /**
+     * Devuelve la dirección actual del enemigo.
+     * @return dirección actual
+     */
     @Override
     public Direction getCurrentDirection() {
         return currentDirection;
     }
-    
+
+    /**
+     * Actualiza el comportamiento del enemigo según su estado.
+     */
     @Override
     public void doUpdate() {
-
         tick++;
-        if (tick < speed) return;
+        if (tick < delay) return;
         tick = 0;
 
-        switch (estadoActual) {
-            case PERSIGUIENDO:
-                actualizarPersecucion();
-                break;
-                
-            case DETENIDO:
-                actualizarEspera();
-                break;
-                
-            case ROMPIENDO:
-                actualizarRompiendo();
-                break;
+        switch (state) {
+            case CHASE -> chase();
+            case WAIT -> waitBlock();
+            case BREAK -> breakBlock();
         }
     }
-    
+
     /**
-     * Estado: PERSIGUIENDO - Busca y sigue al jugador más cercano
+     * Estado de persecución del jugador más cercano.
      */
-    private void actualizarPersecucion() {
-        IceCream jugadorCercano = encontrarJugadorCercano();
-        
-        if (jugadorCercano == null || !jugadorCercano.isAlive()) {
-            return;
+    private void chase() {
+        IceCream player = findPlayer();
+        if (player == null || !player.isAlive()) return;
+
+        Direction main = dirTo(player.getPosition());
+        if (main != null && tryMove(main)) return;
+
+        for (Direction d : altDirs(player.getPosition())) {
+            if (tryMove(d)) return;
         }
-        
-        // Calcular dirección hacia el jugador
-        Direction direccionPreferida = calcularDireccionHacia(jugadorCercano.getPosition());
-        
-        if (direccionPreferida == null) return;
-        
-        // Intentar moverse en la dirección preferida
-        if (intentarMovimiento(direccionPreferida)) {
-            return;
-        }
-        
-        // Si no puede, intentar direcciones alternativas
-        Direction[] alternativas = calcularDireccionesAlternativas(jugadorCercano.getPosition());
-        for (Direction dir : alternativas) {
-            if (intentarMovimiento(dir)) {
-                return;
-            }
-        }
-        
-        // Si todo falla, intentar cualquier dirección disponible
-        for (Direction dir : Direction.values()) {
-            if (intentarMovimiento(dir)) {
-                return;
-            }
+
+        for (Direction d : Direction.values()) {
+            if (tryMove(d)) return;
         }
     }
-    
+
     /**
-     * Intenta moverse en una dirección, manejando bloques de hielo
+     * Intenta moverse en una dirección determinada.
+     * @param dir dirección a intentar
+     * @return true si realizó alguna acción
      */
-    private boolean intentarMovimiento(Direction direccion) {
-        Position siguiente = new Position(
-            position.getRow() + direccion.getRowDelta(),
-            position.getCol() + direccion.getColDelta()
+    private boolean tryMove(Direction dir) {
+        Position next = new Position(
+                position.getRow() + dir.getRowDelta(),
+                position.getCol() + dir.getColDelta()
         );
-        
-        if (!gameMap.isValid(siguiente)) return false;
-        
-        // Verificar si hay un enemigo
-        if (gameMap.hasEnemy(siguiente)) return false;
-        
-        Boxy bloque = gameMap.getBlock(siguiente);
-        
-        // Si hay un bloque de hielo que puede destruir, detenerse para romperlo
-        if (bloque != null && bloque.isCreated() && bloque.canBeDestroyed()) {
-            estadoActual = Estado.DETENIDO;
-            ticksEsperando = 0;
-            bloqueObjetivo = siguiente;
-            currentDirection = direccion;
-            return true; // Sí "hizo algo" (se detuvo para romper)
+
+        if (!gameMap.isValid(next)) return false;
+        if (gameMap.hasEnemy(next)) return false;
+        Boxy block = gameMap.getBlock(next);
+
+        if (block != null && block.isCreated() && block.canBeDestroyed()) {
+            state = State.WAIT;
+            waitTicks = 0;
+            targetBlock = next;
+            currentDirection = dir;
+            return true;
         }
-        
-        // Si hay un bloque que NO puede romper, no puede pasar
-        if (gameMap.isBlocked(siguiente)) {
-            return false;
-        }
-        
-        // Camino libre, moverse
-        currentDirection = direccion;
-        move(direccion);
+
+        if (gameMap.isBlocked(next)) return false;
+        currentDirection = dir;
+        move(dir);
         return true;
     }
-    
+
     /**
-     * Estado: DETENIDO - Espera antes de romper el bloque
+     * Estado de espera antes de romper un bloque.
      */
-    private void actualizarEspera() {
-        ticksEsperando++;
-        
-        if (ticksEsperando >= TICKS_PARA_ROMPER) {
-            // Ya esperó suficiente, cambiar a estado ROMPIENDO
-            estadoActual = Estado.ROMPIENDO;
+    private void waitBlock() {
+        waitTicks++;
+        if (waitTicks >= BREAK_DELAY) {
+            state = State.BREAK;
         }
     }
-    
+
     /**
-     * Estado: ROMPIENDO - Rompe el bloque y vuelve a perseguir
+     * Estado de ruptura del bloque objetivo.
      */
-    private void actualizarRompiendo() {
-        if (bloqueObjetivo == null) {
-            estadoActual = Estado.PERSIGUIENDO;
+    private void breakBlock() {
+        if (targetBlock == null) {
+            state = State.CHASE;
             return;
         }
-        
-        // Verificar que el bloque todavía existe y se puede destruir
-        if (gameMap.isValid(bloqueObjetivo)) {
-            Boxy bloque = gameMap.getBlock(bloqueObjetivo);
-            
-            if (bloque != null && bloque.canBeDestroyed()) {
-                // ¡ROMPER EL BLOQUE!
-                gameMap.clearBlock(bloqueObjetivo);
+
+        if (gameMap.isValid(targetBlock)) {
+            Boxy block = gameMap.getBlock(targetBlock);
+            if (block != null && block.canBeDestroyed()) {
+                gameMap.clearBlock(targetBlock);
             }
         }
-        
-        // Resetear y volver a perseguir
-        bloqueObjetivo = null;
-        ticksEsperando = 0;
-        estadoActual = Estado.PERSIGUIENDO;
+        targetBlock = null;
+        waitTicks = 0;
+        state = State.CHASE;
     }
-    
+
     /**
-     * Encuentra al jugador vivo más cercano
+     * Encuentra el jugador vivo más cercano.
+     * @return jugador más cercano o null si no existe
      */
-    private IceCream encontrarJugadorCercano() {
-        IceCream cercano = null;
-        int menorDistancia = Integer.MAX_VALUE;
-        
-        // Buscar en todas las posiciones del mapa
+    private IceCream findPlayer() {
+        IceCream closest = null;
+        int minDist = Integer.MAX_VALUE;
+
         for (int r = 0; r < gameMap.getRows(); r++) {
             for (int c = 0; c < gameMap.getCols(); c++) {
-                Position pos = new Position(r, c);
-                IceCream jugador = gameMap.getPlayer(pos);
-                
-                if (jugador != null && jugador.isAlive()) {
-                    int distancia = calcularDistancia(position, pos);
-                    if (distancia < menorDistancia) {
-                        menorDistancia = distancia;
-                        cercano = jugador;
+                Position p = new Position(r, c);
+                IceCream pl = gameMap.getPlayer(p);
+
+                if (pl != null && pl.isAlive()) {
+                    int d = dist(position, p);
+                    if (d < minDist) {
+                        minDist = d;
+                        closest = pl;
                     }
                 }
             }
         }
-        
-        return cercano;
+        return closest;
     }
-    
+
     /**
-     * Calcula la dirección óptima hacia un objetivo
+     * Calcula la dirección principal hacia una posición objetivo.
+     * @param target posición objetivo
+     * @return dirección óptima o null si no hay movimiento
      */
-    private Direction calcularDireccionHacia(Position objetivo) {
-        int deltaRow = objetivo.getRow() - position.getRow();
-        int deltaCol = objetivo.getCol() - position.getCol();
-        
-        // Priorizar movimiento vertical u horizontal según cuál sea mayor
-        if (Math.abs(deltaRow) > Math.abs(deltaCol)) {
-            return deltaRow > 0 ? Direction.DOWN : Direction.UP;
-        } else if (deltaCol != 0) {
-            return deltaCol > 0 ? Direction.RIGHT : Direction.LEFT;
+    private Direction dirTo(Position target) {
+        int dr = target.getRow() - position.getRow();
+        int dc = target.getCol() - position.getCol();
+
+        if (Math.abs(dr) > Math.abs(dc)) {
+            return dr > 0 ? Direction.DOWN : Direction.UP;
         }
-        
+        if (dc != 0) {
+            return dc > 0 ? Direction.RIGHT : Direction.LEFT;
+        }
         return null;
     }
-    
+
     /**
-     * Calcula direcciones alternativas hacia el objetivo
+     * Calcula direcciones alternativas hacia el objetivo.
+     * @param target posición objetivo
+     * @return arreglo de direcciones alternativas
      */
-    private Direction[] calcularDireccionesAlternativas(Position objetivo) {
-        int deltaRow = objetivo.getRow() - position.getRow();
-        int deltaCol = objetivo.getCol() - position.getCol();
-        
-        Direction vertical = deltaRow > 0 ? Direction.DOWN : Direction.UP;
-        Direction horizontal = deltaCol > 0 ? Direction.RIGHT : Direction.LEFT;
-        
-        if (Math.abs(deltaRow) > Math.abs(deltaCol)) {
-            // Prefiere vertical, alternativas: horizontal, opuesto horizontal, opuesto vertical
-            return new Direction[]{
-                horizontal,
-                horizontal.getOpposite(),
-                vertical.getOpposite()
-            };
-        } else {
-            // Prefiere horizontal, alternativas: vertical, opuesto vertical, opuesto horizontal
-            return new Direction[]{
-                vertical,
-                vertical.getOpposite(),
-                horizontal.getOpposite()
-            };
-        }
+    private Direction[] altDirs(Position target) {
+        int dr = target.getRow() - position.getRow();
+        int dc = target.getCol() - position.getCol();
+
+        Direction v = dr > 0 ? Direction.DOWN : Direction.UP;
+        Direction h = dc > 0 ? Direction.RIGHT : Direction.LEFT;
+
+        return Math.abs(dr) > Math.abs(dc)
+                ? new Direction[]{h, h.getOpposite(), v.getOpposite()}
+                : new Direction[]{v, v.getOpposite(), h.getOpposite()};
     }
-    
+
     /**
-     * Calcula distancia Manhattan entre dos posiciones
+     * Calcula la distancia Manhattan entre dos posiciones.
+     * @param a primera posición
+     * @param b segunda posición
+     * @return distancia Manhattan
      */
-    private int calcularDistancia(Position a, Position b) {
+    private int dist(Position a, Position b) {
         return Math.abs(a.getRow() - b.getRow()) + Math.abs(a.getCol() - b.getCol());
     }
-    
+
+    /**
+     * Devuelve la clave del sprite según el estado actual.
+     * @return clave del sprite
+     */
     @Override
     public String getSpriteKey() {
-        switch (estadoActual) {
-            case DETENIDO:
-                return "yellowSquid_waiting";
-            case ROMPIENDO:
-                return "yellowSquid_breaking";
-            default:
-                return "yellowSquid_chasing";
-        }
+        return switch (state) {
+            case WAIT -> "yellowSquid_waiting";
+            case BREAK -> "yellowSquid_breaking";
+            default -> "yellowSquid_chasing";
+        };
     }
-    
+
+    /**
+     * Indica si el enemigo tiene animación activa.
+     * @return true si está persiguiendo
+     */
     @Override
     public boolean isAnimated() {
-        return estadoActual == Estado.PERSIGUIENDO;
+        return state == State.CHASE;
     }
-    
-    // Getters para debugging o visualización
-    public Estado getEstadoActual() {
-        return estadoActual;
+
+    /**
+     * Devuelve los ticks de espera acumulados.
+     * @return cantidad de ticks de espera
+     */
+    public int getWaitTicks() {
+        return waitTicks;
     }
-    
-    public int getTicksEsperando() {
-        return ticksEsperando;
-    }
-    
+
+    /**
+     * Indica si el enemigo está esperando.
+     * @return true si está en estado WAIT
+     */
     public boolean isWaiting() {
-        return estadoActual == Estado.DETENIDO;
+        return state == State.WAIT;
     }
-    
+
+    /**
+     * Indica si el enemigo está rompiendo un bloque.
+     * @return true si está en estado BREAK
+     */
     public boolean isBreaking() {
-        return estadoActual == Estado.ROMPIENDO;
+        return state == State.BREAK;
     }
 }

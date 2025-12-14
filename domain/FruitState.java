@@ -6,6 +6,6 @@ package domain;
 public enum FruitState {
     active,
     eaten,
-    teleporting, // estado temporal durante teletransporte (Cherry)
-    dangerous //para el cactus
+    teleporting,
+    dangerous
 }

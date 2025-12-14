@@ -5,6 +5,10 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
+/**
+ * Clase principal de la interfaz gráfica de usuario (GUI) para el juego BadIceCream.
+ * Esta clase extiende JPanel e incluye un panel de juego que muestra el mapa
+ */
 public class GameGUI extends JPanel {
 
     private BadIceCream game;
@@ -12,19 +16,19 @@ public class GameGUI extends JPanel {
     private Timer timer;
     private GameControl gameControl;
     private SpriteManager spriteManager;  
+
+    @SuppressWarnings("unused")
+    private boolean gameEnded = false;
     
-    // Overlay de pausa
     private JLabel pauseOverlay;
     private boolean isPaused = false;
 
-    // imagenes y botones del juego
     private JLabel fruitBar;
     private PixelButton btnPause;
     private JLabel winOverlay;
     private boolean winShown = false;
-
-
-
+    private JLabel loseOverlay;
+    private boolean loseShown = false;
 
     /**
      * Constructor que recibe la configuración del juego
@@ -33,27 +37,17 @@ public class GameGUI extends JPanel {
         this.gameControl = gameControl;
         setLayout(new BorderLayout());
 
-        // Maneja sprites una sola vez
         spriteManager = new SpriteManager();
-
-        // Imprimir la configuración seleccionada
         gameControl.printSelections();
-
-        // Cargar el nivel según la configuración
         loadGame();
 
-        // Crear el panel de visualización con SpriteManager
         panel = new GamePanel(game, spriteManager);
         add(panel, BorderLayout.CENTER);
 
-        // Crear la barra de frutas
         addFruitBar();
         PauseButton();
-
-        // Configurar controles
         setupKeyBindings();
 
-        // Iniciar el timer del juego
         timer = new Timer(150, e -> {
 
         if (!game.isGameWon() && !game.isGameLost()) {
@@ -61,24 +55,31 @@ public class GameGUI extends JPanel {
         }
 
         if (game.isGameWon() && !winShown) {
+            timer.stop();
             showWinOverlay();
             winShown = true;
-            
+            return;
+        }
+
+        if (game.isGameLost() && !loseShown) {
+            timer.stop();
+            showLoseOverlay();
+            loseShown = true;
+            return;
         }
 
         panel.repaint();
     });
-
         timer.start();
     }
 
-
-    // CARGAR NIVEL 
-
+    /**
+     * Carga el juego según la configuración actual.
+     */
     private void loadGame() {
-        resetWinState();
+        resetEndStates();
         GameConfig config = gameControl.toGameConfig();
-        game = LevelLoader.cargarNivelCompleto(config.getLevel(), config);
+        game = LevelLoader.loadLevel(config.getLevel(), config);
 
         for (IceCream p : game.getPlayers()) {
             p.setGameMap(game.getMap());
@@ -92,6 +93,9 @@ public class GameGUI extends JPanel {
     // =====================================================
     // TECLAS
     // =====================================================
+    /**
+     * Configura las asociaciones de teclas para controlar el juego.
+     */
     private void setupKeyBindings() {
         InputMap im = this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
         ActionMap am = this.getActionMap();
@@ -120,26 +124,36 @@ public class GameGUI extends JPanel {
 
     }
 
+    /**
+     * Asocia una tecla a una acción específica.
+     * @param im InputMap donde se asigna la tecla.
+     * @param am ActionMap donde se asigna la acción.
+     * @param name nombre de la acción.
+     * @param key código de la tecla.
+     * @param action acción a ejecutar al presionar la tecla.
+     */
     private void bind(InputMap im, ActionMap am, String name, int key, Runnable action) {
         im.put(KeyStroke.getKeyStroke(key, 0), name);
         am.put(name, new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (winShown) return;
+                if (winShown || loseShown) return;
                 action.run();
                 panel.repaint();
             }
         });
     }
 
-    /* pausa o reanuda el juego */
+    /* 
+     * pausa o reanuda el juego 
+     */
     private void togglePause() {
         isPaused = !isPaused;
 
         game.setPaused(isPaused);
 
         if (isPaused) {
-            timer.stop();              // detener repintado
+            timer.stop();
             showPauseOverlay();
         } else {
             hidePauseOverlay();
@@ -147,6 +161,21 @@ public class GameGUI extends JPanel {
         }
     }
 
+    /**
+     * Oculta la superposición de pausa.
+     */
+    private void hidePauseOverlay() {
+        if (pauseOverlay != null) {
+            this.remove(pauseOverlay);
+            pauseOverlay = null;
+            this.revalidate();
+            this.repaint();
+        }
+    }
+
+    /**
+     * Muestra la superposición de pausa.
+     */
     private void showPauseOverlay() {
         pauseOverlay = new JLabel();
         pauseBackground();
@@ -155,6 +184,9 @@ public class GameGUI extends JPanel {
         buttonExit();
     }
 
+    /**
+     * Configura el fondo de la superposición de pausa.
+     */
     private void pauseBackground() {
         pauseOverlay.setBounds(0, 0, getWidth(), getHeight());
         pauseOverlay.setLayout(null);
@@ -168,6 +200,9 @@ public class GameGUI extends JPanel {
         pauseOverlay.repaint();
     }
 
+    /**
+     * Configura el texto de la superposición de pausa.
+     */
     private void textPause() {
         JLabel text = ImageUtils.createScaledImageLabel("/Resources/textos/Pausa.png",
         130, 40, 270, 200);
@@ -175,6 +210,9 @@ public class GameGUI extends JPanel {
         pauseOverlay.setComponentZOrder(text, 0);
     }
     
+    /**
+     * Configura el botón de continuar en la superposición de pausa.
+     */
     private void buttonContinue() {
         PixelButton btnContinue = new PixelButton("/Resources/textos/Continuar.png",
          140, 60);
@@ -186,6 +224,9 @@ public class GameGUI extends JPanel {
         pauseOverlay.repaint();
     }
     
+    /**
+     * Configura el botón de salir en la superposición de pausa.
+     */
     private void buttonExit() {
         PixelButton btnExit = new PixelButton("/Resources/textos/Salir.png", 100, 50);
         btnExit.setBounds(280, 340, 100, 50);
@@ -200,33 +241,9 @@ public class GameGUI extends JPanel {
         this.repaint();
     }
 
-    private void resetWinState() {
-        winShown = false;
-
-        if (winOverlay != null) {
-            this.remove(winOverlay);
-            winOverlay = null;
-        }
-
-        if (timer != null && !timer.isRunning()) {
-            timer.start();
-        }
-
-        isPaused = false;
-        this.setFocusable(true);
-        this.requestFocusInWindow();
-    }
-
-
-    private void hidePauseOverlay() {
-        if (pauseOverlay != null) {
-            this.remove(pauseOverlay);
-            pauseOverlay = null;
-            this.revalidate();
-            this.repaint();
-        }
-    }
-
+    /**
+     * Sale a la pantalla de selección de nivel.
+     */
     private void exitToLevelSelection() {
         Container parent = getParent();
         if (parent != null) {
@@ -238,6 +255,9 @@ public class GameGUI extends JPanel {
         }
     }
 
+    /**
+     * Agrega la barra de frutas al juego.
+     */
     private void addFruitBar() {
         panel.setLayout(null);
 
@@ -251,6 +271,9 @@ public class GameGUI extends JPanel {
         panel.repaint();
     }
 
+    /**
+     * Agrega el botón de pausa al juego.
+     */
     private void PauseButton() {
         btnPause = new PixelButton("/Resources/game/BotonPausa.png", 100, 50);
         btnPause.setBounds(600, 50, 50, 50);
@@ -262,8 +285,10 @@ public class GameGUI extends JPanel {
         panel.repaint();
     }
 
+    /**
+     * Muestra la superposición de victoria.
+     */
     private void showWinOverlay() {
-        timer.stop();
         btnPause.setEnabled(false);
         game.setPaused(true);
         this.setFocusable(false);
@@ -275,14 +300,17 @@ public class GameGUI extends JPanel {
         backgroundWin();
         textWin();
         ImageWin();
-        buttonMenu();
-        buttonRestart();
+        buttonMenuWin();
+        buttonRestartWin();
         this.add(winOverlay);
         this.setComponentZOrder(winOverlay, 0);
         this.revalidate();
         this.repaint();
     }
     
+    /**
+     * Configura el fondo de la superposición de victoria.
+     */
     private void backgroundWin() {
         JLabel bg = ImageUtils.createScaledImageLabel(
             "/Resources/inicio/fondo_eleccion.png",
@@ -291,6 +319,10 @@ public class GameGUI extends JPanel {
         );
         winOverlay.add(bg);
     }
+
+    /**
+     * Configura el texto de la superposición de victoria.
+     */
     private void textWin() {
         JLabel text = ImageUtils.createScaledImageLabel(
             "/Resources/textos/NivelCompletado.png",
@@ -302,6 +334,9 @@ public class GameGUI extends JPanel {
 
     }
 
+    /**
+     * Configura la imagen de la superposición de victoria.
+     */
     private void ImageWin() {
         JLabel image = ImageUtils.createScaledImageLabel(
             "/Resources/game/Victoria.png",
@@ -313,7 +348,10 @@ public class GameGUI extends JPanel {
 
     }
 
-    private void buttonMenu() {
+    /**
+     * Configura el botón de menú en la superposición de victoria.
+     */
+    private void buttonMenuWin() {
         PixelButton btnExit = new PixelButton("/Resources/textos/VolverMenu.png",
         120, 50);
         btnExit.setBounds(120, 425, 120, 50);
@@ -324,7 +362,10 @@ public class GameGUI extends JPanel {
         winOverlay.repaint();
     }
 
-    private void buttonRestart() {
+    /**
+     * Configura el botón de reiniciar en la superposición de victoria.
+     */
+    private void buttonRestartWin() {
         PixelButton btnRestart = new PixelButton("/Resources/textos/Reiniciar.png",
         120, 50);
         btnRestart.setBounds(390, 425, 150, 50);
@@ -335,31 +376,167 @@ public class GameGUI extends JPanel {
         winOverlay.repaint();
     }
 
+    /**
+     * Reinicia el juego desde el estado inicial.
+     */
     private void resetGame() {
         btnPause.setEnabled(true);
         loadGame();
     }
 
+    /**
+     * Muestra la superposición de derrota.
+     */
+    private void showLoseOverlay() {
+        btnPause.setEnabled(false);
+        game.setPaused(true);
+        this.setFocusable(false);
+        loseOverlay = new JLabel();
+        loseOverlay.setBounds(0, 0, getWidth(), getHeight());
+        loseOverlay.setLayout(null);
+        loseOverlay.setOpaque(true);
+        loseOverlay.setBackground(new Color(0, 0, 0, 150));
+        backgroundLose();
+        textLose();
+        ImageLose();
+        buttonMenuLose();
+        buttonRestartLose();
+        this.add(loseOverlay);
+        this.setComponentZOrder(loseOverlay, 0);
+        this.revalidate();
+        this.repaint();
+    }
+
+    /**
+     * Configura el fondo de la superposición de derrota.
+     */
+    private void backgroundLose() {
+        JLabel bg = ImageUtils.createScaledImageLabel(
+            "/Resources/inicio/fondo_eleccion.png",
+            550, 350,
+            60, 160
+        );
+        loseOverlay.add(bg);
+    }
+
+    /**
+     * Configura el texto de la superposición de derrota.
+     */
+    private void textLose() {
+        JLabel text = ImageUtils.createScaledImageLabel(
+            "/Resources/textos/nivelFallido.png",
+            260, 50,
+            205, 160
+        );
+        loseOverlay.add(text);
+        loseOverlay.setComponentZOrder(text, 0);
+    }
+
+    /**
+     * Configura la imagen de la superposición de derrota.
+     */
+    private void ImageLose() {
+        JLabel image = ImageUtils.createScaledImageLabel(
+            "/Resources/game/imagenDerrota.png",
+            400, 110,
+            140, 250
+        );
+        loseOverlay.add(image);
+        loseOverlay.setComponentZOrder(image, 0);
+    }
+
+    /**
+     * Configura el botón de menú en la superposición de derrota.
+     */
+    private void buttonMenuLose() {
+        PixelButton btnExit = new PixelButton("/Resources/textos/VolverMenu.png",
+        120, 50);
+        btnExit.setBounds(120, 425, 120, 50);
+        btnExit.addActionListener(e -> exitToLevelSelection());
+        loseOverlay.add(btnExit);
+        loseOverlay.setComponentZOrder(btnExit, 0);
+        loseOverlay.revalidate();
+        loseOverlay.repaint();
+    }
+
+    /**
+     * Configura el botón de reiniciar en la superposición de derrota.
+     */
+    private void buttonRestartLose() {
+        PixelButton btnRestart = new PixelButton("/Resources/textos/Reiniciar.png",
+        120, 50);
+        btnRestart.setBounds(390, 425, 150, 50);
+        btnRestart.addActionListener(e -> resetGame());
+        loseOverlay.add(btnRestart);
+        loseOverlay.setComponentZOrder(btnRestart, 0);
+        loseOverlay.revalidate();
+        loseOverlay.repaint();
+    }
+
+    /**
+     * Reinicia los estados de fin de juego.
+     */
+    private void resetEndStates() {
+        gameEnded = false;
+        winShown = false;
+        loseShown = false;
+
+        if (winOverlay != null) {
+            this.remove(winOverlay);
+            winOverlay = null;
+        }
+
+        if (loseOverlay != null) {
+            this.remove(loseOverlay);
+            loseOverlay = null;
+        }
+
+        if (timer != null && !timer.isRunning()) {
+            timer.start();
+        }
+
+        isPaused = false;
+        this.setFocusable(true);
+        this.requestFocusInWindow();
+    }
+
     // =====================================================
     // PANEL INTERNO (FINAL)
     // =====================================================
+    /**
+     * Clase interna que representa el panel de juego.
+     * Extiende JPanel y maneja la representación gráfica del juego.
+     */
     public class GamePanel extends JPanel {
 
         private BadIceCream game;
         private final SpriteManager spriteManager;
         private static final int TILE = 32;
 
+        /**
+         * Constructor del panel de juego.
+         * @param game instancia del juego BadIceCream.
+         * @param spriteManager gestor de sprites para cargar imágenes.
+         */
         public GamePanel(BadIceCream game, SpriteManager spriteManager) {
             this.game = game;
             this.spriteManager = spriteManager;
             setBackground(Color.BLACK);
         }
 
+        /**
+         * Establece la instancia del juego.
+         * @param newGame nueva instancia del juego BadIceCream.
+         */
         public void setGame(BadIceCream newGame) {
             this.game = newGame;
             repaint();
         }
 
+        /**
+         * Método sobrescrito para pintar los componentes del juego.
+         * @param g objeto Graphics utilizado para dibujar.
+         */
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);

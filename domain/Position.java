@@ -1,5 +1,8 @@
 package domain;
 
+/**
+ * Representa una posición en una cuadrícula mediante fila y columna.
+ */
 public class Position {
 
     private int row;
@@ -46,13 +49,13 @@ public class Position {
     }
 
     public Position translated(Direction dir) {
-        switch (dir) {
-            case UP:    return new Position(row - 1, col);
-            case DOWN:  return new Position(row + 1, col);
-            case LEFT:  return new Position(row, col - 1);
-            case RIGHT: return new Position(row, col + 1);
-            default:    return new Position(row, col);
-        }
+        return switch (dir) {
+            case UP -> new Position(row - 1, col);
+            case DOWN -> new Position(row + 1, col);
+            case LEFT -> new Position(row, col - 1);
+            case RIGHT -> new Position(row, col + 1);
+            default -> new Position(row, col);
+        };
     }
 
     /**

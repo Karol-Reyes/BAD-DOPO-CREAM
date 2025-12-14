@@ -3,6 +3,10 @@ package presentation;
 import java.awt.*;
 import javax.swing.*;
 
+/**
+ * Clase que representa la interfaz gráfica de usuario (GUI) para la selección de frutas.
+ * Extiende ResourcesGUI e incluye botones para seleccionar frutas y avanzar al siguiente paso.
+ */
 public class FruitsGUI extends ResourcesGUI {
     private Timer gifTimer;
     private String selectedFruit1 = null;
@@ -17,10 +21,18 @@ public class FruitsGUI extends ResourcesGUI {
 
     private final GameControl gameControl;
 
+    /**
+     * Crea la pantalla de selección de frutas y recibe el controlador del juego.
+     * @param gameControl controlador principal del juego
+     */
     public FruitsGUI(GameControl gameControl) {
         this.gameControl = gameControl;
     }
 
+    /**
+     * Inicia la secuencia visual inicial mostrando una animación
+     * antes de cargar los botones y textos de selección de frutas.
+     */
     @Override
     protected void startSequence() {
         startChocolateGif();
@@ -43,6 +55,9 @@ public class FruitsGUI extends ResourcesGUI {
         gifTimer.start();
     }
 
+    /**
+     * Muestra el texto principal que indica al jugador que debe escoger una fruta.
+     */
     private void main_Text() {
         JLabel textLabel = ImageUtils.createScaledImageLabel("/Resources/textos/EscogerFruta.png",
            320, 40, 180, 45);
@@ -52,6 +67,9 @@ public class FruitsGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Crea y muestra el botón de selección de la fruta Banana.
+     */
     public void banana() {
         btnBanana = new PixelButton("/Resources/fruit/Banana.jpg", 80, 80);
         btnBanana.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -67,6 +85,9 @@ public class FruitsGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Crea y muestra el botón de selección de la fruta Grape.
+     */
     public void grape() {
         btnGrape = new PixelButton("/Resources/fruit/Grape.jpg", 80, 80);
         btnGrape.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -82,6 +103,9 @@ public class FruitsGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Crea y muestra el botón de selección de la fruta Cherry.
+     */
     public void cherry() {
         btnCheery = new PixelButton("/Resources/fruit/Cherry.jpg", 80, 80);
         btnCheery.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -97,6 +121,9 @@ public class FruitsGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Crea y muestra el botón de selección de la fruta Pineapple.
+     */
     public void pineapple() {
         btnPineapple = new PixelButton("/Resources/fruit/Pineapple.jpg", 80, 80);
         btnPineapple.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -112,6 +139,9 @@ public class FruitsGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Crea y muestra el botón de selección de la fruta Cactus.
+     */
     public void cactus() {
         btnCactus = new PixelButton("/Resources/fruit/cactus.png", 80, 80);
         btnCactus.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -127,6 +157,9 @@ public class FruitsGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Crea y muestra el botón para el modo de un solo jugador.
+     */
     public void only1() {
         btnOnly1 = new PixelButton("/Resources/textos/Solo1.png", 170, 40);
         btnOnly1.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -142,6 +175,11 @@ public class FruitsGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Gestiona la selección de frutas por parte de los jugadores.
+     * Asigna la fruta al jugador correspondiente y deshabilita el botón.
+     * @param fruit nombre de la fruta seleccionada
+     */
     private void selectFruit(String fruit) {
         if (selectedFruit1 == null) {
             selectedFruit1 = fruit;
@@ -157,6 +195,11 @@ public class FruitsGUI extends ResourcesGUI {
         }
     }
 
+    /**
+     * Deshabilita el botón correspondiente a la fruta seleccionada
+     * para evitar que vuelva a ser elegida.
+     * @param fruit nombre de la fruta seleccionada
+     */
     private void disableButtons(String fruit) {
         switch (fruit) {
             case "Banana" -> {
@@ -180,6 +223,10 @@ public class FruitsGUI extends ResourcesGUI {
         }
     }
 
+    /**
+     * Cambia la pantalla actual a la selección de enemigos
+     * una vez que ambos jugadores han elegido sus frutas.
+     */
     private void selectEnemy() {
         if (gifTimer != null && gifTimer.isRunning()) {
             gifTimer.stop();

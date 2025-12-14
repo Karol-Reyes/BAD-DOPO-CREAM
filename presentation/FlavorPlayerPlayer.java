@@ -3,6 +3,10 @@ package presentation;
 import java.awt.*;
 import javax.swing.*;
 
+/**
+ * Clase que representa la pantalla de selección de sabores para el modo jugador contra jugador.
+ * Extiende ResourcesGUI e incluye botones para que ambos jugadores seleccionen sus sabores.
+ */
 public class FlavorPlayerPlayer extends ResourcesGUI {
     private Timer gifTimer;
     private String player1 = null;
@@ -17,11 +21,18 @@ public class FlavorPlayerPlayer extends ResourcesGUI {
 
     private final GameControl gameControl;
 
+    /**
+     * Crea la pantalla de selección de sabores para el modo jugador contra jugador.
+     * @param gameControl controlador principal del juego
+     */
     public FlavorPlayerPlayer(GameControl gameControl) {
         this.gameControl = gameControl;
     }
 
-
+    /**
+     * Inicia la secuencia visual inicial mostrando una animación
+     * antes de cargar la selección de sabores para ambos jugadores.
+     */
     @Override
     protected void startSequence() {
         startChocolateGif();
@@ -48,6 +59,9 @@ public class FlavorPlayerPlayer extends ResourcesGUI {
         gifTimer.start();
     }
 
+    /**
+     * Muestra el texto principal que indica la selección de sabor.
+     */
     private void main_Text() {
         JLabel textLabel = ImageUtils.createScaledImageLabel("/Resources/textos/seleccionarSabor.png",
          320, 30, 175, 45);
@@ -57,6 +71,9 @@ public class FlavorPlayerPlayer extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Muestra el cono del jugador 1.
+     */
     private void coneImage1() {
         JLabel labelFlavors = ImageUtils.createScaledImageLabel("/Resources/seleccion_jugador/cono.png",
          265, 200, 50, 190);
@@ -66,6 +83,9 @@ public class FlavorPlayerPlayer extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Crea el botón de selección de sabor vainilla para el jugador 1.
+     */
     private void vanillaButton1() {
         btnV1 = new PixelButton("/Resources/seleccion_jugador/vainilla.png", 100, 120);
         btnV1.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -82,6 +102,9 @@ public class FlavorPlayerPlayer extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Crea el botón de selección de sabor fresa para el jugador 1.
+     */
     private void strawberryButton1() {
         btnF1 = new PixelButton("/Resources/seleccion_jugador/fresa.png", 100, 120);
         btnF1.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -98,6 +121,9 @@ public class FlavorPlayerPlayer extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Crea el botón de selección de sabor chocolate para el jugador 1.
+     */
     private void chocolateButton1() {
         btnC1 = new PixelButton("/Resources/seleccion_jugador/chocolate.png", 100, 120);
         btnC1.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -114,6 +140,9 @@ public class FlavorPlayerPlayer extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Muestra el cono del jugador 2.
+     */
     private void coneImage2() {
         JLabel labelFlavors = ImageUtils.createScaledImageLabel("/Resources/seleccion_jugador/cono.png",
          265, 200, 370, 190);
@@ -123,6 +152,9 @@ public class FlavorPlayerPlayer extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Crea el botón de selección de sabor vainilla para el jugador 2.
+     */
     private void vanillaButton2() {
         btnV2 = new PixelButton("/Resources/seleccion_jugador/vainilla.png", 100, 120);
         btnV2.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -139,6 +171,9 @@ public class FlavorPlayerPlayer extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Crea el botón de selección de sabor fresa para el jugador 2.
+     */
     private void strawberryButton2() {
         btnF2 = new PixelButton("/Resources/seleccion_jugador/fresa.png", 100, 120);
         btnF2.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -155,6 +190,9 @@ public class FlavorPlayerPlayer extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Crea el botón de selección de sabor chocolate para el jugador 2.
+     */
     private void chocolateButton2() {
         btnC2 = new PixelButton("/Resources/seleccion_jugador/chocolate.png", 100, 120);
         btnC2.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -171,6 +209,9 @@ public class FlavorPlayerPlayer extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Muestra el texto identificador del jugador 1.
+     */
     private void textPlayer1() {
         JLabel textLabel = ImageUtils.createScaledImageLabel("/Resources/textos/Jugador1.png",
          120, 30, 120, 390);
@@ -180,6 +221,9 @@ public class FlavorPlayerPlayer extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Muestra el texto identificador del jugador 2.
+     */
     private void textPlayer2() {
         JLabel textLabel = ImageUtils.createScaledImageLabel("/Resources/textos/Jugador2.png",
          120, 30, 450, 390);
@@ -189,6 +233,11 @@ public class FlavorPlayerPlayer extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Registra la selección de sabor de cada jugador y
+     * avanza a la selección de nivel cuando ambos han elegido.
+     * @param character identificador del sabor seleccionado
+     */
     private void selectCharacter(String character) {
         if (player1 == null) {
             player1 = character;
@@ -202,6 +251,11 @@ public class FlavorPlayerPlayer extends ResourcesGUI {
         }
     }
 
+    /**
+     * Deshabilita los botones correspondientes para evitar
+     * selecciones duplicadas entre jugadores.
+     * @param character identificador del sabor seleccionado
+     */
     private void disableButtons(String character) {
         switch (character) {
             case "Vanilla1" -> {
@@ -243,6 +297,10 @@ public class FlavorPlayerPlayer extends ResourcesGUI {
         }
     }
 
+    /**
+     * Cambia la pantalla actual a la selección de nivel
+     * una vez que ambos jugadores han elegido su sabor.
+     */
     private void levelSelection() {
         if (gifTimer != null && gifTimer.isRunning()) {
             gifTimer.stop();

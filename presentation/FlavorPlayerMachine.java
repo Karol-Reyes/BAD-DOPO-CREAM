@@ -3,6 +3,10 @@ package presentation;
 import java.awt.*;
 import javax.swing.*;
 
+/**
+ * Clase de la interfaz gráfica de usuario (GUI) para la selección del sabor del jugador y la máquina.
+ * Extiende ResourcesGUI e incluye botones para seleccionar sabores y avanzar al siguiente paso.
+ */
 public class FlavorPlayerMachine extends ResourcesGUI {
     private Timer gifTimer;
     private String player = null;
@@ -17,10 +21,16 @@ public class FlavorPlayerMachine extends ResourcesGUI {
 
     private final GameControl gameControl;
 
+    /**
+     * Constructor de la clase FlavorPlayerMachine.
+     */
     public FlavorPlayerMachine(GameControl gameControl) {
         this.gameControl = gameControl;
     }
 
+    /**
+     * Inicia la secuencia de selección de sabor.
+     */
     @Override
     protected void startSequence() {
         startChocolateGif();
@@ -50,6 +60,9 @@ public class FlavorPlayerMachine extends ResourcesGUI {
         gifTimer.start();
     }
 
+    /**
+     * Muestra el texto principal en la GUI.
+     */
     private void main_Text() {
         JLabel textLabel = ImageUtils.createScaledImageLabel("/Resources/textos/seleccionarSabor.png",
          320, 30, 175, 45);
@@ -59,6 +72,9 @@ public class FlavorPlayerMachine extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Agrega la imagen del cono a la GUI.
+     */
     private void coneImage() {
         JLabel labelFlavors = ImageUtils.createScaledImageLabel("/Resources/seleccion_jugador/cono.png",
          265, 200, 50, 190);
@@ -68,6 +84,9 @@ public class FlavorPlayerMachine extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Agrega el botón de Vainilla a la GUI.
+     */
     private void vanillaButton() {
         btnVH = new PixelButton("/Resources/seleccion_jugador/vainilla.png", 100, 120);
         btnVH.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -84,6 +103,9 @@ public class FlavorPlayerMachine extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Agrega el botón de Fresa a la GUI.
+     */
     private void strawberryButton() {
         btnFH = new PixelButton("/Resources/seleccion_jugador/fresa.png", 100, 120);
         btnFH.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -100,6 +122,9 @@ public class FlavorPlayerMachine extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Agrega el botón de Chocolate a la GUI.
+     */
     private void chocolateButton() {
         btnCH = new PixelButton("/Resources/seleccion_jugador/chocolate.png", 100, 120);
         btnCH.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -116,6 +141,9 @@ public class FlavorPlayerMachine extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Agrega la imagen del perchero a la GUI.
+     */
     private void lampPost() {
         JLabel labelLampPost = ImageUtils.createScaledImageLabel("/Resources/inicio/perchero.png", 
         150, 300,400,100);
@@ -125,6 +153,9 @@ public class FlavorPlayerMachine extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Agrega el botón de Hambriento a la GUI.
+     */
     private void hungryButton() {
         btnHB = new PixelButton("/Resources/seleccion_jugador/hungry.png", 80, 100);
         btnHB.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -141,6 +172,9 @@ public class FlavorPlayerMachine extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Agrega el botón de Temeroso a la GUI.
+     */
     private void fearfulButton() {
         btnFB = new PixelButton("/Resources/seleccion_jugador/fearful.png", 80, 80);
         btnFB.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -157,6 +191,9 @@ public class FlavorPlayerMachine extends ResourcesGUI {
         contentLabel.repaint();
     }
     
+    /**
+     * Agrega el botón de Experto a la GUI.
+     */
     private void expertButton() {
         btnEB = new PixelButton("/Resources/seleccion_jugador/expert.png", 80, 80);
         btnEB.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -173,6 +210,9 @@ public class FlavorPlayerMachine extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Agrega el texto de Máquina a la GUI.
+     */
     private void textMachine() {
         JLabel textLabel = ImageUtils.createScaledImageLabel("/Resources/textos/maquina.png",
          140, 30, 400, 405);
@@ -182,6 +222,9 @@ public class FlavorPlayerMachine extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Agrega el texto de Jugador a la GUI.
+     */
     private void textPlayer() {
         JLabel textLabel = ImageUtils.createScaledImageLabel("/Resources/textos/Jugador1.png",
          140, 30, 140, 405);
@@ -191,6 +234,9 @@ public class FlavorPlayerMachine extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Agrega el texto de Hambriento a la GUI.
+     */
     private void textHungry() {
         JLabel textLabel = ImageUtils.createScaledImageLabel("/Resources/textos/hungry.png",
          80, 30, 370, 120);
@@ -200,6 +246,9 @@ public class FlavorPlayerMachine extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Agrega el texto de Temeroso a la GUI.
+     */
     private void textFearful() {
         JLabel textLabel = ImageUtils.createScaledImageLabel("/Resources/textos/fearful.png",
          80, 30, 490, 220);
@@ -209,6 +258,9 @@ public class FlavorPlayerMachine extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Agrega el texto de Experto a la GUI.
+     */
     private void textExpert() {
         JLabel textLabel = ImageUtils.createScaledImageLabel("/Resources/textos/expert.png",
          80, 30, 370, 310);
@@ -218,6 +270,9 @@ public class FlavorPlayerMachine extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Selecciona el personaje y avanza a la selección de nivel si ambos están seleccionados.
+     */
     private void selectCharacter(String character) {
         if (player == null) {
             player = character;
@@ -231,6 +286,9 @@ public class FlavorPlayerMachine extends ResourcesGUI {
         }
     }
 
+    /**
+     * Deshabilita los botones correspondientes al personaje seleccionado.
+     */
     private void disableButtons(String character) {
         switch (character) {
             case "Vanilla" -> {
@@ -266,6 +324,9 @@ public class FlavorPlayerMachine extends ResourcesGUI {
         }
     }
 
+    /**
+     * Muestra la pantalla de selección de nivel.
+     */
     private void levelSelection() {
         if (gifTimer != null && gifTimer.isRunning()) {
             gifTimer.stop();

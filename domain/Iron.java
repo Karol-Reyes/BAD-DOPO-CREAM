@@ -1,18 +1,22 @@
 package domain;
 
-public class Iron  extends Boxy {
+/**
+ * Representa un bloque de hierro en el mapa del juego.
+ */
+public class Iron extends Boxy {
 
     /**
-     * Constructor segun una posicion dada
-     * @param position del hierro
+     * Crea un bloque de hierro en una posición inicial.
+     * @param pos posición del bloque
+     * @param state estado inicial del bloque
      */
-    public Iron(Position position, BoxState state) {
-        super(BoxType.iron, position, state);
+    public Iron(Position pos, BoxState state) {
+        super(BoxType.iron, pos, state);
     }
 
-        /**
-     * Indica si se puede caminar sobre el bloque.
-     * @return true si se puede caminar, false en caso contrario
+    /**
+     * Indica si el bloque permite ser atravesado.
+     * @return false siempre
      */
     @Override
     public boolean canWalk() {
@@ -20,8 +24,8 @@ public class Iron  extends Boxy {
     }
 
     /**
-     * Indica si el bloque se puede destruir.
-     * @return true si se puede destruir, false en caso contrario
+     * Indica si el bloque puede destruirse.
+     * @return false siempre
      */
     @Override
     public boolean canBeDestroyed() {
@@ -29,8 +33,8 @@ public class Iron  extends Boxy {
     }
 
     /**
-     * Indica si el bloque se puede crear.
-     * @return true si se puede crear, false en caso contrario
+     * Indica si el bloque puede crearse.
+     * @return true siempre
      */
     @Override
     public boolean canBeCreated() {
@@ -38,7 +42,7 @@ public class Iron  extends Boxy {
     }
 
     /**
-     * Crea el bloque.
+     * Marca el bloque como indestructible.
      */
     @Override
     public void create() {
@@ -47,7 +51,17 @@ public class Iron  extends Boxy {
         }
     }
 
-    public void onFreeze() {}
+    /**
+     * Responde al evento de congelación.
+     */
+    @Override
+    public void onFreeze() {
+    }
 
-    public void update() {}
+    /**
+     * Actualiza el estado del bloque.
+     */
+    @Override
+    public void update() {
+    }
 }

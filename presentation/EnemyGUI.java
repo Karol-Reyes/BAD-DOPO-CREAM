@@ -3,6 +3,10 @@ package presentation;
 import java.awt.*;
 import javax.swing.*;
 
+/**
+ * Clase de la interfaz gráfica de usuario (GUI) para la selección de enemigos.
+ * Extiende ResourcesGUI e incluye botones para seleccionar enemigos y avanzar al siguiente paso.
+ */
 public class EnemyGUI extends ResourcesGUI {
     private Timer gifTimer;
     private String selectedEnemy1 = null;
@@ -16,10 +20,17 @@ public class EnemyGUI extends ResourcesGUI {
 
     private final GameControl gameControl;
 
+    /**
+     * Constructor de la clase EnemyGUI.
+     * @param gameControl Controlador del juego para gestionar la lógica de selección de enemigos.
+     */
     public EnemyGUI(GameControl gameControl) {
         this.gameControl = gameControl;
     }
 
+    /**
+     * Inicia la secuencia de selección de enemigos.
+     */
     @Override
     protected void startSequence() {
         startChocolateGif();
@@ -41,6 +52,9 @@ public class EnemyGUI extends ResourcesGUI {
         gifTimer.start();
     }
 
+    /**
+     * Muestra el texto principal en la GUI.
+     */
     private void main_Text() {
         JLabel textLabel = ImageUtils.createScaledImageLabel("/Resources/textos/EscogerEnemigos.png",
            320, 40, 180, 45);
@@ -50,6 +64,9 @@ public class EnemyGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Agrega el botón del Troll a la GUI.
+     */
     public void troll() {
         btnTroll = new PixelButton("/Resources/enemy/troll/static_down.png",
            150, 120);
@@ -66,6 +83,9 @@ public class EnemyGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Agrega el botón de la Maceta a la GUI.
+     */
     public void flowerPot() {
         btnFlowerPot = new PixelButton("/Resources/enemy/flowerpot/flowerpot.jpg",
            140, 140);
@@ -82,6 +102,9 @@ public class EnemyGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Agrega el botón del Calamar Amarillo a la GUI.
+     */
     public void yellowSquid() {
         btnYellowSquid = new PixelButton("/Resources/enemy/yellow_squid/static_down.png",
            80, 180);
@@ -98,6 +121,9 @@ public class EnemyGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Agrega el botón del Narval a la GUI.
+     */
     public void narwhal() {
         btnNarwhal = new PixelButton("/Resources/enemy/Narwhal.png", 150, 150);
         btnNarwhal.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -113,6 +139,9 @@ public class EnemyGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Agrega el botón del Solo1 a la GUI.
+     */
     public void only1() {
         btnOnly1 = new PixelButton("/Resources/textos/Solo1.png", 170, 40);
         btnOnly1.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -128,6 +157,10 @@ public class EnemyGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Maneja la selección de enemigos.
+     * @param enemy Nombre del enemigo seleccionado.
+     */
     private void selectEnemy(String enemy) {
         if (selectedEnemy1 == null) {
             selectedEnemy1 = enemy;
@@ -143,6 +176,10 @@ public class EnemyGUI extends ResourcesGUI {
         }
     }
 
+    /**
+     * Deshabilita los botones de los enemigos ya seleccionados.
+     * @param enemy Nombre del enemigo a deshabilitar.
+     */
     private void disableButtons(String enemy) {
         switch (enemy) {
             case "Troll" -> {
@@ -160,6 +197,9 @@ public class EnemyGUI extends ResourcesGUI {
         }
     }
 
+    /**
+     * Muestra la pantalla de selección de piso.
+     */
     private void floor() {
         if (gifTimer != null && gifTimer.isRunning()) {
             gifTimer.stop();

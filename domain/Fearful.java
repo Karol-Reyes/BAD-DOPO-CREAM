@@ -1,32 +1,48 @@
 package domain;
-
 import java.util.*;
 
+/**
+ * Controlador de IA que implementa un comportamiento temeroso para el jugador IceCream.
+ * El jugador evita enemigos y busca frutas seguras.
+ */
 public class Fearful implements ControllerCream {
+
     private IceCream player;
-    private GameMap map;
-    private BadIceCream game;
+    private final GameMap map;
+    private final BadIceCream game;
 
-    private static final int DISTANCIA_PELIGRO = 8;
-    private static final int DISTANCIA_CRITICA = 4;
-    private static final int DISTANCIA_MINIMA_FRUTA = 10; // Solo busca frutas si enemigos están lejos
+    private static final int DANGER_DIST = 8;
+    private static final int CRIT_DIST = 4;
+    private static final int SAFE_FRUIT_DIST = 10;
 
-    private int tick = 0;
-    private int speed = 3; // Más rápido para reaccionar mejor
+    private int tick;
+    private final int speed = 3;
 
-    private Position ultimaPosicion = null;
-    private int ticksAtascado = 0;
+    private Position lastPos;
+    private int stuckTicks;
 
+    /**
+     * Crea un controlador temeroso con acceso al mapa y al juego.
+     * @param map mapa del juego
+     * @param game instancia principal del juego
+     */
     public Fearful(GameMap map, BadIceCream game) {
         this.map = map;
         this.game = game;
     }
 
+    /**
+     * Asigna el jugador controlado por la IA.
+     * @param player jugador IceCream
+     */
     @Override
     public void setPlayer(IceCream player) {
         this.player = player;
     }
 
+    /**
+     * Ejecuta la lógica principal del comportamiento temeroso.
+     */
     @Override
     public void update() {
         tick++;
@@ -34,413 +50,345 @@ public class Fearful implements ControllerCream {
         tick = 0;
 
         if (player == null || !player.isAlive()) return;
+        Position pos = player.getPosition();
 
-        // Detectar si está atascado
-        Position actual = player.getPosition();
-        if (actual.equals(ultimaPosicion)) {
-            ticksAtascado++;
-            if (ticksAtascado > 8) {
-                intentarDesatascar();
-                ticksAtascado = 0;
-            }
-        } else {
-            ticksAtascado = 0;
+        stuckTicks = pos.equals(lastPos) ? stuckTicks + 1 : 0;
+        if (stuckTicks > 8) {
+            unstuck();
+            stuckTicks = 0;
         }
-        ultimaPosicion = new Position(actual.getRow(), actual.getCol());
+        lastPos = new Position(pos.getRow(), pos.getCol());
 
-        // PRIORIDAD 1: Peligro inmediato
-        List<Enemy> enemigosCriticos = encontrarEnemigosCriticos();
-        if (!enemigosCriticos.isEmpty()) {
-            huirDesesperadamente(enemigosCriticos);
+        List<Enemy> critical = criticalEnemies();
+        if (!critical.isEmpty()) {
+            panicEscape(critical);
             return;
         }
 
-        // PRIORIDAD 2: Enemigos cercanos
-        List<Enemy> enemigosCercanos = encontrarEnemigosCercanos();
-        if (!enemigosCercanos.isEmpty()) {
-            esconderse(enemigosCercanos);
+        List<Enemy> nearby = nearbyEnemies();
+        if (!nearby.isEmpty()) {
+            hideFrom(nearby);
             return;
         }
 
-        // PRIORIDAD 3: Buscar fruta MUY segura
-        Fruit frutaSegura = encontrarFrutaMuySegura();
-        if (frutaSegura != null) {
-            irConCuidado(frutaSegura.getPosition());
+        Fruit fruit = safeFruit();
+        if (fruit != null) {
+            carefulMove(fruit.getPosition());
             return;
         }
-
-        // PRIORIDAD 4: Mantenerse alejado y patrullar
-        patrullarSeguro();
+        safePatrol();
     }
 
-    // ============================================================
-    //    HUIDA DESESPERADA (Peligro inmediato)
-    // ============================================================
-
-    private List<Enemy> encontrarEnemigosCriticos() {
-        List<Enemy> criticos = new ArrayList<>();
+    /**
+     * Obtiene los enemigos en distancia crítica.
+     * @return lista de enemigos críticos
+     */
+    private List<Enemy> criticalEnemies() {
+        List<Enemy> list = new ArrayList<>();
         Position pos = player.getPosition();
 
         for (Enemy e : game.getEnemies()) {
-            int dist = calcularDistancia(pos, e.getPosition());
-            if (dist <= DISTANCIA_CRITICA) {
-                criticos.add(e);
+            if (dist(pos, e.getPosition()) <= CRIT_DIST) {
+                list.add(e);
             }
         }
-        return criticos;
+        return list;
     }
 
-    private void huirDesesperadamente(List<Enemy> enemigos) {
-        Position actual = player.getPosition();
+    /**
+     * Ejecuta una huida inmediata y defensiva.
+     * @param enemies enemigos críticos
+     */
+    private void panicEscape(List<Enemy> enemies) {
+        Position pos = player.getPosition();
 
-        // Crear barreras defensivas inmediatamente
-        for (Enemy e : enemigos) {
-            if (calcularDistancia(actual, e.getPosition()) <= 2) {
-                Direction dirHaciaEnemigo = calcularDireccionHacia(e.getPosition());
-                if (dirHaciaEnemigo != null) {
-                    Position bloquePos = new Position(
-                        actual.getRow() + dirHaciaEnemigo.getRowDelta(),
-                        actual.getCol() + dirHaciaEnemigo.getColDelta()
-                    );
-                    
-                    if (map.isValid(bloquePos) && !map.hasEnemy(bloquePos) && !map.isBlocked(bloquePos)) {
-                        player.createIce(dirHaciaEnemigo);
-                    }
-                }
+        for (Enemy e : enemies) {
+            if (dist(pos, e.getPosition()) <= 2) {
+                Direction d = dirTo(e.getPosition());
+                if (d != null) player.createIce(d);
             }
         }
 
-        // Huir en la dirección MÁS alejada
-        Direction dirHuida = encontrarDireccionMasAlejada(enemigos);
-        if (dirHuida != null) {
-            boolean movido = player.move(dirHuida);
-            
-            if (!movido) {
-                Position siguiente = new Position(
-                    actual.getRow() + dirHuida.getRowDelta(),
-                    actual.getCol() + dirHuida.getColDelta()
-                );
-                
-                if (map.isValid(siguiente) && map.isBlocked(siguiente)) {
-                    player.destroyIce(dirHuida);
-                    player.move(dirHuida);
-                }
-            }
-        }
+        Direction fleeDir = farDir(enemies);
+        tryMove(fleeDir);
     }
 
-    // ============================================================
-    //    ESCONDERSE (Enemigos cercanos pero no inmediatos)
-    // ============================================================
-
-    private List<Enemy> encontrarEnemigosCercanos() {
-        List<Enemy> cercanos = new ArrayList<>();
+    /**
+     * Obtiene los enemigos cercanos pero no críticos.
+     * @return lista de enemigos cercanos
+     */
+    private List<Enemy> nearbyEnemies() {
+        List<Enemy> list = new ArrayList<>();
         Position pos = player.getPosition();
 
         for (Enemy e : game.getEnemies()) {
-            int dist = calcularDistancia(pos, e.getPosition());
-            if (dist > DISTANCIA_CRITICA && dist <= DISTANCIA_PELIGRO) {
-                cercanos.add(e);
+            int d = dist(pos, e.getPosition());
+            if (d > CRIT_DIST && d <= DANGER_DIST) {
+                list.add(e);
             }
         }
-        return cercanos;
+        return list;
     }
 
-    private void esconderse(List<Enemy> enemigos) {
-        Position actual = player.getPosition();
+    /**
+     * Ejecuta una maniobra defensiva contra enemigos cercanos.
+     * @param enemies enemigos cercanos
+     */
+    private void hideFrom(List<Enemy> enemies) {
+        Position pos = player.getPosition();
 
-        // Crear barreras estratégicas si enemigos están alineados
-        for (Enemy e : enemigos) {
-            if (estaAlineado(actual, e.getPosition())) {
-                Direction dirHaciaEnemigo = calcularDireccionHacia(e.getPosition());
-                if (dirHaciaEnemigo != null) {
-                    Position bloquePos = new Position(
-                        actual.getRow() + dirHaciaEnemigo.getRowDelta(),
-                        actual.getCol() + dirHaciaEnemigo.getColDelta()
-                    );
-                    
-                    if (map.isValid(bloquePos) && !map.hasEnemy(bloquePos) && !map.isBlocked(bloquePos)) {
-                        player.createIce(dirHaciaEnemigo);
-                    }
-                }
+        for (Enemy e : enemies) {
+            if (aligned(pos, e.getPosition())) {
+                Direction d = dirTo(e.getPosition());
+                if (d != null) player.createIce(d);
             }
         }
 
-        // Moverse hacia la posición más segura
-        Direction dirSegura = encontrarDireccionMasSegura(enemigos);
-        if (dirSegura != null) {
-            boolean movido = player.move(dirSegura);
-            
-            if (!movido) {
-                Position siguiente = new Position(
-                    actual.getRow() + dirSegura.getRowDelta(),
-                    actual.getCol() + dirSegura.getColDelta()
-                );
-                
-                if (map.isValid(siguiente) && map.isBlocked(siguiente)) {
-                    player.destroyIce(dirSegura);
-                    player.move(dirSegura);
-                }
-            }
-        }
+        Direction safe = safeDir(enemies);
+        tryMove(safe);
     }
 
-    // ============================================================
-    //    BUSCAR FRUTAS MUY SEGURAS
-    // ============================================================
-
-    private Fruit encontrarFrutaMuySegura() {
-        Fruit mejorFruta = null;
-        int mejorScore = Integer.MIN_VALUE;
-        Position actual = player.getPosition();
+    /**
+     * Busca una fruta extremadamente segura.
+     * @return fruta segura o null
+     */
+    private Fruit safeFruit() {
+        Fruit best = null;
+        int bestScore = Integer.MIN_VALUE;
+        Position pos = player.getPosition();
 
         for (Fruit f : game.getFruits()) {
-            if (f.isEaten() || !f.isActive()) continue;
+            if (!f.isActive() || f.isEaten()) continue;
 
-            // Verificar que TODOS los enemigos estén lejos de la fruta
-            int distanciaEnemigoCercano = Integer.MAX_VALUE;
+            int enemyDist = Integer.MAX_VALUE;
             for (Enemy e : game.getEnemies()) {
-                int distEnemigo = calcularDistancia(f.getPosition(), e.getPosition());
-                distanciaEnemigoCercano = Math.min(distanciaEnemigoCercano, distEnemigo);
+                enemyDist = Math.min(enemyDist, dist(f.getPosition(), e.getPosition()));
             }
 
-            // Solo considerar frutas si enemigos están MUY lejos
-            if (distanciaEnemigoCercano < DISTANCIA_MINIMA_FRUTA) continue;
+            if (enemyDist < SAFE_FRUIT_DIST) continue;
 
-            // Evaluar qué tan seguro es el camino
-            int distanciaJugador = calcularDistancia(actual, f.getPosition());
-            int peligroCamino = evaluarPeligroCamino(actual, f.getPosition());
+            int d = dist(pos, f.getPosition());
+            int risk = pathRisk(pos, f.getPosition());
 
-            // Score: priorizar cercanía y seguridad del camino
-            int score = (50 - distanciaJugador) - (peligroCamino * 10) + (distanciaEnemigoCercano * 2);
-
-            if (score > mejorScore) {
-                mejorScore = score;
-                mejorFruta = f;
+            int score = (50 - d) - (risk * 10) + (enemyDist * 2);
+            if (score > bestScore) {
+                bestScore = score;
+                best = f;
             }
         }
 
-        // Solo retornar si es REALMENTE seguro
-        if (mejorFruta != null && mejorScore < 0) {
-            return null;
-        }
-
-        return mejorFruta;
+        return bestScore >= 0 ? best : null;
     }
 
-    private int evaluarPeligroCamino(Position origen, Position destino) {
-        int peligro = 0;
-        
-        // Evaluar posiciones intermedias aproximadas
-        int pasos = Math.max(Math.abs(destino.getRow() - origen.getRow()), 
-                           Math.abs(destino.getCol() - origen.getCol()));
-        
-        for (int i = 0; i <= pasos; i++) {
-            float t = pasos > 0 ? (float)i / pasos : 0;
-            int r = (int)(origen.getRow() + t * (destino.getRow() - origen.getRow()));
-            int c = (int)(origen.getCol() + t * (destino.getCol() - origen.getCol()));
-            Position pos = new Position(r, c);
-            
-            for (Enemy e : game.getEnemies()) {
-                int dist = calcularDistancia(pos, e.getPosition());
-                if (dist <= 3) peligro += (4 - dist);
-            }
-        }
-        
-        return peligro;
-    }
-
-    // ============================================================
-    //    IR CON CUIDADO HACIA FRUTA
-    // ============================================================
-
-    private void irConCuidado(Position destino) {
-        Position actual = player.getPosition();
-
-        // Verificar que sigue siendo seguro
-        for (Enemy e : game.getEnemies()) {
-            if (calcularDistancia(destino, e.getPosition()) < DISTANCIA_PELIGRO) {
-                patrullarSeguro(); // Abortar misión
-                return;
-            }
-        }
-
-        Direction dir = calcularDireccionHacia(destino);
-        if (dir == null) return;
-
-        Position siguiente = new Position(
-            actual.getRow() + dir.getRowDelta(),
-            actual.getCol() + dir.getColDelta()
+    /**
+     * Evalúa el riesgo aproximado del camino hacia un destino.
+     * @param from posición inicial
+     * @param to posición destino
+     * @return nivel de peligro del camino
+     */
+    private int pathRisk(Position from, Position to) {
+        int risk = 0;
+        int steps = Math.max(
+                Math.abs(to.getRow() - from.getRow()),
+                Math.abs(to.getCol() - from.getCol())
         );
 
-        // Verificar que el siguiente paso sea seguro
-        int peligroSiguiente = 0;
+        for (int i = 0; i <= steps; i++) {
+            float t = steps > 0 ? (float) i / steps : 0;
+            Position p = new Position(
+                    (int) (from.getRow() + t * (to.getRow() - from.getRow())),
+                    (int) (from.getCol() + t * (to.getCol() - from.getCol()))
+            );
+
+            for (Enemy e : game.getEnemies()) {
+                int d = dist(p, e.getPosition());
+                if (d <= 3) risk += (4 - d);
+            }
+        }
+        return risk;
+    }
+
+    /**
+     * Se desplaza cuidadosamente hacia un destino.
+     * @param target posición objetivo
+     */
+    private void carefulMove(Position target) {
         for (Enemy e : game.getEnemies()) {
-            int dist = calcularDistancia(siguiente, e.getPosition());
-            if (dist < DISTANCIA_PELIGRO) {
-                peligroSiguiente += (DISTANCIA_PELIGRO - dist);
+            if (dist(target, e.getPosition()) < DANGER_DIST) {
+                safePatrol();
+                return;
             }
         }
 
-        if (peligroSiguiente > 10) {
-            patrullarSeguro(); // Demasiado peligroso
-            return;
-        }
-
-        boolean movido = player.move(dir);
-        if (!movido && map.isValid(siguiente) && map.isBlocked(siguiente)) {
-            player.destroyIce(dir);
-            player.move(dir);
-        }
+        Direction d = dirTo(target);
+        tryMove(d);
     }
 
-    // ============================================================
-    //    PATRULLAR SEGURO (sin objetivo claro)
-    // ============================================================
-
-    private void patrullarSeguro() {
-        List<Enemy> enemigos = new ArrayList<>(game.getEnemies());
-        Direction dirSegura = encontrarDireccionMasSegura(enemigos);
-        
-        if (dirSegura != null) {
-            boolean movido = player.move(dirSegura);
-            
-            if (!movido) {
-                Position siguiente = new Position(
-                    player.getPosition().getRow() + dirSegura.getRowDelta(),
-                    player.getPosition().getCol() + dirSegura.getColDelta()
-                );
-                
-                if (map.isValid(siguiente) && map.isBlocked(siguiente)) {
-                    player.destroyIce(dirSegura);
-                }
-            }
-        }
+    /**
+     * Ejecuta una patrulla segura sin objetivo definido.
+     */
+    private void safePatrol() {
+        Direction d = safeDir(game.getEnemies());
+        tryMove(d);
     }
 
-    // ============================================================
-    //    CÁLCULOS DE DIRECCIONES SEGURAS
-    // ============================================================
-
-    private Direction encontrarDireccionMasAlejada(List<Enemy> enemigos) {
-        Direction mejor = null;
-        int mejorDistanciaTotal = -1;
-        Position actual = player.getPosition();
+    /**
+     * Obtiene la dirección más alejada de los enemigos.
+     * @param enemies enemigos evaluados
+     * @return dirección óptima de huida
+     */
+    private Direction farDir(List<Enemy> enemies) {
+        Direction best = null;
+        int max = -1;
+        Position pos = player.getPosition();
 
         for (Direction d : Direction.values()) {
-            Position siguiente = new Position(
-                actual.getRow() + d.getRowDelta(),
-                actual.getCol() + d.getColDelta()
-            );
+            Position next = nextPos(pos, d);
+            if (!map.isValid(next) || map.hasEnemy(next)) continue;
 
-            if (!map.isValid(siguiente)) continue;
-            if (map.hasEnemy(siguiente)) continue;
-
-            // Calcular distancia total a TODOS los enemigos
-            int distanciaTotal = 0;
-            for (Enemy e : enemigos) {
-                distanciaTotal += calcularDistancia(siguiente, e.getPosition());
+            int total = 0;
+            for (Enemy e : enemies) {
+                total += dist(next, e.getPosition());
             }
 
-            if (distanciaTotal > mejorDistanciaTotal) {
-                mejorDistanciaTotal = distanciaTotal;
-                mejor = d;
+            if (total > max) {
+                max = total;
+                best = d;
             }
         }
-
-        return mejor;
+        return best;
     }
 
-    private Direction encontrarDireccionMasSegura(List<Enemy> enemigos) {
-        Direction mejor = null;
-        int menorPeligro = Integer.MAX_VALUE;
-        Position actual = player.getPosition();
+    /**
+     * Obtiene la dirección con menor peligro.
+     * @param enemies enemigos evaluados
+     * @return dirección más segura
+     */
+    private Direction safeDir(Collection<Enemy> enemies) {
+        Direction best = null;
+        int min = Integer.MAX_VALUE;
+        Position pos = player.getPosition();
 
         for (Direction d : Direction.values()) {
-            Position siguiente = new Position(
-                actual.getRow() + d.getRowDelta(),
-                actual.getCol() + d.getColDelta()
-            );
+            Position next = nextPos(pos, d);
+            if (!map.isValid(next) || map.hasEnemy(next)) continue;
 
-            if (!map.isValid(siguiente)) continue;
-            if (map.hasEnemy(siguiente)) continue;
-
-            int peligro = calcularPeligroPosicion(siguiente, enemigos);
-
-            if (peligro < menorPeligro) {
-                menorPeligro = peligro;
-                mejor = d;
+            int risk = posRisk(next, enemies);
+            if (risk < min) {
+                min = risk;
+                best = d;
             }
         }
-
-        return mejor;
+        return best;
     }
 
-    private int calcularPeligroPosicion(Position pos, List<Enemy> enemigos) {
+    /**
+     * Calcula el peligro de una posición específica.
+     * @param pos posición evaluada
+     * @param enemies enemigos cercanos
+     * @return nivel de peligro
+     */
+    private int posRisk(Position pos, Collection<Enemy> enemies) {
         if (map.isBlocked(pos)) return 9999;
-        
-        int peligro = 0;
 
-        for (Enemy e : enemigos) {
-            int dist = calcularDistancia(pos, e.getPosition());
-            
-            if (dist == 0) peligro += 10000;
-            else if (dist == 1) peligro += 5000;
-            else if (dist == 2) peligro += 1000;
-            else if (dist == 3) peligro += 500;
-            else if (dist <= 5) peligro += 100;
-            else if (dist <= 8) peligro += 20;
-            
-            // Penalizar alineamiento
-            if (estaAlineado(pos, e.getPosition())) {
-                peligro += 200 / Math.max(dist, 1);
+        int risk = 0;
+        for (Enemy e : enemies) {
+            int d = dist(pos, e.getPosition());
+
+            if (d == 0) risk += 10000;
+            else if (d == 1) risk += 5000;
+            else if (d == 2) risk += 1000;
+            else if (d == 3) risk += 500;
+            else if (d <= 5) risk += 100;
+            else if (d <= 8) risk += 20;
+
+            if (aligned(pos, e.getPosition())) {
+                risk += 200 / Math.max(d, 1);
             }
         }
-
-        return peligro;
+        return risk;
     }
 
-    // ============================================================
-    //    DESATASCAR
-    // ============================================================
+    /**
+     * Intenta liberar al jugador cuando queda bloqueado.
+     */
+    private void unstuck() {
+        Position pos = player.getPosition();
 
-    private void intentarDesatascar() {
-        // Intentar destruir hielo en todas direcciones
-        for (Direction dir : Direction.values()) {
-            Position pos = new Position(
-                player.getPosition().getRow() + dir.getRowDelta(),
-                player.getPosition().getCol() + dir.getColDelta()
-            );
-            
-            if (map.isValid(pos) && map.isBlocked(pos)) {
-                player.destroyIce(dir);
-                player.move(dir);
+        for (Direction d : Direction.values()) {
+            Position p = nextPos(pos, d);
+            if (map.isValid(p) && map.isBlocked(p)) {
+                player.destroyIce(d);
+                player.move(d);
                 return;
             }
         }
     }
 
-    // ============================================================
-    //    UTILIDADES
-    // ============================================================
+    /**
+     * Intenta mover al jugador en una dirección.
+     * @param d dirección de movimiento
+     * @return true si se pudo mover
+     */
+    private boolean tryMove(Direction d) {
+        if (d == null) return false;
 
-    private boolean estaAlineado(Position a, Position b) {
+        Position next = nextPos(player.getPosition(), d);
+        boolean ok = player.move(d);
+
+        if (!ok && map.isValid(next) && map.isBlocked(next)) {
+            player.destroyIce(d);
+            return player.move(d);
+        }
+        return ok;
+    }
+
+    /**
+     * Indica si dos posiciones están alineadas.
+     * @param a primera posición
+     * @param b segunda posición
+     * @return true si comparten fila o columna
+     */
+    private boolean aligned(Position a, Position b) {
         return a.getRow() == b.getRow() || a.getCol() == b.getCol();
     }
 
-    private Direction calcularDireccionHacia(Position destino) {
-        Position actual = player.getPosition();
-        int dr = destino.getRow() - actual.getRow();
-        int dc = destino.getCol() - actual.getCol();
+    /**
+     * Calcula la dirección hacia una posición objetivo.
+     * @param target posición destino
+     * @return dirección hacia el objetivo
+     */
+    private Direction dirTo(Position target) {
+        Position pos = player.getPosition();
+        int dr = target.getRow() - pos.getRow();
+        int dc = target.getCol() - pos.getCol();
 
-        if (Math.abs(dr) >= Math.abs(dc)) {
-            return dr > 0 ? Direction.DOWN : Direction.UP;
-        } else {
-            return dc > 0 ? Direction.RIGHT : Direction.LEFT;
-        }
+        return Math.abs(dr) >= Math.abs(dc)
+                ? (dr > 0 ? Direction.DOWN : Direction.UP)
+                : (dc > 0 ? Direction.RIGHT : Direction.LEFT);
     }
 
-    private int calcularDistancia(Position a, Position b) {
-        return Math.abs(a.getRow() - b.getRow()) + Math.abs(a.getCol() - b.getCol());
+    /**
+     * Calcula la distancia Manhattan entre dos posiciones.
+     * @param a primera posición
+     * @param b segunda posición
+     * @return distancia Manhattan
+     */
+    private int dist(Position a, Position b) {
+        return Math.abs(a.getRow() - b.getRow())
+             + Math.abs(a.getCol() - b.getCol());
+    }
+
+    /**
+     * Calcula la posición resultante al moverse en una dirección.
+     * @param p posición base
+     * @param d dirección
+     * @return nueva posición
+     */
+    private Position nextPos(Position p, Direction d) {
+        return new Position(
+                p.getRow() + d.getRowDelta(),
+                p.getCol() + d.getColDelta()
+        );
     }
 }

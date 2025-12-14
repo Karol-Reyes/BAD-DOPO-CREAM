@@ -3,124 +3,120 @@ package domain;
 import java.util.Random;
 
 /**
- * Narval: Patrulla pero si un jugador se alinea
- * horizontal o verticalmente, embiste en esa dirección destruyendo
- * hielo en su camino.
+ * Representa un enemigo Narval dentro del mapa del juego.
+ * El Narval puede patrullar y cargar contra los jugadores alineados.
  */
 public class Narval extends Enemy {
 
     private boolean charging;
-    private Direction chargeDirection;
-    private final Random random;
+    private Direction chargeDir;
+    private final Random rng;
 
-    private int tick = 0;
-    private int normalSpeed = 2;
-    private int chargeSpeed = 0;
+    private int tick;
+    private final int walkDelay;
+    private final int chargeDelay;
 
-    public Narval(Position position) {
-        super(EnemyType.narval, position);
+    /**
+     * Crea un enemigo Narval en la posición indicada.
+     * @param pos posición inicial del enemigo
+     */
+    public Narval(Position pos) {
+        super(EnemyType.narval, pos);
         this.charging = false;
-        this.random = new Random();
-        this.chargeDirection = null;
+        this.chargeDir = null;
+        this.rng = new Random();
+        this.tick = 0;
+        this.walkDelay = 2;
+        this.chargeDelay = 0;
         this.currentDirection = Direction.DOWN;
     }
 
+    /**
+     * Asigna el juego al enemigo.
+     * @param game instancia del juego
+     */
     @Override
     public void setGame(BadIceCream game) {
-        // No necesita game, pero implementamos el método
     }
 
+    /**
+     * Indica si el enemigo usa movimiento automático.
+     * @return false, ya que controla su propio movimiento
+     */
     @Override
     protected boolean usesAutoMovement() {
-        return false;  // Maneja su propio movimiento
+        return false;
     }
 
+    /**
+     * Devuelve la dirección actual del enemigo.
+     * @return dirección actual
+     */
     @Override
     public Direction getCurrentDirection() {
         return currentDirection;
     }
 
+    /**
+     * Actualiza el comportamiento del enemigo en cada ciclo del juego.
+     */
     @Override
     public void doUpdate() {
-        // Ajustar velocidad según el estado
-        int speed = charging ? chargeSpeed : normalSpeed;
+        int delay = charging ? chargeDelay : walkDelay;
 
         tick++;
-        if (tick < speed) return;
+        if (tick < delay) return;
         tick = 0;
-        
-        // Si está cargando, continuar hasta que se detenga
+
         if (charging) {
-            if (canContinueCharging()) {
-                performChargeStep();
+            if (canCharge()) {
+                chargeStep();
                 return;
-            } else {
-                // Se detuvo la carga
-                charging = false;
-                chargeDirection = null;
             }
+            charging = false;
+            chargeDir = null;
         }
 
-        // Buscar si hay un jugador alineado
-        Direction aligned = findAlignedPlayer();
+        Direction aligned = findPlayer();
         if (aligned != null) {
-            // ¡Iniciar carga!
             charging = true;
-            chargeDirection = aligned;
+            chargeDir = aligned;
             currentDirection = aligned;
-            performChargeStep();
+            chargeStep();
             return;
         }
-
-        // Movimiento de patrulla normal
-        patrolMovement();
+        patrol();
     }
 
-    /** 
-     * Verifica si puede continuar la carga.
-     * Se detiene solo si encuentra un bloque indestructible o sale del mapa.
+    /**
+     * Verifica si la carga puede continuar en la dirección actual.
+     * @return true si puede seguir cargando, false en caso contrario
      */
-    private boolean canContinueCharging() {
+    private boolean canCharge() {
         Position next = new Position(
-            position.getRow() + chargeDirection.getRowDelta(),
-            position.getCol() + chargeDirection.getColDelta()
+                position.getRow() + chargeDir.getRowDelta(),
+                position.getCol() + chargeDir.getColDelta()
         );
 
-        // Salió del mapa
         if (!gameMap.isValid(next)) return false;
-
-        // Hay otro enemigo
         if (gameMap.hasEnemy(next)) return false;
-
         Boxy b = gameMap.getBlock(next);
-        
-        // Si hay un bloque
-        if (b != null) {
-            // Si es hielo, puede seguir (lo romperá)
-            if (b.getType() == BoxType.ice && b.canBeDestroyed()) {
-                return true;
-            }
-            
-            // Si es un bloque indestructible o no es hielo, se detiene
-            if (b.isCreated() && !b.canBeDestroyed()) {
-                return false;
-            }
-            
-            // Si el bloque no se puede atravesar
-            if (!b.canWalk()) {
-                return false;
-            }
-        }
 
-        // Puede continuar
+        if (b != null) {
+            if (b.getType() == BoxType.ice && b.canBeDestroyed()) return true;
+            if (b.isCreated() && !b.canBeDestroyed()) return false;
+            if (!b.canWalk()) return false;
+        }
         return true;
     }
 
-    /** Realiza un paso de la carga, destruyendo hielo si es necesario */
-    private void performChargeStep() {
+    /**
+     * Ejecuta un paso de la carga, destruyendo hielo y avanzando.
+     */
+    private void chargeStep() {
         Position next = new Position(
-            position.getRow() + chargeDirection.getRowDelta(),
-            position.getCol() + chargeDirection.getColDelta()
+                position.getRow() + chargeDir.getRowDelta(),
+                position.getCol() + chargeDir.getColDelta()
         );
 
         if (!gameMap.isValid(next)) {
@@ -129,88 +125,74 @@ public class Narval extends Enemy {
         }
 
         Boxy b = gameMap.getBlock(next);
-
-        // Destruir hielo durante la carga
         if (b != null && b.getType() == BoxType.ice && b.canBeDestroyed()) {
             gameMap.clearBlock(next);
         }
 
-        // Intentar moverse
-        if (moveInDirection(chargeDirection)) {
-            move(chargeDirection);
+        if (moveInDirection(chargeDir)) {
+            move(chargeDir);
         } else {
-            // No pudo moverse, detener carga
             charging = false;
         }
     }
 
-    /** Busca si hay algún jugador alineado en alguna dirección */
-    private Direction findAlignedPlayer() {
+    /**
+     * Busca un jugador alineado en cualquier dirección.
+     * @return dirección del jugador alineado o null si no existe
+     */
+    private Direction findPlayer() {
         for (Direction d : Direction.values()) {
-            if (playerInDirection(d)) {
-                return d;
-            }
+            if (playerAhead(d)) return d;
         }
         return null;
     }
 
-    /** 
-     * Recorre una línea recta en una dirección buscando un jugador vivo.
-     * El hielo NO bloquea la vista, pero otros bloques sí.
+    /**
+     * Verifica si hay un jugador vivo en línea recta en una dirección.
+     * @param dir dirección a evaluar
+     * @return true si hay un jugador visible, false en caso contrario
      */
-    private boolean playerInDirection(Direction d) {
+    private boolean playerAhead(Direction dir) {
         Position cur = new Position(position.getRow(), position.getCol());
-        
+
         while (true) {
-            // Avanzar una posición
             cur = new Position(
-                cur.getRow() + d.getRowDelta(),
-                cur.getCol() + d.getColDelta()
+                    cur.getRow() + dir.getRowDelta(),
+                    cur.getCol() + dir.getColDelta()
             );
 
-            // Salió del mapa
             if (!gameMap.isValid(cur)) return false;
 
-            // ¿Hay un jugador vivo aquí?
-            IceCream pl = gameMap.getPlayer(cur);
-            if (pl != null && pl.isAlive()) {
-                return true;
-            }
+            IceCream p = gameMap.getPlayer(cur);
+            if (p != null && p.isAlive()) return true;
 
-            // Verificar si hay un bloque que bloquea la vista
             Boxy b = gameMap.getBlock(cur);
-            if (b != null && b.isCreated()) {
-                // El hielo NO bloquea la vista (puede verlo a través del hielo)
-                if (b.getType() == BoxType.ice) {
-                    continue; // Sigue buscando
-                }
-                // Cualquier otro bloque bloquea la vista
+            if (b != null && b.isCreated() && b.getType() != BoxType.ice) {
                 return false;
             }
         }
     }
 
-    /** Movimiento de patrulla cuando no está cargando */
-    private void patrolMovement() {
-        // Intentar seguir en la misma dirección
+    /**
+     * Realiza el movimiento de patrulla cuando no está cargando.
+     */
+    private void patrol() {
         if (moveInDirection(currentDirection)) {
             move(currentDirection);
             return;
         }
 
-        // Intentar laterales según el eje
-        Direction[] laterals = (currentDirection == Direction.UP || currentDirection == Direction.DOWN)
+        Direction[] sides = (currentDirection == Direction.UP || currentDirection == Direction.DOWN)
                 ? new Direction[]{Direction.LEFT, Direction.RIGHT}
                 : new Direction[]{Direction.UP, Direction.DOWN};
 
-        // Aleatorizar el orden de las laterales
-        if (random.nextBoolean() && laterals.length > 1) {
-            Direction temp = laterals[0];
-            laterals[0] = laterals[1];
-            laterals[1] = temp;
+        if (rng.nextBoolean() && sides.length == 2) {
+            Direction tmp = sides[0];
+            sides[0] = sides[1];
+            sides[1] = tmp;
         }
 
-        for (Direction d : laterals) {
+        for (Direction d : sides) {
             if (moveInDirection(d)) {
                 currentDirection = d;
                 move(d);
@@ -218,15 +200,13 @@ public class Narval extends Enemy {
             }
         }
 
-        // Intentar la dirección opuesta
-        Direction opp = currentDirection.getOpposite();
-        if (moveInDirection(opp)) {
-            currentDirection = opp;
-            move(opp);
+        Direction back = currentDirection.getOpposite();
+        if (moveInDirection(back)) {
+            currentDirection = back;
+            move(back);
             return;
         }
 
-        // Última opción: cualquier dirección disponible
         for (Direction d : Direction.values()) {
             if (moveInDirection(d)) {
                 currentDirection = d;
@@ -236,19 +216,28 @@ public class Narval extends Enemy {
         }
     }
 
+    /**
+     * Devuelve la clave del sprite según el estado actual.
+     * @return clave del sprite
+     */
     @Override
     public String getSpriteKey() {
-        if (charging) {
-            return "narval_charging";
-        }
-        return "narval_";
+        return charging ? "narval_charging" : "narval_";
     }
 
+    /**
+     * Indica si el enemigo tiene animación.
+     * @return true siempre
+     */
     @Override
     public boolean isAnimated() {
         return true;
     }
 
+    /**
+     * Indica si el Narval está cargando.
+     * @return true si está en estado de carga
+     */
     public boolean isCharging() {
         return charging;
     }

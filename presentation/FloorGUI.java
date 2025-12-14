@@ -7,10 +7,16 @@ public class FloorGUI extends ResourcesGUI {
     private Timer gifTimer;
     private final GameControl gameControl;
 
+    /**
+     * Constructor de la clase FloorGUI.
+     */
     public FloorGUI(GameControl gameControl) {
         this.gameControl = gameControl;
     }
 
+    /**
+     * Inicia la secuencia del gif de chocolate.
+     */
     @Override
     protected void startSequence() {
         startChocolateGif();
@@ -30,6 +36,9 @@ public class FloorGUI extends ResourcesGUI {
         gifTimer.start();
     }
 
+    /**
+     * Muestra el texto principal en la GUI.
+     */
     private void main_Text() {
         JLabel textLabel = ImageUtils.createScaledImageLabel("/Resources/textos/EscogerObjeto.png",
            320, 40, 175, 45);
@@ -39,6 +48,9 @@ public class FloorGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Agrega el botón de la fogata a la GUI.
+     */
     public void bonfire() {
         PixelButton btnBonfire = new PixelButton("/Resources/box/bonfire.png", 140, 140);
         btnBonfire.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -55,6 +67,9 @@ public class FloorGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Agrega el botón del fuego a la GUI.
+     */
     public void fire() {
         PixelButton btnFire = new PixelButton("/Resources/box/fire.png", 140, 140);
         btnFire.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -71,6 +86,9 @@ public class FloorGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Agrega el botón de ninguno a la GUI.
+     */
     public void nothing() {
         PixelButton btnNothing = new PixelButton("/Resources/textos/Ninguno.png", 120, 40);
         btnNothing.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -87,6 +105,9 @@ public class FloorGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Cambia a la pantalla de juego.
+     */
     private void gameplay() {
         Container parent = getParent();
 

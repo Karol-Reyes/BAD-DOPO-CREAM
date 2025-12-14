@@ -3,6 +3,10 @@ package presentation;
 import java.awt.*;
 import javax.swing.*;
 
+/**
+ * Clase de la interfaz gráfica de usuario (GUI) para la introducción del juego.
+ * Muestra un GIF animado al iniciar la aplicación antes de mostrar el menú principal.
+ */
 public class IntroGUI {
 
     private final JLabel gifLabel;
@@ -10,11 +14,19 @@ public class IntroGUI {
     private static final int SCREEN_WIDTH = 690;
     private static final int SCREEN_HEIGHT = 690;
 
+    /**
+     * Constructor de la clase IntroGUI.
+     * @param gifLabel JLabel donde se mostrará el GIF de introducción.
+     * @param menuCallback Runnable que se ejecutará al finalizar la introducción para mostrar el menú.
+     */
     public IntroGUI(JLabel gifLabel, Runnable menuCallback) {
         this.gifLabel = gifLabel;
         this.menuCallback = menuCallback;
     }
 
+    /**
+     * Inicia la secuencia de introducción mostrando un GIF animado.
+     */
     public void startIntro() {
         java.net.URL gifUrl = getClass().getResource("/Resources/inicio/complete_intro.gif");
 

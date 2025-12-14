@@ -3,190 +3,169 @@ package domain;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Analiza una representación textual del mapa y crea la instancia del juego correspondiente.
+ */
 public class MapParser {
-    
-    public static BadIceCream parseMap(String mapaTexto, GameConfig config) {
-        
-        String[] lineas = mapaTexto.split("\n");
-        int rows = lineas.length;
-        int cols = lineas[0].length();
-        
-        GameMap gameMap = new GameMap(rows, cols);
-        
-        List<IceCream> jugadores = new ArrayList<>();
-        List<Fruit> frutas = new ArrayList<>();
-        List<Enemy> enemigos = new ArrayList<>();
-        List<Character> tiposJugadores = new ArrayList<>();
-        
-        // Recorrer cada celda
+
+    /**
+     * Construye una instancia del juego a partir de un mapa en texto y la configuración inicial.
+     * Interpreta cada carácter del mapa, crea los objetos correspondientes y los registra en el juego.
+     * @param mapText representación textual del mapa del nivel
+     * @param config configuración del juego (sabores, jugadores, etc.)
+     * @return instancia completamente inicializada del juego
+     */
+    public static BadIceCream parseMap(String mapText, GameConfig config) {
+
+        String[] lines = mapText.split("\n");
+        int rows = lines.length;
+        int cols = lines[0].length();
+
+        GameMap map = new GameMap(rows, cols);
+
+        List<IceCream> players = new ArrayList<>();
+        List<Fruit> fruits = new ArrayList<>();
+        List<Enemy> enemies = new ArrayList<>();
+        List<Character> playerTypes = new ArrayList<>();
+
         for (int r = 0; r < rows; r++) {
-            String linea = lineas[r];
-            for (int c = 0; c < linea.length() && c < cols; c++) {
-                char ch = linea.charAt(c);
+            String line = lines[r];
+            for (int c = 0; c < line.length() && c < cols; c++) {
+                char ch = line.charAt(c);
                 Position pos = new Position(r, c);
 
-                if (ch == 'C' || ch == 'S' || ch == 'V' || ch == 'R' || ch == 'J' || ch == 'E') {
-                    tiposJugadores.add(ch);
+                if ("CSVRJE".indexOf(ch) >= 0) {
+                    playerTypes.add(ch);
                 }
-                
-                parseCell(ch, pos, gameMap, jugadores, frutas, enemigos);
+
+                parseCell(ch, pos, map, players, fruits, enemies);
             }
         }
-        
-        gameMap.saveInitialBlockStates();
-        
-        BadIceCream game = new BadIceCream(gameMap);
+        map.saveInitialBlockStates();
+        BadIceCream game = new BadIceCream(map);
 
-        for (int i = 0; i < jugadores.size(); i++) {
-            IceCream p = jugadores.get(i);
+        for (int i = 0; i < players.size(); i++) {
+            IceCream p = players.get(i);
             String flavor = (i == 0) ? config.getCharacter1() : config.getCharacter2();
-            // Puede ser null si no hay segundo jugador; es aceptable
             p.setFlavor(flavor);
         }
 
-        for (int i = 0; i < jugadores.size(); i++) {
+        for (int i = 0; i < players.size(); i++) {
+            IceCream p = players.get(i);
+            //char type = playerTypes.get(i);
 
-            IceCream p = jugadores.get(i);
-            char tipo = tiposJugadores.get(i);
+            String flavor = (i == 0)
+                    ? config.getCharacter1()
+                    : config.getCharacter2();
 
-            // Jugadores humanos 
-            if (tipo == 'C' || tipo == 'S' || tipo == 'V') {
-                String flavor = (i == 0) 
-                                ? config.getCharacter1() 
-                                : config.getCharacter2();
-
-                if (flavor == null) flavor = "Vanilla";
-
-                p.setFlavor(flavor);
-            } 
-            else if (tipo == 'R' || tipo == 'J' || tipo == 'E') {
-                // Bots siempre usan default
-                String flavor = (i == 0) 
-                                ? config.getCharacter1() 
-                                : config.getCharacter2();
-
-                if (flavor == null) flavor = "Vanilla";
-
-                p.setFlavor(flavor);
+            if (flavor == null) {
+                flavor = "Vanilla";
             }
+
+            p.setFlavor(flavor);
         }
 
-        for (int i = 0; i < jugadores.size(); i++) {
-            IceCream player = jugadores.get(i);
-            char tipo = tiposJugadores.get(i);
-        
-            player.setGameMap(gameMap);
-            ControllerCream controller = null;
+        for (int i = 0; i < players.size(); i++) {
+            IceCream player = players.get(i);
+            char type = playerTypes.get(i);
 
-            // Asignar controller según tipo
-            switch (tipo) {
-                case 'C': case 'S': case 'V':
-                    controller = new Player();
-                    break;
-                case 'R':
-                    controller = new Hungry(gameMap, game);
-                    break;
-                case 'J':
-                    controller = new Fearful(gameMap, game);
-                    break;
-                case 'E':
-                    controller = new Expert(gameMap, game);
-                    break;
-                }
+            player.setGameMap(map);
+            ControllerCream controller;
+
+            switch (type) {
+                case 'C', 'S', 'V' -> controller = new Player();
+                case 'R' -> controller = new Hungry(map, game);
+                case 'J' -> controller = new Fearful(map, game);
+                case 'E' -> controller = new Expert(map, game);
+                default -> throw new IllegalArgumentException("Unknown player type: " + type);
+            }
+
             controller.setPlayer(player);
+            player.setController(controller);
+
             game.addController(controller);
             game.addPlayer(player);
-            player.setController(controller);
-            gameMap.addPlayer(player);
+            map.addPlayer(player);
         }
 
-        for (Fruit fruit : frutas) {
-            game.addFruit(fruit);
-            gameMap.addFruit(fruit);
-        }
-        for (Enemy enemy : enemigos) {
-            enemy.setGameMap(gameMap);
-            game.addEnemy(enemy);
-            gameMap.addEnemy(enemy);
+        for (Fruit f : fruits) {
+            game.addFruit(f);
+            map.addFruit(f);
         }
 
-        game.initializeAfterMapLoad();   
+        for (Enemy e : enemies) {
+            e.setGameMap(map);
+            game.addEnemy(e);
+            map.addEnemy(e);
+        }
+        game.initializeAfterMapLoad();
         return game;
     }
-    
-    private static void parseCell(char ch, Position pos, GameMap map, 
-                                   List<IceCream> jugadores, List<Fruit> frutas, 
-                                   List<Enemy> enemigos) {
-        
+
+    /**
+     * Interpreta un carácter del mapa y crea el objeto correspondiente en la posición indicada.
+     * @param ch carácter leído del mapa
+     * @param pos posición dentro del mapa
+     * @param map mapa del juego
+     * @param players lista de jugadores detectados
+     * @param fruits lista de frutas detectadas
+     * @param enemies lista de enemigos detectados
+     */
+    private static void parseCell(
+            char ch,
+            Position pos,
+            GameMap map,
+            List<IceCream> players,
+            List<Fruit> fruits,
+            List<Enemy> enemies) {
+
         map.setBlock(pos, new Floor(pos, BoxState.inactive));
 
         switch (ch) {
-            // ============ BLOQUES ============
-            case 'H': // Hierro
-                map.setBlock(pos, new Iron(pos, BoxState.indestructible));
-                break;
-                
-            case '1': // Hielo
-                map.setBlock(pos, new Ice(pos, BoxState.created));
-                break;
-                
-            case 'K': // Fuego
+            case 'H' -> map.setBlock(pos, new Iron(pos, BoxState.indestructible));
+            case '1' -> map.setBlock(pos, new Ice(pos, BoxState.created));
+            case 'K' -> {
                 Fire f = new Fire(pos, BoxState.on);
                 f.setGameMap(map);
                 map.setBlock(pos, f);
-                break;
-                
-            case 'L': // Fogata
+            }
+            case 'L' -> {
                 Bonfire b = new Bonfire(pos, BoxState.on);
                 b.setGameMap(map);
                 map.setBlock(pos, b);
-                break;
-                
-            // ============ JUGADORES ============
-            case 'C': 
-            case 'S': 
-            case 'V':
-                IceCream jugador = new IceCream(pos);
-                jugador.setGameMap(map);
-                jugadores.add(jugador);
-                break;
-
-            case 'R': 
-                IceCream hungry = new IceCream(pos);
-                hungry.setGameMap(map);
-                hungry.setFlavor("hungry");
-                jugadores.add(hungry);
-                break;
-            case 'J': 
-                IceCream fearful = new IceCream(pos);
-                fearful.setGameMap(map);
-                fearful.setFlavor("fearful");
-                jugadores.add(fearful);
-                break;
-            case 'E':
-                IceCream expert = new IceCream(pos);
-                expert.setGameMap(map);
-                expert.setFlavor("expert");
-                jugadores.add(expert);
-                break;
-
-            // ============ FRUTAS ============
-            case 'B': frutas.add(new Banana(pos)); break;
-            case 'A': frutas.add(new Grape(pos)); break;
-            case 'D': frutas.add(new Cherry(pos)); break;
-            case 'Z': frutas.add(new Pineapple(pos)); break;
-            case 'Q': frutas.add(new Cactus(pos)); break;
-                
-            // ============ ENEMIGOS ============
-            case 'O': enemigos.add(new Troll(pos)); break;
-            case 'W': enemigos.add(new Flowerpot(pos)); break;
-            case 'P': enemigos.add(new Narval(pos)); break;
-            case 'U': enemigos.add(new YellowSquid(pos)); break;
-                
-            // ============ VACÍO ============
-            case '0': 
-                // Mantener como Ice inactivo (ya viene por defecto)
-                break;
+            }
+            case 'C', 'S', 'V' -> {
+                IceCream p = new IceCream(pos);
+                p.setGameMap(map);
+                players.add(p);
+            }
+            case 'R' -> {
+                IceCream p = new IceCream(pos);
+                p.setGameMap(map);
+                p.setFlavor("hungry");
+                players.add(p);
+            }
+            case 'J' -> {
+                IceCream p = new IceCream(pos);
+                p.setGameMap(map);
+                p.setFlavor("fearful");
+                players.add(p);
+            }
+            case 'E' -> {
+                IceCream p = new IceCream(pos);
+                p.setGameMap(map);
+                p.setFlavor("expert");
+                players.add(p);
+            }
+            case 'B' -> fruits.add(new Banana(pos));
+            case 'A' -> fruits.add(new Grape(pos));
+            case 'D' -> fruits.add(new Cherry(pos));
+            case 'Z' -> fruits.add(new Pineapple(pos));
+            case 'Q' -> fruits.add(new Cactus(pos));
+            case 'O' -> enemies.add(new Troll(pos));
+            case 'W' -> enemies.add(new Flowerpot(pos));
+            case 'P' -> enemies.add(new Narval(pos));
+            case 'U' -> enemies.add(new YellowSquid(pos));
         }
     }
 }

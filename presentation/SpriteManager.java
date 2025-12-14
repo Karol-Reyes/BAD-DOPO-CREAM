@@ -9,16 +9,25 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.swing.ImageIcon;
 
+/**
+ * Clase responsable de gestionar y cargar los sprites utilizados en el juego.
+ */
 public class SpriteManager {
 
     private static final int TILE = 32;
-
     private final Map<String, Image> sprites = new HashMap<>();
 
+    /**
+     * Constructor de la clase SpriteManager.
+     * Carga todos los sprites al inicializar la instancia.
+     */
     public SpriteManager() {
         loadAll();
     }
 
+    /**
+     * Carga todos los sprites necesarios para el juego.
+     */
     private void loadAll() {
         // BLOQUES 
 
@@ -79,6 +88,9 @@ public class SpriteManager {
     }
 
     // ==========================================================
+    /**
+     * Carga una imagen desde la ruta especificada.
+     */
     private Image load(String path) {
         URL url = getClass().getResource(path);
 
@@ -89,6 +101,9 @@ public class SpriteManager {
         return new ImageIcon(url).getImage();
     }
 
+    /**
+     * Genera una imagen de marcador de posición en caso de que no se pueda cargar la imagen real.
+     */
     private Image placeholder() {
         BufferedImage img = new BufferedImage(TILE, TILE, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = img.createGraphics();
@@ -104,6 +119,11 @@ public class SpriteManager {
         return img;
     }
 
+    /**
+     * Obtiene la imagen del sprite correspondiente a la clave dada.
+     * @param key Clave del sprite.
+     * @return Imagen del sprite.
+     */
     public Image get(String key) {
         return sprites.get(key);
     }

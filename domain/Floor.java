@@ -1,17 +1,22 @@
 package domain;
 
+/**
+ * Representa una superficie del mapa del juego.
+ */
 public class Floor extends Boxy {
+
     /**
-     * Constructor de la superficie del mapa
-     * @param position posición inicial
+     * Crea una superficie del mapa en una posición y estado específicos.
+     * @param position posición inicial del bloque
+     * @param state estado inicial del bloque
      */
     public Floor(Position position, BoxState state) {
         super(BoxType.floor, position, state);
     }
-    
+
     /**
-     * Indica si se puede caminar sobre el bloque.
-     * @return true si se puede caminar, false en caso contrario
+     * Indica si el jugador puede caminar sobre este bloque.
+     * @return true siempre, ya que el piso es transitable
      */
     @Override
     public boolean canWalk() {
@@ -19,8 +24,8 @@ public class Floor extends Boxy {
     }
 
     /**
-     * Indica si el bloque se puede destruir.
-     * @return true si se puede destruir, false en caso contrario
+     * Indica si el bloque puede ser destruido.
+     * @return false, ya que el piso no es destruible
      */
     @Override
     public boolean canBeDestroyed() {
@@ -28,8 +33,8 @@ public class Floor extends Boxy {
     }
 
     /**
-     * Indica si el bloque se puede crear.
-     * @return true si se puede crear, false en caso contrario
+     * Indica si el bloque puede ser creado dinámicamente.
+     * @return false, ya que el piso no puede ser creado
      */
     @Override
     public boolean canBeCreated() {
@@ -37,7 +42,7 @@ public class Floor extends Boxy {
     }
 
     /**
-     * Crea el bloque.
+     * Establece el bloque como indestructible si aún no lo es.
      */
     @Override
     public void create() {
@@ -46,7 +51,17 @@ public class Floor extends Boxy {
         }
     }
 
-    public void onFreeze() {}
+    /**
+     * Define el comportamiento del bloque cuando es congelado.
+     */
+    @Override
+    public void onFreeze() {
+    }
 
-    public void update() {}
+    /**
+     * Actualiza el estado del bloque en cada ciclo del juego.
+     */
+    @Override
+    public void update() {
+    }
 }

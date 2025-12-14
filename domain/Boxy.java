@@ -1,8 +1,8 @@
 package domain;
 
 /**
- * Representa un bloque tipo caja dentro del mapa del juego. Maneja su tipo,
- * estado y posición, así como las operaciones básicas de creación y destrucción.
+ * Representa un bloque genérico dentro del mapa del juego.
+ * Define su tipo, estado, posición y comportamiento básico.
  */
 public abstract class Boxy {
 
@@ -12,9 +12,10 @@ public abstract class Boxy {
     protected GameMap map;
 
     /**
-     * Crea una caja con un tipo específico y posición inicial.
-     * @param boxType tipo de caja
+     * Crea un bloque con un tipo, estado y posición inicial.
+     * @param boxType tipo de bloque
      * @param position posición inicial en el mapa
+     * @param state estado inicial del bloque
      */
     public Boxy(BoxType boxType, Position position, BoxState state) {
         this.boxType = boxType;
@@ -22,54 +23,64 @@ public abstract class Boxy {
         this.position = position;
     }
 
-    public void setGameMap (GameMap m) {
+    /**
+     * Asigna el mapa de juego al bloque.
+     * @param m mapa donde se encuentra el bloque
+     */
+    public void setGameMap(GameMap m) {
         this.map = m;
     }
 
     /**
-     * @return tipo de bloque (caja)
+     * Obtiene el tipo del bloque.
+     * @return tipo de bloque
      */
-    public BoxType getType() { 
-        return boxType; 
+    public BoxType getType() {
+        return boxType;
     }
 
     /**
-     * @return estado actual del bloque
+     * Obtiene el estado actual del bloque.
+     * @return estado del bloque
      */
-    public BoxState getState() { 
-        return state; 
+    public BoxState getState() {
+        return state;
     }
 
     /**
-     * @return posición actual del bloque en el mapa
+     * Obtiene la posición actual del bloque.
+     * @return posición del bloque
      */
-    public Position getPosition() { 
-        return position; 
+    public Position getPosition() {
+        return position;
     }
 
     /**
      * Establece una nueva posición para el bloque.
-     * @param position posición a asignar
+     * @param position nueva posición a asignar
      */
-    public void setPosition(Position position) { 
-        this.position = position; 
+    public void setPosition(Position position) {
+        this.position = position;
     }
 
     /**
-     * Indica si el bloque está en estado creado.
+     * Indica si el bloque se encuentra en estado creado.
      * @return true si el bloque está creado
      */
-    public boolean isCreated() { 
-        return state == BoxState.created; 
+    public boolean isCreated() {
+        return state == BoxState.created;
     }
 
     /**
      * Cambia el estado del bloque a creado.
      */
-    public void create() { 
-        this.state = BoxState.created; 
+    public void create() {
+        this.state = BoxState.created;
     }
 
+    /**
+     * Cambia el estado del bloque a indestructible.
+     */
     public void indestructible() {
         this.state = BoxState.indestructible;
     }
@@ -77,68 +88,90 @@ public abstract class Boxy {
     /**
      * Cambia el estado del bloque a destruido.
      */
-    public void destroy() { 
-        this.state = BoxState.destroyed; 
+    public void destroy() {
+        this.state = BoxState.destroyed;
     }
 
     /**
-     * Indica si el bloque puede ser creado.
-     * @return false por defecto
+     * Indica si el bloque puede ser creado dinámicamente.
+     * @return true si puede ser creado, false en caso contrario
      */
     public abstract boolean canBeCreated();
 
+    /**
+     * Indica si el bloque puede ser destruido.
+     * @return true si puede ser destruido, false en caso contrario
+     */
     public abstract boolean canBeDestroyed();
 
+    /**
+     * Indica si una entidad puede caminar sobre el bloque.
+     * @return true si se puede caminar sobre él
+     */
     public abstract boolean canWalk();
 
+    /**
+     * Cambia el estado del bloque a encendido.
+     */
     public void on() {
         this.state = BoxState.on;
     }
 
+    /**
+     * Cambia el estado del bloque a apagado.
+     */
     public void off() {
         this.state = BoxState.off;
     }
 
+    /**
+     * Se ejecuta cuando el bloque es afectado por congelación.
+     */
     public abstract void onFreeze();
 
+    /**
+     * Actualiza el estado interno del bloque.
+     */
     public abstract void update();
 
-    public void iniciarTimer() { }
+    /**
+     * Inicia o reinicia un temporizador interno del bloque.
+     */
+    public void iniciarTimer() {
+    }
 
     /**
-    * Método llamado cuando el bloque va a ser destruido.
-    * Por defecto, simplemente se elimina del mapa.
-    */
+     * Se ejecuta cuando el bloque va a ser destruido y se elimina del mapa.
+     * @param map mapa del cual se removerá el bloque
+     */
     public void onDestroy(GameMap map) {
         map.clearBlock(position);
     }
 
-    public void onUnfreeze() { }
+    /**
+     * Se ejecuta cuando el bloque deja de estar congelado.
+     */
+    public void onUnfreeze() {
+    }
 
     /**
      * Obtiene la clave del sprite correspondiente al estado actual del bloque.
      * @return clave del sprite
      */
     public String getSpriteKey() {
-        switch (state) {
-            case destroyed:
-                return "floor_inactive";
-            case created:
-                return boxType.name().toLowerCase() + "_created";
-            case on:
-                return boxType.name().toLowerCase() + "_created";
-            case off:
-                return boxType.name().toLowerCase() + "_inactive";
-            case indestructible:
-                return boxType.name().toLowerCase() + "_inactive";
-            default: // inactive
-                return boxType.name().toLowerCase() + "_inactive";
-        }
+        return switch (state) {
+            case destroyed -> "floor_inactive";
+            case created -> boxType.name().toLowerCase() + "_created";
+            case on -> boxType.name().toLowerCase() + "_created";
+            case off -> boxType.name().toLowerCase() + "_inactive";
+            case indestructible -> boxType.name().toLowerCase() + "_inactive";
+            default -> boxType.name().toLowerCase() + "_inactive";
+        };
     }
 
     /**
      * Indica si el bloque posee animación.
-     * @return false por defecto
+     * @return true si el bloque es animado, false en caso contrario
      */
     public boolean isAnimated() {
         return false;

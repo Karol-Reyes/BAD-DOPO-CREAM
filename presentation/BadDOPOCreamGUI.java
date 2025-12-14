@@ -3,6 +3,10 @@ package presentation;
 import java.awt.*;
 import javax.swing.*;
 
+/**
+ * Principal clase de la interfaz gráfica de usuario (GUI) para la aplicación badDOPOCream.
+ * Esta clase extiende JFrame e incluye un panel principal que muestra una animación GIF
+ */
 public class BadDOPOCreamGUI extends JFrame {
 
     private JPanel mainPanel;
@@ -11,6 +15,9 @@ public class BadDOPOCreamGUI extends JFrame {
     private static final int SCREEN_WIDTH = 690;
     private static final int SCREEN_HEIGHT = 690;
 
+    /**
+     * Constructor de la clase BadDOPOCreamGUI.
+     */
     public BadDOPOCreamGUI() {
         super("badDOPOCream");
         prepareElements();
@@ -20,6 +27,9 @@ public class BadDOPOCreamGUI extends JFrame {
         intro.startIntro();
     }
 
+    /**
+     * Prepara los elementos visuales de la GUI.
+     */
     private void prepareElements() {
         setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
         setResizable(false);  
@@ -37,10 +47,16 @@ public class BadDOPOCreamGUI extends JFrame {
         setContentPane(mainPanel);
     }
 
+    /**
+     * Prepara las acciones de la GUI.
+     */
     private void prepareActions() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
+    /**
+     * Muestra el menú principal de la aplicación.
+     */
     private void showMenu() {
         mainPanel.removeAll();
         MenuGUI menu = new MenuGUI();
@@ -48,7 +64,11 @@ public class BadDOPOCreamGUI extends JFrame {
         mainPanel.revalidate();
         mainPanel.repaint();
     }
-        
+     
+    /**
+     * Método principal para iniciar la aplicación.
+     * @param args Argumentos de línea de comandos (no utilizados).
+     */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             BadDOPOCreamGUI window = new BadDOPOCreamGUI();

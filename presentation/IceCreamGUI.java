@@ -3,15 +3,27 @@ package presentation;
 import java.awt.*;
 import javax.swing.*;
 
+/**
+ * Clase que representa la interfaz gráfica para la selección del modo de juego.
+ * Extiende ResourcesGUI e incluye botones y textos para elegir entre diferentes modos de juego.
+ */
 public class IceCreamGUI extends ResourcesGUI {
 
     private Timer gifTimer;
     private final GameControl gameControl;
     
+    /**
+     * Crea la interfaz gráfica principal para la selección del modo de juego.
+     * @param gameControl controlador principal del juego
+     */
     public IceCreamGUI(GameControl gameControl) {
         this.gameControl = gameControl;
     }
 
+    /**
+     * Inicia la secuencia visual inicial mostrando una animación y,
+     * posteriormente, las opciones de selección de modo de juego.
+     */
     @Override
     protected void startSequence() {
         startChocolateGif();
@@ -34,6 +46,9 @@ public class IceCreamGUI extends ResourcesGUI {
         gifTimer.start();
     }
     
+    /**
+     * Crea y añade el botón para iniciar el modo de juego en solitario.
+     */
     public void buttonSolo() {
         PixelButton btnStart = new PixelButton("/Resources/inicio/One.png", 120, 300);
         btnStart.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -49,6 +64,9 @@ public class IceCreamGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Crea y añade el botón para iniciar el modo de juego uno contra uno.
+     */
     public void buttonTwoPlayers() {
         PixelButton btnStart = new PixelButton("/Resources/inicio/Two.png", 200, 300);
         btnStart.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -63,6 +81,9 @@ public class IceCreamGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Crea y añade el botón para iniciar el modo de juego contra la máquina.
+     */
     public void buttonBot() {
         PixelButton btnStart = new PixelButton("/Resources/inicio/Trolly.png", 110, 300);
         btnStart.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -79,6 +100,9 @@ public class IceCreamGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Muestra el texto descriptivo del modo de juego para un solo jugador.
+     */
     public void textPlayer() {
         JLabel textLabel = ImageUtils.createScaledImageLabel("/Resources/textos/jugador.png", 100, 30, 60, 400);
         contentLabel.add(textLabel);
@@ -87,6 +111,9 @@ public class IceCreamGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Muestra el texto descriptivo del modo de juego uno contra uno.
+     */
     public void text1v1() {
         JLabel textLabel = ImageUtils.createScaledImageLabel("/Resources/textos/1v1.png", 60, 30, 315, 400);
         contentLabel.add(textLabel);
@@ -95,6 +122,9 @@ public class IceCreamGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Muestra el texto descriptivo del modo de juego contra la máquina.
+     */
     public void textMachine() {
         JLabel textLabel = ImageUtils.createScaledImageLabel("/Resources/textos/maquina.png", 90, 30, 525, 395);
         contentLabel.add(textLabel);
@@ -103,6 +133,9 @@ public class IceCreamGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
     
+    /**
+     * Cambia a la pantalla de selección de sabores para el jugador.
+     */
     private void chooseFlavors() {
         if (gifTimer != null && gifTimer.isRunning()) {
             gifTimer.stop();
@@ -121,6 +154,9 @@ public class IceCreamGUI extends ResourcesGUI {
         }
     }
     
+    /**
+     * Cambia a la pantalla de selección del modo uno contra uno.
+     */
     private void select1v1() {
         if (gifTimer != null && gifTimer.isRunning()) {
             gifTimer.stop();
@@ -139,6 +175,9 @@ public class IceCreamGUI extends ResourcesGUI {
         }
     }
 
+    /**
+     * Cambia a la pantalla de configuración del modo contra la máquina.
+     */
     private void machineMode() {
         if (gifTimer != null && gifTimer.isRunning()) {
             gifTimer.stop();

@@ -10,37 +10,51 @@ import java.util.Random;
  */
 public class Troll extends Enemy {
 
-    private Direction currentDirection;
+    private Direction trollDirection;
     private final Random random;
+    @SuppressWarnings("unused")
     private BadIceCream game;
 
     private int tick = 0;
-    private int speed = 3;
+    private final int speed = 3;
 
-    /** Construye un Troll con posición y velocidad específicas. */
+    /** 
+     * Construye un Troll con posición y velocidad específicas. 
+     */
     public Troll(Position position) {
         super(EnemyType.troll, position);
         this.random = new Random();
-        this.currentDirection = Direction.DOWN;
+        this.trollDirection = Direction.DOWN;
     }
 
+    /**
+     * Asigna el juego al que pertenece este troll.
+     * @param game instancia del juego BadIceCream
+     */
     @Override
     public void setGame(BadIceCream game) {
         this.game = game;
     }
 
+    /**
+     * @return false; los trolls no usan movimiento automático.
+     */
     @Override
     protected boolean usesAutoMovement() {
         return false;
     }
 
-    /** @return la dirección actual del troll. */
+    /** 
+     * @return la dirección actual del troll.
+     */
     @Override
     public Direction getCurrentDirection() {
-        return currentDirection;
+        return trollDirection;
     }
 
-    /** Actualiza el comportamiento del troll según su lógica de movimiento. */
+    /** 
+     * Actualiza el comportamiento del troll según su lógica de movimiento. 
+     */
     @Override
     public void doUpdate() { 
         
@@ -53,26 +67,25 @@ public class Troll extends Enemy {
 
         Position oldPos = position;    
         Position target = new Position(
-            oldPos.getRow() + currentDirection.getRowDelta(),
-            oldPos.getCol() + currentDirection.getColDelta()
+            oldPos.getRow() + trollDirection.getRowDelta(),
+            oldPos.getCol() + trollDirection.getColDelta()
         );
 
-        // Si hay enemigo → cambiar dirección
         if (gameMap.hasEnemy(target)) {
             changeDirection();
             return;    
         }
 
-        // Intenta moverse en la dirección actual
-        if (moveInDirection(currentDirection)) {
-            move(currentDirection);
+        if (moveInDirection(trollDirection)) {
+            move(trollDirection);
         } else {
-            // Si no puede, cambia de dirección
             changeDirection();
         }
     }
 
-    /** Detecta si el troll no puede moverse en ninguna dirección. */
+    /** 
+     * Detecta si el troll no puede moverse en ninguna dirección. 
+     */
     private void checkTrapped() {
         trapped = true;
         for (Direction d : Direction.values()) {
@@ -83,37 +96,39 @@ public class Troll extends Enemy {
         }
     }
 
-    /** Cambia la dirección del troll cuando su camino está bloqueado. */
+    /** 
+     * Cambia la dirección del troll cuando su camino está bloqueado.
+     */
     private void changeDirection() {
-        // Primero intenta las direcciones laterales
-        List<Direction> laterals = getLateral(currentDirection);
+        List<Direction> laterals = getLateral(trollDirection);
         for (Direction d : laterals) {
             if (moveInDirection(d)) {
-                currentDirection = d;
+                trollDirection = d;
                 move(d);
                 return;
             }
         }
         
-        // Si las laterales están bloqueadas, intenta la dirección opuesta
-        Direction opposite = currentDirection.getOpposite();
+        Direction opposite = trollDirection.getOpposite();
         if (moveInDirection(opposite)) {
-            currentDirection = opposite;
+            trollDirection = opposite;
             move(opposite);
             return;
         }
         
-        // Si todo está bloqueado, intenta CUALQUIER dirección disponible
         for (Direction d : Direction.values()) {
             if (moveInDirection(d)) {
-                currentDirection = d;
+                trollDirection = d;
                 move(d);
                 return;
             }
         }
     }
 
-    /** Genera las direcciones laterales según la dirección principal. */
+    /** 
+     * Genera las direcciones laterales según la dirección principal. 
+     * @param current dirección principal
+     */
     private List<Direction> getLateral(Direction current) {
         List<Direction> list = new ArrayList<>();
         if (current == Direction.UP || current == Direction.DOWN) {
@@ -124,7 +139,6 @@ public class Troll extends Enemy {
             list.add(Direction.DOWN);
         }
 
-        // Aleatoriza el orden
         if (random.nextBoolean()) {
             Direction t = list.get(0);
             list.set(0, list.get(1));
@@ -133,18 +147,25 @@ public class Troll extends Enemy {
         return list;
     }
 
-    /** @return una dirección aleatoria. */
+    /** 
+     * @return una dirección aleatoria. 
+     */
+    @SuppressWarnings("unused")
     private Direction getRandomDirection() {
         return Direction.values()[random.nextInt(Direction.values().length)];
     }
 
-    /** @return clave del sprite según la dirección y si está atrapado. */
+    /** 
+     * @return clave del sprite según la dirección y si está atrapado. 
+     */
     @Override
     public String getSpriteKey() {
-        return trapped ? "troll_trapped" : "troll_" + currentDirection.name().toLowerCase();
+        return trapped ? "troll_trapped" : "troll_" + trollDirection.name().toLowerCase();
     }
 
-    /** @return siempre false; los trolls no tienen animación. */
+    /** 
+     * @return siempre false; los trolls no tienen animación.
+     * */
     @Override
     public boolean isAnimated() {
         return false;

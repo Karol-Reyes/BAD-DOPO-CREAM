@@ -1,7 +1,8 @@
 package domain;
 
 /**
- * Enemigo base con lógica de movimiento, colisión y estado.
+ * Representa un enemigo genérico del juego.
+ * Define la lógica base de movimiento, colisión y estado.
  */
 public abstract class Enemy implements SpriteProvider {
 
@@ -10,13 +11,11 @@ public abstract class Enemy implements SpriteProvider {
     protected boolean trapped;
     protected GameMap gameMap;
     protected Direction currentDirection;
-    //protected int skipCounter = 0;
 
     /**
-     * Inicializa un enemigo con tipo, posición y velocidad.
-     * @param type     tipo de enemigo
-     * @param position posición inicial
-     * @param speed    velocidad de movimiento
+     * Crea un enemigo con un tipo y una posición inicial.
+     * @param type tipo de enemigo
+     * @param position posición inicial del enemigo
      */
     public Enemy(EnemyType type, Position position) {
         this.type = type;
@@ -25,69 +24,104 @@ public abstract class Enemy implements SpriteProvider {
         this.currentDirection = Direction.DOWN;
     }
 
-    /** Retorna el tipo de enemigo. */
-    public EnemyType getType() { return type; }
-
-    /** Retorna la posición actual del enemigo. */
-    public Position getPosition() { return position; }
+    /**
+     * Obtiene el tipo del enemigo.
+     * @return tipo de enemigo
+     */
+    public EnemyType getType() {
+        return type;
+    }
 
     /**
-     * Actualiza la posición del enemigo.
-     * @param position nueva posición
+     * Obtiene la posición actual del enemigo.
+     * @return posición del enemigo
      */
-    public void setPosition(Position position) { this.position = position; }
+    public Position getPosition() {
+        return position;
+    }
 
-    /** Asigna el mapa donde se mueve el enemigo. */
-    public void setGameMap(GameMap gameMap) { this.gameMap = gameMap; }
+    /**
+     * Establece una nueva posición para el enemigo.
+     * @param position nueva posición a asignar
+     */
+    public void setPosition(Position position) {
+        this.position = position;
+    }
 
-    /** Retorna la dirección actual del enemigo. */
-    public Direction getCurrentDirection() { return currentDirection; }
+    /**
+     * Asigna el mapa de juego donde se mueve el enemigo.
+     * @param gameMap mapa del juego
+     */
+    public void setGameMap(GameMap gameMap) {
+        this.gameMap = gameMap;
+    }
 
-    /** Indica si el enemigo está atrapado. */
-    public boolean isTrapped() { return trapped; }
+    /**
+     * Obtiene la dirección actual de movimiento del enemigo.
+     * @return dirección actual
+     */
+    public Direction getCurrentDirection() {
+        return currentDirection;
+    }
 
+    /**
+     * Indica si el enemigo se encuentra atrapado.
+     * @return true si está atrapado
+     */
+    public boolean isTrapped() {
+        return trapped;
+    }
+
+    /**
+     * Actualiza el estado del enemigo.
+     */
     public void update() {
         doUpdate();
     }
 
-    protected abstract void doUpdate();
-    
     /**
-     * Verifica colisión con otra posición.
+     * Ejecuta la lógica específica de actualización del enemigo.
+     */
+    protected abstract void doUpdate();
+
+    /**
+     * Verifica si el enemigo colisiona con una posición dada.
      * @param otherPosition posición a comparar
+     * @return true si colisiona con dicha posición
      */
     public boolean collidesWith(Position otherPosition) {
         return position.equals(otherPosition);
     }
 
     /**
-     * Verifica si el enemigo puede moverse a una posición.
+     * Verifica si el enemigo puede moverse a una posición determinada.
      * @param pos posición destino
+     * @return true si el movimiento es válido
      */
     public boolean canMove(Position pos) {
-        if (!gameMap.isValid(pos)) return false;
-        if (gameMap.isBlocked(pos)) return false;
-        if (gameMap.getEnemy(pos) != null) return false;
-        return true;
+        return gameMap.isValid(pos)
+                && !gameMap.isBlocked(pos)
+                && gameMap.getEnemy(pos) == null;
     }
 
     /**
-     * Verifica si el enemigo puede moverse en una dirección dada.
+     * Verifica si el enemigo puede moverse en una dirección específica.
      * @param d dirección a evaluar
+     * @return true si puede moverse en esa dirección
      */
     protected boolean moveInDirection(Direction d) {
         Position oldPos = position;
         Position newPos = new Position(
-            oldPos.getRow() + d.getRowDelta(),
-            oldPos.getCol() + d.getColDelta()
+                oldPos.getRow() + d.getRowDelta(),
+                oldPos.getCol() + d.getColDelta()
         );
         return canMove(newPos);
     }
 
     /**
-     * Determina la siguiente dirección según prioridad.
-     * Intenta mantener la dirección actual, luego alternativas.
-     * @return siguiente dirección válida o null
+     * Determina la siguiente dirección válida de movimiento del enemigo
+     * según prioridades internas.
+     * @return siguiente dirección válida o null si no hay movimientos posibles
      */
     public Direction getNextDirection() {
         if (moveInDirection(currentDirection)) {
@@ -110,19 +144,20 @@ public abstract class Enemy implements SpriteProvider {
     }
 
     /**
-     * Devuelve direcciones prioritarias según la dirección actual.
+     * Obtiene las direcciones prioritarias según la dirección actual.
      * @param current dirección actual
+     * @return arreglo de direcciones prioritarias
      */
     private Direction[] getPriorityDirections(Direction current) {
-        switch (current) {
-            case UP: case DOWN: return new Direction[]{Direction.LEFT, Direction.RIGHT};
-            case LEFT: case RIGHT: return new Direction[]{Direction.UP, Direction.DOWN};
-            default: return new Direction[]{};
-        }
+        return switch (current) {
+            case UP, DOWN -> new Direction[]{Direction.LEFT, Direction.RIGHT};
+            case LEFT, RIGHT -> new Direction[]{Direction.UP, Direction.DOWN};
+            default -> new Direction[]{};
+        };
     }
 
     /**
-     * Mueve al enemigo en una dirección, actualizando el mapa.
+     * Mueve al enemigo en una dirección específica y actualiza el mapa.
      * @param direction dirección de movimiento
      */
     public void move(Direction direction) {
@@ -132,32 +167,53 @@ public abstract class Enemy implements SpriteProvider {
         }
     }
 
-    /** Mueve al enemigo hacia arriba. */
+    /**
+     * Mueve al enemigo hacia arriba.
+     * @return nueva fila del enemigo
+     */
     public int moveUp() {
         move(Direction.UP);
         return position.getRow();
     }
 
-    /** Mueve al enemigo hacia abajo. */
+    /**
+     * Mueve al enemigo hacia abajo.
+     * @return nueva fila del enemigo
+     */
     public int moveDown() {
         move(Direction.DOWN);
         return position.getRow();
     }
 
-    /** Mueve al enemigo hacia la izquierda. */
+    /**
+     * Mueve al enemigo hacia la izquierda.
+     * @return nueva columna del enemigo
+     */
     public int moveLeft() {
         move(Direction.LEFT);
         return position.getCol();
     }
 
-    /** Mueve al enemigo hacia la derecha. */
+    /**
+     * Mueve al enemigo hacia la derecha.
+     * @return nueva columna del enemigo
+     */
     public int moveRight() {
         move(Direction.RIGHT);
         return position.getCol();
     }
 
-    public void setGame(BadIceCream game) {}
+    /**
+     * Asigna la instancia principal del juego al enemigo.
+     * @param game instancia del juego
+     */
+    public void setGame(BadIceCream game) {
+    }
 
+    /**
+     * Indica si el enemigo utiliza movimiento automático.
+     * @return true si usa movimiento automático
+     */
     protected boolean usesAutoMovement() {
         return true;
     }

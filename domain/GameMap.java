@@ -4,186 +4,189 @@ import java.awt.Dimension;
 import java.awt.Toolkit;
 
 /**
- * Mapa lógico del juego, compuesto por capas de bloques, frutas, enemigos y jugadores.
+ * Representa el mapa lógico del juego y gestiona bloques, frutas,
+ * enemigos y jugadores.
  */
 public class GameMap {
 
     private final int rows;
     private final int cols;
-    private final int cellSize;
-
+    private final int cell;
     private final Boxy[][] blocks;
     private final Fruit[][] fruits;
     private final Enemy[][] enemies;
     private final IceCream[][] players;
-    private final BoxState[][] initialBlockStates;
+    private final BoxState[][] baseStates;
 
     /**
-     * Crea un mapa con el número dado de filas y columnas.
-     * @param rows cantidad de filas
-     * @param cols cantidad de columnas
+     * Crea un mapa con el tamaño indicado.
+     * @param rows número de filas
+     * @param cols número de columnas
      */
     public GameMap(int rows, int cols) {
-
         Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
         int side = Math.min(screen.width, screen.height);
 
         this.rows = Math.max(3, rows);
         this.cols = Math.max(3, cols);
-        this.cellSize = Math.max(8, side / 18);
+        this.cell = Math.max(8, side / 18);
 
         blocks = new Boxy[this.rows][this.cols];
         fruits = new Fruit[this.rows][this.cols];
         enemies = new Enemy[this.rows][this.cols];
         players = new IceCream[this.rows][this.cols];
-        initialBlockStates = new BoxState[this.rows][this.cols];
-
-        /*
-        for (int r = 0; r < this.rows; r++) {
-            for (int c = 0; c < this.cols; c++) {
-                Position pos = new Position(r, c);
-                blocks[r][c] = new Ice(pos, BoxState.inactive);
-            }
-        }
-        */
+        baseStates = new BoxState[this.rows][this.cols];
     }
 
     /**
-
-    * Reemplaza un bloque en una posición específica
-    * @param pos posición del bloque
-    * @param block nuevo bloque a colocar
-    */
+     * Asigna un bloque a una posición del mapa.
+     * @param pos posición destino
+     * @param block bloque a colocar
+     */
     public void setBlock(Position pos, Boxy block) {
         if (isValid(pos)) {
             blocks[pos.getRow()][pos.getCol()] = block;
         }
     }
 
+    /** 
+     * Guarda el estado inicial de los bloques del nivel. 
+     */ 
+    public void saveInitialBlockStates() { 
+        for (int r = 0; r < rows; r++) { 
+            for (int c = 0; c < cols; c++) { 
+                Boxy b = blocks[r][c]; 
+                baseStates[r][c] = (b != null) ? b.getState() : BoxState.inactive; 
+            } 
+        } 
+    }
+
     /**
-     * Verifica si una posición está dentro del mapa.
-     * @param p posición a evaluar
+     * Elimina todas las frutas del mapa.
+     */
+    public void removeAllFruits() { 
+        for (int r = 0; r < rows; r++) { 
+            for (int c = 0; c < cols; c++) { 
+                fruits[r][c] = null; 
+            } 
+        } 
+    }
+
+    /**
+     * Verifica si una posición pertenece al mapa.
+     * @param pos posición a validar
      * @return true si es válida
      */
-    public boolean isValid(Position p) {
-        int r = p.getRow(), c = p.getCol();
+    public boolean isValid(Position pos) {
+        int r = pos.getRow();
+        int c = pos.getCol();
         return r >= 0 && r < rows && c >= 0 && c < cols;
     }
 
     /**
-     * Indica si una posición está bloqueada por un bloque creado.
-     * @param p posición a evaluar
+     * Indica si una posición está bloqueada.
+     * @param pos posición a evaluar
      * @return true si no se puede atravesar
      */
-    public boolean isBlocked(Position p) {
-        Boxy b = blocks[p.getRow()][p.getCol()];
-    
-        if (b != null && (b.getType() == BoxType.bonfire || b.getType() == BoxType.fire)) {
-            return false; // Se puede caminar sobre ellas
-        }
-        return (b != null && b.isCreated()) || (b != null && !b.canWalk());
+    public boolean isBlocked(Position pos) {
+        Boxy b = blocks[pos.getRow()][pos.getCol()];
+        if (b == null) return false;
+        if (b.getType() == BoxType.fire || b.getType() == BoxType.bonfire) return false;
+        return b.isCreated() || !b.canWalk();
     }
 
     /**
-     * Indica si una posición contiene un enemigo.
-     * @param p posición a evaluar
-     * @return true si hay un enemigo
+     * Indica si hay un enemigo en la posición.
+     * @param pos posición a evaluar
+     * @return true si existe un enemigo
      */
-    public boolean hasEnemy(Position p) {
-        return enemies[p.getRow()][p.getCol()] != null;
+    public boolean hasEnemy(Position pos) {
+        return enemies[pos.getRow()][pos.getCol()] != null;
     }
 
     /**
-     * Indica si una posición contiene una fruta.
-     * @param p posición a evaluar
-     * @return true si hay una fruta
+     * Indica si hay una fruta en la posición.
+     * @param pos posición a evaluar
+     * @return true si existe una fruta
      */
-    public boolean hasFruit(Position p) {
-        return fruits[p.getRow()][p.getCol()] != null;
+    public boolean hasFruit(Position pos) {
+        return fruits[pos.getRow()][pos.getCol()] != null;
     }
 
     /**
-     * Indica si una posición contiene un jugador.
-     * @param p posición a evaluar
-     * @return true si hay un jugador vivo
+     * Indica si hay un jugador vivo en la posición.
+     * @param pos posición a evaluar
+     * @return true si existe un jugador vivo
      */
-    public boolean hasPlayer(Position p) {
-        IceCream pl = players[p.getRow()][p.getCol()];
-        return pl != null && pl.isAlive();
+    public boolean hasPlayer(Position pos) {
+        IceCream p = players[pos.getRow()][pos.getCol()];
+        return p != null && p.isAlive();
     }
 
     /**
-     * Mueve un enemigo en la dirección indicada.
+     * Mueve un enemigo en una dirección.
      * @param e enemigo a mover
      * @param d dirección de movimiento
-     * @return true si se movió
+     * @return true si el movimiento fue exitoso
      */
     public boolean moveEnemy(Enemy e, Direction d) {
-
-        Position oldP = e.getPosition();
-        Position newP = new Position(
-            oldP.getRow() + d.getRowDelta(),
-            oldP.getCol() + d.getColDelta()
+        Position from = e.getPosition();
+        Position to = new Position(
+                from.getRow() + d.getRowDelta(),
+                from.getCol() + d.getColDelta()
         );
 
-        if (!isValid(newP)) return false;
-        if (isBlocked(newP)) return false;
-        if (hasEnemy(newP)) return false;
-        if (hasPlayer(newP)) {
-            IceCream p = getPlayer(newP);
+        if (!isValid(to)) return false;
+        if (isBlocked(to)) return false;
+        if (hasEnemy(to)) return false;
+
+        if (hasPlayer(to)) {
+            IceCream p = getPlayer(to);
             p.die();
-            /*
-            enemies[oldP.getRow()][oldP.getCol()] = null;
-            enemies[newP.getRow()][newP.getCol()] = e;
-        
-            e.setPosition(newP);
-            return true;
-            */
         }
 
-        enemies[oldP.getRow()][oldP.getCol()] = null;
-        enemies[newP.getRow()][newP.getCol()] = e;
+        enemies[from.getRow()][from.getCol()] = null;
+        enemies[to.getRow()][to.getCol()] = e;
+        e.setPosition(to);
 
-        e.setPosition(newP);
         return true;
     }
 
     /**
-     * Mueve un jugador en la dirección indicada.
+     * Mueve un jugador en una dirección.
      * @param p jugador a mover
      * @param d dirección de movimiento
-     * @return true si se movió
+     * @return true si el movimiento fue exitoso
      */
     public boolean movePlayer(IceCream p, Direction d) {
-
-        Position oldP = p.getPosition();
-        Position newP = new Position(
-            oldP.getRow() + d.getRowDelta(),
-            oldP.getCol() + d.getColDelta()
+        Position from = p.getPosition();
+        Position to = new Position(
+                from.getRow() + d.getRowDelta(),
+                from.getCol() + d.getColDelta()
         );
 
-        if (!isValid(newP)) return false;
-        if (isBlocked(newP)) return false;
+        if (!isValid(to)) return false;
+        if (isBlocked(to)) return false;
 
-        players[oldP.getRow()][oldP.getCol()] = null;
-        players[newP.getRow()][newP.getCol()] = p;
+        players[from.getRow()][from.getCol()] = null;
+        players[to.getRow()][to.getCol()] = p;
+        p.setPosition(to);
 
-        p.setPosition(newP);
         return true;
     }
 
     /**
-     * Crea un bloque en la posición especificada.
+     * Crea un bloque en una posición.
      * @param pos posición del bloque
      */
-    public void placeWall(Position pos) {
+    public void placeBlock(Position pos) {
         if (!isValid(pos)) return;
         Boxy b = blocks[pos.getRow()][pos.getCol()];
         if (b != null && b.canBeCreated()) b.create();
     }
 
     /**
-     * Destruye un bloque en la posición especificada.
+     * Destruye un bloque en una posición.
      * @param pos posición del bloque
      */
     public void clearBlock(Position pos) {
@@ -191,52 +194,44 @@ public class GameMap {
         Boxy b = blocks[pos.getRow()][pos.getCol()];
         if (b != null && b.canBeDestroyed()) b.destroy();
     }
-    
+
     /**
-     * Inserta un enemigo en el mapa.
+     * Agrega un enemigo al mapa.
      * @param e enemigo a agregar
      */
     public void addEnemy(Enemy e) {
-        Position pos = e.getPosition();
-        if (isValid(pos)) {
-            enemies[pos.getRow()][pos.getCol()] = e;
-        }
+        Position p = e.getPosition();
+        if (isValid(p)) enemies[p.getRow()][p.getCol()] = e;
     }
 
     /**
-     * Inserta una fruta en el mapa.
+     * Agrega una fruta al mapa.
      * @param f fruta a agregar
      */
     public void addFruit(Fruit f) {
-        Position pos = f.getPosition();
-        if (isValid(pos)) {
-            fruits[pos.getRow()][pos.getCol()] = f;
-        }
+        Position p = f.getPosition();
+        if (isValid(p)) fruits[p.getRow()][p.getCol()] = f;
     }
 
     /**
-     * Inserta un jugador en el mapa.
+     * Agrega un jugador al mapa.
      * @param p jugador a agregar
      */
     public void addPlayer(IceCream p) {
         Position pos = p.getPosition();
-        if (isValid(pos)) {
-            players[pos.getRow()][pos.getCol()] = p;
-        }
+        if (isValid(pos)) players[pos.getRow()][pos.getCol()] = p;
     }
 
     /**
-     * Quita una fruta del mapa.
+     * Elimina una fruta del mapa.
      * @param pos posición de la fruta
      */
     public void removeFruit(Position pos) {
-        if (isValid(pos)) {
-            fruits[pos.getRow()][pos.getCol()] = null;
-        }
+        if (isValid(pos)) fruits[pos.getRow()][pos.getCol()] = null;
     }
 
     /**
-     * Limpia todas las entidades dinámicas del mapa.
+     * Elimina todas las entidades dinámicas.
      */
     public void clearEntities() {
         for (int r = 0; r < rows; r++) {
@@ -249,58 +244,96 @@ public class GameMap {
     }
 
     /**
-     * Restaura los bloques al estado original del nivel.
+     * Restaura los bloques a su estado inicial.
      */
     public void resetBlocks() {
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
                 Boxy b = blocks[r][c];
-                if (b != null) {
-                    BoxState originalState = initialBlockStates[r][c];
-                    if (originalState == BoxState.created && !b.isCreated()) {
-                        b.create();
-                    } else if (originalState != BoxState.created && b.isCreated()) {
-                        b.destroy();
-                    }
-                }
+                if (b == null) continue;
+                BoxState s = baseStates[r][c];
+                if (s == BoxState.created && !b.isCreated()) b.create();
+                if (s != BoxState.created && b.isCreated()) b.destroy();
             }
         }
     }
 
     /**
-     * Guarda el estado inicial de los bloques del nivel.
+     * Guarda el estado inicial de los bloques.
      */
-    public void saveInitialBlockStates() {
+    public void saveBaseBlocks() {
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
                 Boxy b = blocks[r][c];
-                initialBlockStates[r][c] = (b != null) ? b.getState() : BoxState.inactive;
+                baseStates[r][c] = b != null ? b.getState() : BoxState.inactive;
             }
         }
     }
 
-    /** @return número de filas. */
-    public int getRows() { return rows; }
+    /**
+     * Obtiene el número de filas.
+     * @return filas del mapa
+     */
+    public int getRows() {
+        return rows;
+    }
 
-    /** @return número de columnas. */
-    public int getCols() { return cols; }
+    /**
+     * Obtiene el número de columnas.
+     * @return columnas del mapa
+     */
+    public int getCols() {
+        return cols;
+    }
 
-    /** @return tamaño de cada celda del mapa. */
-    public int getCellSize() { return cellSize; }
+    /**
+     * Obtiene el tamaño de una celda.
+     * @return tamaño de celda
+     */
+    public int getCell() {
+        return cell;
+    }
 
-    /** @return bloque en la posición dada. */
-    public Boxy getBlock(Position pos) { return blocks[pos.getRow()][pos.getCol()]; }
+    /**
+     * Obtiene el bloque en una posición.
+     * @param pos posición solicitada
+     * @return bloque correspondiente
+     */
+    public Boxy getBlock(Position pos) {
+        return blocks[pos.getRow()][pos.getCol()];
+    }
 
-    /** @return fruta en la posición dada. */
-    public Fruit getFruit(Position pos) { return fruits[pos.getRow()][pos.getCol()]; }
+    /**
+     * Obtiene la fruta en una posición.
+     * @param pos posición solicitada
+     * @return fruta correspondiente
+     */
+    public Fruit getFruit(Position pos) {
+        return fruits[pos.getRow()][pos.getCol()];
+    }
 
-    /** @return enemigo en la posición dada. */
-    public Enemy getEnemy(Position pos) { return enemies[pos.getRow()][pos.getCol()]; }
+    /**
+     * Obtiene el enemigo en una posición.
+     * @param pos posición solicitada
+     * @return enemigo correspondiente
+     */
+    public Enemy getEnemy(Position pos) {
+        return enemies[pos.getRow()][pos.getCol()];
+    }
 
-    /** @return jugador en la posición dada. */
-    public IceCream getPlayer(Position pos) { return players[pos.getRow()][pos.getCol()]; }
-    
-    public void removeAllFruits() {
+    /**
+     * Obtiene el jugador en una posición.
+     * @param pos posición solicitada
+     * @return jugador correspondiente
+     */
+    public IceCream getPlayer(Position pos) {
+        return players[pos.getRow()][pos.getCol()];
+    }
+
+    /**
+     * Elimina todas las frutas del mapa.
+     */
+    public void clearFruits() {
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
                 fruits[r][c] = null;
