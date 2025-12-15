@@ -9,15 +9,17 @@ import javax.swing.*;
  */
 public class FruitsGUI extends ResourcesGUI {
     private Timer gifTimer;
-    private String selectedFruit1 = null;
-    private String selectedFruit2 = null;
+    //private final String selectedFruit1 = null;
+    //private final String selectedFruit2 = null;
 
     private PixelButton btnBanana;
     private PixelButton btnGrape;
-    private PixelButton btnCheery;
+    private PixelButton btnCherry;
     private PixelButton btnPineapple;
     private PixelButton btnCactus;
-    private PixelButton btnOnly1;
+    private PixelButton btnReady;
+
+    private String pendingFruit;
 
     private final GameControl gameControl;
 
@@ -49,7 +51,7 @@ public class FruitsGUI extends ResourcesGUI {
             cherry();
             pineapple();
             cactus();
-            only1();
+            ready();
         });
         gifTimer.setRepeats(false);
         gifTimer.start();
@@ -107,16 +109,16 @@ public class FruitsGUI extends ResourcesGUI {
      * Crea y muestra el botón de selección de la fruta Cherry.
      */
     public void cherry() {
-        btnCheery = new PixelButton("/Resources/fruit/Cherry.jpg", 80, 80);
-        btnCheery.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btnCheery.setBounds(360, 170, 80, 80);
-        btnCheery.setDisabledIcon(btnCheery.getIcon());
-        btnCheery.addActionListener(e -> {
+        btnCherry = new PixelButton("/Resources/fruit/Cherry.jpg", 80, 80);
+        btnCherry.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnCherry.setBounds(360, 170, 80, 80);
+        btnCherry.setDisabledIcon(btnCherry.getIcon());
+        btnCherry.addActionListener(e -> {
             selectFruit("Cherry");
         });
 
-        contentLabel.add(btnCheery);
-        contentLabel.setComponentZOrder(btnCheery, 0);
+        contentLabel.add(btnCherry);
+        contentLabel.setComponentZOrder(btnCherry, 0);
         contentLabel.revalidate();
         contentLabel.repaint();
     }
@@ -158,19 +160,19 @@ public class FruitsGUI extends ResourcesGUI {
     }
 
     /**
-     * Crea y muestra el botón para el modo de un solo jugador.
+     * Crea y muestra el botón para avanzar a la selección de enemigos.
      */
-    public void only1() {
-        btnOnly1 = new PixelButton("/Resources/textos/Solo1.png", 170, 40);
-        btnOnly1.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btnOnly1.setBounds(250, 370, 170, 40);
-        btnOnly1.setDisabledIcon(btnOnly1.getIcon());
-        btnOnly1.addActionListener(e -> {
-            selectFruit("Only1");
+    public void ready() {
+        btnReady = new PixelButton("/Resources/textos/Solo1.png", 170, 40);
+        btnReady.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnReady.setBounds(250, 370, 170, 40);
+        btnReady.setDisabledIcon(btnReady.getIcon());
+        btnReady.addActionListener(e -> {
+            goToEnemySelection();
         });
 
-        contentLabel.add(btnOnly1);
-        contentLabel.setComponentZOrder(btnOnly1, 0);
+        contentLabel.add(btnReady);
+        contentLabel.setComponentZOrder(btnReady, 0);
         contentLabel.revalidate();
         contentLabel.repaint();
     }
@@ -181,65 +183,71 @@ public class FruitsGUI extends ResourcesGUI {
      * @param fruit nombre de la fruta seleccionada
      */
     private void selectFruit(String fruit) {
-        if (selectedFruit1 == null) {
-            selectedFruit1 = fruit;
-            gameControl.setSelectedFruit1(fruit);
-            disableButtons(fruit);
-        } else if (selectedFruit2 == null) {
-            selectedFruit2 = fruit;
-            gameControl.setSelectedFruit2(fruit);
-            disableButtons(fruit);
-        }
-        if (selectedFruit1 != null && selectedFruit2 != null) {
-            selectEnemy();
-        }
+        pendingFruit = fruit;
+        goToAmountSelection();
     }
 
     /**
-     * Deshabilita el botón correspondiente a la fruta seleccionada
-     * para evitar que vuelva a ser elegida.
-     * @param fruit nombre de la fruta seleccionada
+     * Muestra la pantalla para seleccionar la cantidad de la fruta elegida.
      */
-    private void disableButtons(String fruit) {
-        switch (fruit) {
-            case "Banana" -> {
-                btnBanana.setEnabled(false);
-            }
-            case "Grape" -> {
-                btnGrape.setEnabled(false);
-            }
-            case "Cheery" -> {
-                btnCheery.setEnabled(false);
-            }
-            case "Pineapple" -> {
-                btnPineapple.setEnabled(false);
-            }
-            case "Cactus" -> {
-                btnCactus.setEnabled(false);
-            }
-            case "Only1" -> {
-                btnOnly1.setEnabled(false);
-            }
-        }
+    private void goToAmountSelection() {
+        contentLabel.removeAll();
+        showBackground();   
+        addIceCreamBackground();
+        main_Text();        
+
+        createNumberButtons(8, amount -> {
+            gameControl.addFruit(pendingFruit, amount);
+            returnFromAmountSelection();
+        });
     }
 
     /**
-     * Cambia la pantalla actual a la selección de enemigos
-     * una vez que ambos jugadores han elegido sus frutas.
+     * Regresa a la pantalla de selección de frutas
+     * después de que se ha seleccionado la cantidad.
      */
-    private void selectEnemy() {
+    private void returnFromAmountSelection() {
+        showBackground();
+        addIceCreamBackground();
+        addBackBackground();
+        backButton();
+        main_Text();
+
+        banana();
+        grape();
+        cherry();
+        pineapple();
+        cactus();
+        ready();
+
+        updateButtonStates();
+    }
+
+    /**
+     * Actualiza el estado de los botones según las frutas seleccionadas.
+     */
+    private void updateButtonStates() {
+        btnBanana.setEnabled(!gameControl.isFruitSelected("Banana"));
+        btnGrape.setEnabled(!gameControl.isFruitSelected("Grape"));
+        btnCherry.setEnabled(!gameControl.isFruitSelected("Cherry"));
+        btnPineapple.setEnabled(!gameControl.isFruitSelected("Pineapple"));
+        btnCactus.setEnabled(!gameControl.isFruitSelected("Cactus"));
+
+        btnReady.setEnabled(gameControl.hasFruits());
+    }
+
+    /**
+     * Navega a la pantalla de selección de enemigos.
+     */
+    private void goToEnemySelection() {
         if (gifTimer != null && gifTimer.isRunning()) {
             gifTimer.stop();
         }
 
         Container parent = getParent();
-
         if (parent != null) {
             parent.remove(this);
-
-            EnemyGUI selectEnemyPanel = new EnemyGUI(gameControl);
-            parent.add(selectEnemyPanel);
-
+            parent.add(new EnemyGUI(gameControl));
             parent.revalidate();
             parent.repaint();
         }

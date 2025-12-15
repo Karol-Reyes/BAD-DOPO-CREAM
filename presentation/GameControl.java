@@ -1,4 +1,7 @@
 package presentation;
+import java.util.ArrayList;
+import java.util.List;
+
 import domain.GameConfig;
 
 /**
@@ -11,8 +14,6 @@ public class GameControl {
     private String character1;
     private String character2;
     private int selectedLevel;
-    private String selectedFruit1;
-    private String selectedFruit2;
     private String selectedEnemy1;
     private String selectedEnemy2;
     private String selectedObjet;
@@ -74,34 +75,63 @@ public class GameControl {
         this.selectedLevel = selectedLevel;
     }
 
-    /**
-     * Obtiene la fruta 1 seleccionada.
+//frutas elegidas
+     /**
+     * Clase interna que representa una selección de fruta con su nombre y cantidad.
      */
-    public String getSelectedFruit1() {
-        return selectedFruit1;
+    public static class FruitSelection {
+        public final String name;
+        public final int amount;
+
+        public FruitSelection(String name, int amount) {
+            this.name = name;
+            this.amount = amount;
+        }
     }
 
     /**
-     * Establece la fruta 1 seleccionada.
+     * Lista de frutas seleccionadas por el usuario.
      */
-    public void setSelectedFruit1(String selectedFruit1) {
-        this.selectedFruit1 = selectedFruit1;
+    private final List<FruitSelection> selectedFruits = new ArrayList<>();
+
+    /**
+     * Agrega una fruta seleccionada con su cantidad.
+     * @param name nombre de la fruta
+     * @param amount cantidad de la fruta
+     */
+    public void addFruit(String name, int amount) {
+        selectedFruits.add(new FruitSelection(name, amount));
     }
 
     /**
-     * Obtiene la fruta 2 seleccionada.
+     * Verifica si se han seleccionado frutas.
      */
-    public String getSelectedFruit2() {
-        return selectedFruit2;
+    public boolean hasFruits() {
+        return !selectedFruits.isEmpty();
     }
 
     /**
-     * Establece la fruta 2 seleccionada.
+     * Verifica si una fruta específica ha sido seleccionada.
      */
-    public void setSelectedFruit2(String selectedFruit2) {
-        this.selectedFruit2 = selectedFruit2;
+    public boolean isFruitSelected(String name) {
+        return selectedFruits.stream()
+                .anyMatch(f -> f.name.equals(name));
     }
 
+    /**
+     * Obtiene la cantidad de frutas seleccionadas.
+     */
+    public int getFruitCount() {
+        return selectedFruits.size();
+    }
+
+    /**
+     * Obtiene la lista de frutas seleccionadas.
+     */
+    public List<FruitSelection> getSelectedFruits() {
+        return selectedFruits;
+    }
+//--------------------------------------------------------------------
     /**
      * Obtiene el enemigo 1 seleccionado.
      */
@@ -147,20 +177,19 @@ public class GameControl {
     /**
      * Convierte la configuración de presentation a domain
      */
+/*
     public GameConfig toGameConfig() {
         return new GameConfig(
             this.gameMode,
             this.character1,
             this.character2,
             this.selectedLevel,
-            this.selectedFruit1,
-            this.selectedFruit2,
             this.selectedEnemy1,
             this.selectedEnemy2,
             this.selectedObjet
         );
     }
-
+*/
     /**
      * Imprime en consola las selecciones actuales del juego.
      */
@@ -170,8 +199,6 @@ public class GameControl {
         System.out.println("Personaje 1: " + character1);
         System.out.println("Personaje 2: " + character2);
         System.out.println("Nivel seleccionado: " + selectedLevel);
-        System.out.println("Fruta 1: " + selectedFruit1);
-        System.out.println("Fruta 2: " + selectedFruit2);
         System.out.println("Enemigo 1: " + selectedEnemy1);
         System.out.println("Enemigo 2: " + selectedEnemy2);
         System.out.println("Objeto seleccionado: " + selectedObjet);

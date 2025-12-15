@@ -90,6 +90,47 @@ public class MenuGUI extends ResourcesGUI {
     }
 
     /**
+     * Inicia el juego al hacer clic en el botón "Play".
+     */
+    @Override
+    public void playGame() {
+        if (gifTimer != null && gifTimer.isRunning()) {
+            gifTimer.stop();
+        }
+        Container parent = getParent();
+        
+        if (parent != null) {
+            parent.remove(this);
+            
+            IceCreamGUI gamePanel = new IceCreamGUI(gameControl);
+            parent.add(gamePanel);         
+            parent.revalidate();
+            parent.repaint();
+        }
+    }
+
+    /**
+     * Muestra la pantalla de ayuda al hacer clic en el botón "Help".
+     */
+    @Override
+    public void help() {
+        if (gifTimer != null && gifTimer.isRunning()) {
+            gifTimer.stop();
+        }
+
+        Container parent = getParent();
+
+        if (parent != null) {
+            parent.remove(this);
+            HowToPlayGUI howToPlayPanel = new HowToPlayGUI();
+            parent.add(howToPlayPanel);
+
+            parent.revalidate();
+            parent.repaint();
+        }
+    }
+
+    /**
      * Cambia a la pantalla de selección de personaje.
      */
     private void switchToCharacterSelection() {
