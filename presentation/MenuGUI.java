@@ -63,26 +63,12 @@ public class MenuGUI extends ResourcesGUI {
         btnStart.setBounds(260, 490, 170, 90);
 
         btnStart.addActionListener(e -> {
-            String[] options = {"Play", "Help", "Settings"};
-            
-            int selection = JOptionPane.showOptionDialog(
-                this,
-                null,
-                null,
-                JOptionPane.DEFAULT_OPTION,
-                JOptionPane.INFORMATION_MESSAGE,
-                null,
-                options,
-                options[0]
-            );
-
-            if (selection == 0) {
-                switchToCharacterSelection();
-            }
-            if (selection == 1) {
-                howToPlay();
-            }
+            background();
+            buttonPlay();
+            buttonHelp();
+            buttonImport();
         });
+        
 
         contentLabel.add(btnStart);
         contentLabel.revalidate();
@@ -114,47 +100,6 @@ public class MenuGUI extends ResourcesGUI {
      */
     @Override
     public void help() {
-        if (gifTimer != null && gifTimer.isRunning()) {
-            gifTimer.stop();
-        }
-
-        Container parent = getParent();
-
-        if (parent != null) {
-            parent.remove(this);
-            HowToPlayGUI howToPlayPanel = new HowToPlayGUI();
-            parent.add(howToPlayPanel);
-
-            parent.revalidate();
-            parent.repaint();
-        }
-    }
-
-    /**
-     * Cambia a la pantalla de selección de personaje.
-     */
-    private void switchToCharacterSelection() {
-
-        if (gifTimer != null && gifTimer.isRunning()) {
-            gifTimer.stop();
-        }
-
-        Container parent = getParent();
-
-        if (parent != null) {
-            parent.remove(this);
-            IceCreamGUI iceCreamPanel = new IceCreamGUI(gameControl);
-            parent.add(iceCreamPanel);
-
-            parent.revalidate();
-            parent.repaint();
-        }
-    }
-
-    /**
-     * Muestra la pantalla de "Cómo jugar".
-     */
-    private void howToPlay() {
         if (gifTimer != null && gifTimer.isRunning()) {
             gifTimer.stop();
         }

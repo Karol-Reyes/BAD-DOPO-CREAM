@@ -1,6 +1,8 @@
 package presentation;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import domain.GameConfig;
 
@@ -177,19 +179,23 @@ public class GameControl {
     /**
      * Convierte la configuración de presentation a domain
      */
-/*
     public GameConfig toGameConfig() {
+        Map<String, Integer> fruitMap = new HashMap<>();
+        for (FruitSelection fruit : selectedFruits) {
+            fruitMap.put(fruit.name, fruit.amount);
+        }
+
         return new GameConfig(
             this.gameMode,
             this.character1,
             this.character2,
             this.selectedLevel,
+            fruitMap,
             this.selectedEnemy1,
             this.selectedEnemy2,
             this.selectedObjet
         );
     }
-*/
     /**
      * Imprime en consola las selecciones actuales del juego.
      */

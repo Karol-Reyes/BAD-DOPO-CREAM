@@ -1,5 +1,5 @@
 package domain;
-
+import java.util.*;
 /**
  * Configuración del juego, incluyendo modo, personajes, nivel, frutas, enemigos y objetos.
  */
@@ -9,11 +9,11 @@ public class GameConfig {
     private String charA;
     private String charB;
     private int level;
-    private String fruitA;
-    private String fruitB;
     private String enemyA;
     private String enemyB;
     private String item;
+
+    private Map<String, Integer> fruits;
 
     /**
      * Crea una configuración vacía del juego.
@@ -34,14 +34,13 @@ public class GameConfig {
      * @param item objeto especial
      */
     public GameConfig(String mode, String charA, String charB,
-                      int level, String fruitA, String fruitB,
+                      int level, Map<String, Integer> fruits,
                       String enemyA, String enemyB, String item) {
         this.mode = mode;
         this.charA = charA;
         this.charB = charB;
         this.level = level;
-        this.fruitA = fruitA;
-        this.fruitB = fruitB;
+        this.fruits = fruits != null ? fruits : new HashMap<>();
         this.enemyA = enemyA;
         this.enemyB = enemyB;
         this.item = item;
@@ -80,19 +79,11 @@ public class GameConfig {
     }
 
     /**
-     * Obtiene la primera fruta.
-     * @return fruta A
+     * Obtiene las frutas seleccionadas.
+     * @return fruta seleccionada
      */
-    public String getFruit1() {
-        return fruitA;
-    }
-
-    /**
-     * Obtiene la segunda fruta.
-     * @return fruta B
-     */
-    public String getFruit2() {
-        return fruitB;
+    public Map<String, Integer> getFruits() {
+        return fruits;
     }
 
     /**
@@ -117,5 +108,12 @@ public class GameConfig {
      */
     public String getObject() {
         return item;
+    }
+
+    /**
+     * obtiene el total de las frutas a colocar
+     */
+    public int getTotalFruits() {
+        return fruits.values().stream().mapToInt(Integer::intValue).sum();
     }
 }

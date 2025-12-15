@@ -2,6 +2,7 @@ package domain;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Analiza una representación textual del mapa y crea la instancia del juego correspondiente.
@@ -27,6 +28,8 @@ public class MapParser {
         List<Fruit> fruits = new ArrayList<>();
         List<Enemy> enemies = new ArrayList<>();
         List<Character> playerTypes = new ArrayList<>();
+        List<Position> posicionesJugadores = new ArrayList<>();
+        List<Position> posicionesVacias = new ArrayList<>();
 
         for (int r = 0; r < rows; r++) {
             String line = lines[r];
@@ -36,11 +39,34 @@ public class MapParser {
 
                 if ("CSVRJE".indexOf(ch) >= 0) {
                     playerTypes.add(ch);
+                    posicionesJugadores.add(pos);
+                }
+
+                if (ch == '0' || ch == 'F' || ch == 'G') {
+                    posicionesVacias.add(pos);
                 }
 
                 parseCell(ch, pos, map, players, fruits, enemies);
             }
         }
+
+        // ========== PASO 2: Distribuir FRUTAS dinámicamente ==========
+        MapDistributor distributor = new MapDistributor();
+        Map<Position, String> frutasDistribuidas = distributor.distribuirFrutas(
+            config, posicionesVacias, rows, cols, posicionesJugadores
+        );
+
+        // Crear las frutas distribuidas
+        for (Map.Entry<Position, String> entry : frutasDistribuidas.entrySet()) {
+            Position pos = entry.getKey();
+            String tipo = entry.getValue();
+            
+            Fruit fruta = crearFruta(tipo, pos);
+            if (fruta != null) {
+                fruits.add(fruta);
+            }
+        }
+
         map.saveInitialBlockStates();
         BadIceCream game = new BadIceCream(map);
 
@@ -157,15 +183,22 @@ public class MapParser {
                 p.setFlavor("expert");
                 players.add(p);
             }
-            case 'B' -> fruits.add(new Banana(pos));
-            case 'A' -> fruits.add(new Grape(pos));
-            case 'D' -> fruits.add(new Cherry(pos));
-            case 'Z' -> fruits.add(new Pineapple(pos));
-            case 'Q' -> fruits.add(new Cactus(pos));
+            case 'B', 'A' , 'D' , 'Z', 'Q' -> {}
             case 'O' -> enemies.add(new Troll(pos));
             case 'W' -> enemies.add(new Flowerpot(pos));
             case 'P' -> enemies.add(new Narval(pos));
             case 'U' -> enemies.add(new YellowSquid(pos));
         }
+    }
+
+    private static Fruit crearFruta(String tipo, Position pos) {
+        return switch (tipo) {
+            case "Banana" -> new Banana(pos);
+            case "Grape" -> new Grape(pos);
+            case "Cherry" -> new Cherry(pos);
+            case "Pineapple" -> new Pineapple(pos);
+            case "Cactus" -> new Cactus(pos);
+            default -> null;
+        };
     }
 }

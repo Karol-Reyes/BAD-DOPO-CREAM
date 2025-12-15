@@ -43,20 +43,6 @@ public class LevelLoader {
         );
 
         result = result.replace(
-                'F',
-                cfg.getFruit1() == null || cfg.getFruit1().equals("Only1")
-                        ? '0'
-                        : charFruit(cfg.getFruit1())
-        );
-
-        result = result.replace(
-                'G',
-                cfg.getFruit2() == null || cfg.getFruit2().equals("Only1")
-                        ? '0'
-                        : charFruit(cfg.getFruit2())
-        );
-
-        result = result.replace(
                 'T',
                 cfg.getEnemy1() == null || cfg.getEnemy1().equals("Only1")
                         ? '0'
@@ -102,23 +88,6 @@ public class LevelLoader {
     }
 
     /**
-     * Obtiene el carácter asociado a una fruta.
-     * @param name nombre de la fruta
-     * @return letra representativa de la fruta
-     */
-    private static char charFruit(String name) {
-        if (name == null) return '0';
-        return switch (name) {
-            case "Banana" -> 'B';
-            case "Grape" -> 'A';
-            case "Cherry" -> 'D';
-            case "Pineapple" -> 'Z';
-            case "Cactus" -> 'Q';
-            default -> '0';
-        };
-    }
-
-    /**
      * Obtiene el carácter asociado a un enemigo.
      * @param name nombre del enemigo
      * @return letra representativa del enemigo
@@ -132,6 +101,19 @@ public class LevelLoader {
             case "YellowSquid" -> 'U';
             default -> '0';
         };
+    }
+
+    private static void imprimirResumenFrutas(GameConfig config) {        
+        if (config.getFruits().isEmpty()) {
+            System.out.println("  - Ninguna");
+        } else {
+            for (var entry : config.getFruits().entrySet()) {
+                System.out.println("  - " + entry.getKey() + ": " + entry.getValue() + " unidades");
+            }
+            System.out.println("  TOTAL: " + config.getTotalFruits() + " frutas");
+        }
+        
+        System.out.println("===============================\n");
     }
 
     /**
