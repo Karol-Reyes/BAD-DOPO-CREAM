@@ -23,10 +23,11 @@ public class MapParser {
         int cols = lines[0].length();
 
         GameMap map = new GameMap(rows, cols);
+        MapDistributor distributor = new MapDistributor();
 
         List<IceCream> players = new ArrayList<>();
-        List<Fruit> fruits = new ArrayList<>();
-        List<Enemy> enemies = new ArrayList<>();
+        //List<Fruit> fruits = new ArrayList<>();
+        //List<Enemy> enemies = new ArrayList<>();
         List<Character> playerTypes = new ArrayList<>();
         List<Position> posicionesJugadores = new ArrayList<>();
         List<Position> posicionesVacias = new ArrayList<>();
@@ -46,26 +47,29 @@ public class MapParser {
                     posicionesVacias.add(pos);
                 }
 
-                parseCell(ch, pos, map, players, fruits, enemies);
+                parseCell(ch, pos, map, players);
             }
         }
 
         // ========== PASO 2: Distribuir FRUTAS dinámicamente ==========
-        MapDistributor distributor = new MapDistributor();
         Map<Position, String> frutasDistribuidas = distributor.distribuirFrutas(
             config, posicionesVacias, rows, cols, posicionesJugadores
         );
-
-        // Crear las frutas distribuidas
-        for (Map.Entry<Position, String> entry : frutasDistribuidas.entrySet()) {
-            Position pos = entry.getKey();
-            String tipo = entry.getValue();
-            
-            Fruit fruta = crearFruta(tipo, pos);
-            if (fruta != null) {
-                fruits.add(fruta);
-            }
-        }
+        
+        // ⭐ PASO 3: Distribuir enemigos alejados de jugadores
+        Map<Position, String> enemigosDistribuidos = distributor.distribuirEnemigos(
+            config, posicionesVacias, rows, cols, posicionesJugadores, frutasDistribuidas
+        );
+        
+        // ⭐ PASO 4: Distribuir obstáculos
+        Map<Position, String> obstaculosDistribuidos = distributor.distribuirObstaculos(
+            config, posicionesVacias, frutasDistribuidas, enemigosDistribuidos
+        );
+        
+        // ⭐ PASO 5: Crear entidades
+        List<Fruit> frutas = crearFrutas(frutasDistribuidas);
+        List<Enemy> enemigos = crearEnemigos(enemigosDistribuidos, map);
+        crearObstaculos(obstaculosDistribuidos, map);
 
         map.saveInitialBlockStates();
         BadIceCream game = new BadIceCream(map);
@@ -114,12 +118,12 @@ public class MapParser {
             map.addPlayer(player);
         }
 
-        for (Fruit f : fruits) {
+        for (Fruit f : frutas) {
             game.addFruit(f);
             map.addFruit(f);
         }
 
-        for (Enemy e : enemies) {
+        for (Enemy e : enemigos) {
             e.setGameMap(map);
             game.addEnemy(e);
             map.addEnemy(e);
@@ -134,16 +138,12 @@ public class MapParser {
      * @param pos posición dentro del mapa
      * @param map mapa del juego
      * @param players lista de jugadores detectados
-     * @param fruits lista de frutas detectadas
-     * @param enemies lista de enemigos detectados
      */
     private static void parseCell(
             char ch,
             Position pos,
             GameMap map,
-            List<IceCream> players,
-            List<Fruit> fruits,
-            List<Enemy> enemies) {
+            List<IceCream> players) {
 
         map.setBlock(pos, new Floor(pos, BoxState.inactive));
 
@@ -183,22 +183,94 @@ public class MapParser {
                 p.setFlavor("expert");
                 players.add(p);
             }
-            case 'B', 'A' , 'D' , 'Z', 'Q' -> {}
-            case 'O' -> enemies.add(new Troll(pos));
-            case 'W' -> enemies.add(new Flowerpot(pos));
-            case 'P' -> enemies.add(new Narval(pos));
-            case 'U' -> enemies.add(new YellowSquid(pos));
+            
         }
     }
 
-    private static Fruit crearFruta(String tipo, Position pos) {
-        return switch (tipo) {
-            case "Banana" -> new Banana(pos);
-            case "Grape" -> new Grape(pos);
-            case "Cherry" -> new Cherry(pos);
-            case "Pineapple" -> new Pineapple(pos);
-            case "Cactus" -> new Cactus(pos);
-            default -> null;
-        };
+    private static List<Fruit> crearFrutas(Map<Position, String> distribucion) {
+        List<Fruit> frutas = new ArrayList<>();
+        
+        for (Map.Entry<Position, String> entry : distribucion.entrySet()) {
+            Position pos = entry.getKey();
+            String tipo = entry.getValue();
+            
+            Fruit fruta = null;
+            switch (tipo) {
+                case "Banana":
+                    fruta = new Banana(pos);
+                    break;
+                case "Grape":
+                    fruta = new Grape(pos);
+                    break;
+                case "Cherry":
+                    fruta = new Cherry(pos);
+                    break;
+                case "Pineapple":
+                    fruta = new Pineapple(pos);
+                    break;
+                case "Cactus":
+                    fruta = new Cactus(pos);
+                    break;
+            }
+            
+            if (fruta != null) {
+                frutas.add(fruta);
+            }
+        }
+        
+        return frutas;
+    }
+    
+    private static List<Enemy> crearEnemigos(Map<Position, String> distribucion, GameMap map) {
+        List<Enemy> enemigos = new ArrayList<>();
+        
+        for (Map.Entry<Position, String> entry : distribucion.entrySet()) {
+            Position pos = entry.getKey();
+            String tipo = entry.getValue();
+            
+            Enemy enemigo = null;
+            switch (tipo) {
+                case "Troll":
+                    enemigo = new Troll(pos);
+                    break;
+                case "Flowerpot":
+                    enemigo = new Flowerpot(pos);
+                    break;
+                case "Narwhal":
+                    enemigo = new Narval(pos);
+                    break;
+                case "YellowSquid":
+                    enemigo = new YellowSquid(pos);
+                    break;
+            }
+            
+            if (enemigo != null) {
+                enemigos.add(enemigo);
+            }
+        }
+        
+        return enemigos;
+    }
+    
+    private static void crearObstaculos(Map<Position, String> distribucion, GameMap map) {
+        for (Map.Entry<Position, String> entry : distribucion.entrySet()) {
+            Position pos = entry.getKey();
+            String tipo = entry.getValue();
+            
+            Boxy obstaculo = null;
+            switch (tipo) {
+                case "Fire":
+                    obstaculo = new Fire(pos, BoxState.created);
+                    break;
+                case "Bonfire":
+                    obstaculo = new Bonfire(pos, BoxState.on);
+                    break;
+            }
+            
+            if (obstaculo != null) {
+                obstaculo.setGameMap(map);
+                map.setBlock(pos, obstaculo);
+            }
+        }
     }
 }

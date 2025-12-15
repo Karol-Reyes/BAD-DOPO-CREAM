@@ -41,31 +41,6 @@ public class LevelLoader {
                         ? '0'
                         : charPlayer(cfg.getCharacter2())
         );
-
-        result = result.replace(
-                'T',
-                cfg.getEnemy1() == null || cfg.getEnemy1().equals("Only1")
-                        ? '0'
-                        : charEnemy(cfg.getEnemy1())
-        );
-
-        result = result.replace(
-                'N',
-                cfg.getEnemy2() == null || cfg.getEnemy2().equals("Only1")
-                        ? '0'
-                        : charEnemy(cfg.getEnemy2())
-        );
-
-        if (null == cfg.getObject()) {
-            result = result.replace('K', '0').replace('L', '0');
-        } else switch (cfg.getObject()) {
-            case "Nothing" -> result = result.replace('K', '0').replace('L', '0');
-            case "Fire" -> result = result.replace('L', '0');
-            case "Bonfire" -> result = result.replace('K', '0');
-            default -> {
-            }
-        }
-
         return result;
     }
 
@@ -85,35 +60,6 @@ public class LevelLoader {
             case "Expert" -> 'E';
             default -> '0';
         };
-    }
-
-    /**
-     * Obtiene el carácter asociado a un enemigo.
-     * @param name nombre del enemigo
-     * @return letra representativa del enemigo
-     */
-    private static char charEnemy(String name) {
-        if (name == null) return '0';
-        return switch (name) {
-            case "Troll" -> 'O';
-            case "FlowerPot" -> 'W';
-            case "Narwhal" -> 'P';
-            case "YellowSquid" -> 'U';
-            default -> '0';
-        };
-    }
-
-    private static void imprimirResumenFrutas(GameConfig config) {        
-        if (config.getFruits().isEmpty()) {
-            System.out.println("  - Ninguna");
-        } else {
-            for (var entry : config.getFruits().entrySet()) {
-                System.out.println("  - " + entry.getKey() + ": " + entry.getValue() + " unidades");
-            }
-            System.out.println("  TOTAL: " + config.getTotalFruits() + " frutas");
-        }
-        
-        System.out.println("===============================\n");
     }
 
     /**

@@ -503,7 +503,8 @@ public class BadIceCream {
         gameMap.clearEntities();
         gameMap.resetBlocks();
 
-        if (players.size() != initialPlayerPositions.size() || enemies.size() != initialEnemyPositions.size() || fruits.size() != initialFruitPositions.size()) {
+        if (players.size() != initialPlayerPositions.size() || enemies.size() != initialEnemyPositions.size() || 
+        fruits.size() != initialFruitPositions.size()) {
                 LOGGER.severe("Desfase entre entidades y posiciones iniciales");
                 throw new BadIceCreamException(BadIceCreamException.MAP_INCONSISTENT_STATE);
         }

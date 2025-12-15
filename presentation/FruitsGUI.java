@@ -167,6 +167,7 @@ public class FruitsGUI extends ResourcesGUI {
         btnReady.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btnReady.setBounds(250, 370, 170, 40);
         btnReady.setDisabledIcon(btnReady.getIcon());
+        btnReady.setEnabled(false);
         btnReady.addActionListener(e -> {
             goToEnemySelection();
         });
@@ -195,7 +196,7 @@ public class FruitsGUI extends ResourcesGUI {
         showBackground();   
         addIceCreamBackground();
         main_Text();        
-
+        background();
         createNumberButtons(8, amount -> {
             gameControl.addFruit(pendingFruit, amount);
             returnFromAmountSelection();

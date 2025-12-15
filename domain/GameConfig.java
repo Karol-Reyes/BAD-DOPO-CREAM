@@ -9,11 +9,10 @@ public class GameConfig {
     private String charA;
     private String charB;
     private int level;
-    private String enemyA;
-    private String enemyB;
-    private String item;
 
     private Map<String, Integer> fruits;
+    private Map<String, Integer> enemies;
+    private Map<String, Integer> obstacles;
 
     /**
      * Crea una configuración vacía del juego.
@@ -24,26 +23,23 @@ public class GameConfig {
     /**
      * Crea una configuración completa del juego.
      * @param mode modo de juego
-     * @param charA primer personaje
-     * @param charB segundo personaje
-     * @param level nivel seleccionado
-     * @param fruitA primera fruta
-     * @param fruitB segunda fruta
-     * @param enemyA primer enemigo
-     * @param enemyB segundo enemigo
-     * @param item objeto especial
+     * @param charA personaje 1
+     * @param charB personaje 2
+     * @param level nivel del juego
+     * @param fruits frutas seleccionadas con sus cantidades
+     * @param enemies enemigos seleccionados con sus cantidades
+     * @param obstacles obstáculos seleccionados con sus cantidades
      */
     public GameConfig(String mode, String charA, String charB,
                       int level, Map<String, Integer> fruits,
-                      String enemyA, String enemyB, String item) {
+                      Map<String, Integer> enemies, Map<String, Integer> obstacles) {
         this.mode = mode;
         this.charA = charA;
         this.charB = charB;
         this.level = level;
         this.fruits = fruits != null ? fruits : new HashMap<>();
-        this.enemyA = enemyA;
-        this.enemyB = enemyB;
-        this.item = item;
+        this.enemies = enemies != null ? enemies : new HashMap<>();
+        this.obstacles = obstacles != null ? obstacles : new HashMap<>();
     }
 
     /**
@@ -87,33 +83,39 @@ public class GameConfig {
     }
 
     /**
-     * Obtiene el primer enemigo.
-     * @return enemigo A
+     * Obtiene los enemigos seleccionados.
+     * @return enemigo seleccionado
      */
-    public String getEnemy1() {
-        return enemyA;
+    public Map<String, Integer> getEnemies() { 
+        return enemies; 
     }
 
     /**
-     * Obtiene el segundo enemigo.
-     * @return enemigo B
+     * Obtiene los obstáculos seleccionados.
+     * @return objeto seleccionado
      */
-    public String getEnemy2() {
-        return enemyB;
-    }
+    public Map<String, Integer> getObstacles() { 
+        return obstacles; }
 
-    /**
-     * Obtiene el objeto especial.
-     * @return objeto del juego
-     */
-    public String getObject() {
-        return item;
-    }
 
     /**
      * obtiene el total de las frutas a colocar
      */
     public int getTotalFruits() {
         return fruits.values().stream().mapToInt(Integer::intValue).sum();
+    }
+
+    /**
+     * Obtiene el total de enemigos a colocar
+     */
+    public int getTotalEnemies() {
+        return enemies.values().stream().mapToInt(Integer::intValue).sum();
+    }
+    
+    /**
+     * Obtiene el total de obstáculos a colocar
+     */
+    public int getTotalObstacles() {
+        return obstacles.values().stream().mapToInt(Integer::intValue).sum();
     }
 }

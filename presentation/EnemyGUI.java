@@ -9,14 +9,15 @@ import javax.swing.*;
  */
 public class EnemyGUI extends ResourcesGUI {
     private Timer gifTimer;
-    private String selectedEnemy1 = null;
-    private String selectedEnemy2 = null;
+    //private String selectedEnemy1 = null;
+    //private String selectedEnemy2 = null;
 
     private PixelButton btnTroll;
     private PixelButton btnFlowerPot;
     private PixelButton btnYellowSquid;
     private PixelButton btnNarwhal;
-    private PixelButton btnOnly1;
+    private String pendingEnemy;
+    private PixelButton btnReady;
 
     private final GameControl gameControl;
 
@@ -46,7 +47,7 @@ public class EnemyGUI extends ResourcesGUI {
             flowerPot();
             yellowSquid();
             narwhal();
-            only1();
+            ready();
         });
         gifTimer.setRepeats(false);
         gifTimer.start();
@@ -74,7 +75,7 @@ public class EnemyGUI extends ResourcesGUI {
         btnTroll.setBounds(80, 110, 150, 120);
         btnTroll.setDisabledIcon(btnTroll.getIcon());
         btnTroll.addActionListener(e -> {
-            selectEnemy("Troll");
+            selectEnemy("Troll", 5);
         });
 
         contentLabel.add(btnTroll);
@@ -93,7 +94,7 @@ public class EnemyGUI extends ResourcesGUI {
         btnFlowerPot.setBounds(90, 270, 150, 150);
         btnFlowerPot.setDisabledIcon(btnFlowerPot.getIcon());
         btnFlowerPot.addActionListener(e -> {
-            selectEnemy("FlowerPot");
+            selectEnemy("FlowerPot", 4);
         });
 
         contentLabel.add(btnFlowerPot);
@@ -112,7 +113,7 @@ public class EnemyGUI extends ResourcesGUI {
         btnYellowSquid.setBounds(500, 80, 70, 180);
         btnYellowSquid.setDisabledIcon(btnYellowSquid.getIcon());
         btnYellowSquid.addActionListener(e -> {
-            selectEnemy("YellowSquid");
+            selectEnemy("YellowSquid", 3);
         });
 
         contentLabel.add(btnYellowSquid);
@@ -130,7 +131,7 @@ public class EnemyGUI extends ResourcesGUI {
         btnNarwhal.setBounds(480, 270, 150, 150);
         btnNarwhal.setDisabledIcon(btnNarwhal.getIcon());
         btnNarwhal.addActionListener(e -> {
-            selectEnemy("Narwhal");
+            selectEnemy("Narwhal", 4);
         });
 
         contentLabel.add(btnNarwhal);
@@ -140,19 +141,21 @@ public class EnemyGUI extends ResourcesGUI {
     }
 
     /**
-     * Agrega el botón del Solo1 a la GUI.
+     * Agrega el botón de "Listo" a la GUI.
+     * Permite avanzar a la selección de piso una vez que se han seleccionado dos enemigos.
      */
-    public void only1() {
-        btnOnly1 = new PixelButton("/Resources/textos/Solo1.png", 170, 40);
-        btnOnly1.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btnOnly1.setBounds(260, 250, 170, 40);
-        btnOnly1.setDisabledIcon(btnOnly1.getIcon());
-        btnOnly1.addActionListener(e -> {
-            selectEnemy("Only1");
+    public void ready() {
+        btnReady = new PixelButton("/Resources/textos/Listo.png", 170, 40);
+        btnReady.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnReady.setBounds(250, 370, 170, 40);
+        btnReady.setDisabledIcon(btnReady.getIcon());
+        btnReady.setEnabled(false);
+        btnReady.addActionListener(e -> {
+            goToFloor();
         });
 
-        contentLabel.add(btnOnly1);
-        contentLabel.setComponentZOrder(btnOnly1, 0);
+        contentLabel.add(btnReady);
+        contentLabel.setComponentZOrder(btnReady, 0);
         contentLabel.revalidate();
         contentLabel.repaint();
     }
@@ -161,26 +164,21 @@ public class EnemyGUI extends ResourcesGUI {
      * Maneja la selección de enemigos.
      * @param enemy Nombre del enemigo seleccionado.
      */
-    private void selectEnemy(String enemy) {
-        if (selectedEnemy1 == null) {
-            selectedEnemy1 = enemy;
-            gameControl.setSelectedEnemy1(enemy);
-            disableButtons(enemy);
-        } else if (selectedEnemy2 == null) {
-            selectedEnemy2 = enemy;
-            gameControl.setSelectedEnemy2(enemy);
-            disableButtons(enemy);
-        }
-        if (selectedEnemy1 != null && selectedEnemy2 != null) {
-            floor();
-        }
+    private void selectEnemy(String enemy, int maxAmount) {
+        pendingEnemy = enemy;
+        textAmount();
+        createNumberButtons(maxAmount, amount -> {
+            gameControl.addEnemy(pendingEnemy, amount);
+            disableEnemyButton(pendingEnemy);
+            btnReady.setEnabled(true); 
+        });
     }
 
     /**
      * Deshabilita los botones de los enemigos ya seleccionados.
      * @param enemy Nombre del enemigo a deshabilitar.
      */
-    private void disableButtons(String enemy) {
+    private void disableEnemyButton(String enemy) {
         switch (enemy) {
             case "Troll" -> {
                 btnTroll.setEnabled(false);
@@ -200,21 +198,15 @@ public class EnemyGUI extends ResourcesGUI {
     /**
      * Muestra la pantalla de selección de piso.
      */
-    private void floor() {
+    private void goToFloor() {
         if (gifTimer != null && gifTimer.isRunning()) {
             gifTimer.stop();
         }
 
         Container parent = getParent();
-
-        if (parent != null) {
-            parent.remove(this);
-
-            FloorGUI selectFloorPanel = new FloorGUI(gameControl);
-            parent.add(selectFloorPanel);
-
-            parent.revalidate();
-            parent.repaint();
-        }
+        parent.remove(this);
+        parent.add(new FloorGUI(gameControl));
+        parent.revalidate();
+        parent.repaint();
     }
 }

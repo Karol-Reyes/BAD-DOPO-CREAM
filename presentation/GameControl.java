@@ -1,6 +1,7 @@
 package presentation;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -16,9 +17,8 @@ public class GameControl {
     private String character1;
     private String character2;
     private int selectedLevel;
-    private String selectedEnemy1;
-    private String selectedEnemy2;
-    private String selectedObjet;
+    private String selectedObject;
+    private int selectedObjectAmount;
 
     /**
      * Constructor de la clase GameControl.
@@ -134,46 +134,63 @@ public class GameControl {
         return selectedFruits;
     }
 //--------------------------------------------------------------------
+//Enemigos seleccionados con cantidad
+    /*  
+    * Enemigos seleccionados con cantidad
+    */
+    private final Map<String, Integer> selectedEnemies = new LinkedHashMap<>();
+
+    /* 
+    * Agrega un enemigo seleccionado con cantidad
+    */
+    public void addEnemy(String enemy, int amount) {
+        selectedEnemies.put(enemy, amount);
+    }
+
+    /* 
+    * Obtiene los enemigos seleccionados
+    */
+    public Map<String, Integer> getSelectedEnemies() {
+        return selectedEnemies;
+    }
+
+    /*
+    * Verifica si hay enemigos seleccionados
+    */
+    public boolean hasEnemies() {
+        return !selectedEnemies.isEmpty();
+    }
+//---------------------------------------------------------------------
+// Objeto seleccionado con cantidad
+
     /**
-     * Obtiene el enemigo 1 seleccionado.
+     * Establece el objeto seleccionado con su cantidad.
+     * @param object nombre del objeto seleccionado
      */
-    public String getSelectedEnemy1() {
-        return selectedEnemy1;
+    public void setSelectedObject(String object, int amount) {
+        this.selectedObject = object;
+        this.selectedObjectAmount = amount;
     }
 
     /**
-     * Establece el enemigo 1 seleccionado.
+     * Verifica si hay un objeto seleccionado.
      */
-    public void setSelectedEnemy1(String selectedEnemy1) {
-        this.selectedEnemy1 = selectedEnemy1;
-    }
-
-    /**
-     * Obtiene el enemigo 2 seleccionado.
-     */
-    public String getSelectedEnemy2() {
-        return selectedEnemy2;
-    }
-
-    /**
-     * Establece el enemigo 2 seleccionado.
-     */
-    public void setSelectedEnemy2(String selectedEnemy2) {
-        this.selectedEnemy2 = selectedEnemy2;
+    public boolean hasObject() {
+        return selectedObject != null;
     }
 
     /**
      * Obtiene el objeto seleccionado.
      */
-    public String getSelectedObjet() {
-        return selectedObjet;
+    public String getSelectedObject() {
+        return selectedObject;
     }
 
     /**
-     * Establece el objeto seleccionado.
+     * Obtiene la cantidad del objeto seleccionado.
      */
-    public void setSelectedObjet(String selectedObjet) {
-        this.selectedObjet = selectedObjet;
+    public int getSelectedObjectAmount() {
+        return selectedObjectAmount;
     }
 
     /**
@@ -185,29 +202,37 @@ public class GameControl {
             fruitMap.put(fruit.name, fruit.amount);
         }
 
+        Map<String, Integer> enemyMap = new HashMap<>();
+        for (Map.Entry<String, Integer> entry : selectedEnemies.entrySet()) {
+            enemyMap.put(entry.getKey(), entry.getValue());
+        }
+
+        Map<String, Integer> obstacleMap = new HashMap<>();
+        if (selectedObject != null && !selectedObject.equals("Nothing")) {
+            obstacleMap.put(selectedObject, selectedObjectAmount); // Ajusta según tu estructura
+        }
+
         return new GameConfig(
             this.gameMode,
             this.character1,
             this.character2,
             this.selectedLevel,
             fruitMap,
-            this.selectedEnemy1,
-            this.selectedEnemy2,
-            this.selectedObjet
+            enemyMap,
+            obstacleMap
         );
     }
+
     /**
-     * Imprime en consola las selecciones actuales del juego.
+     * Resetea todas las selecciones realizadas.
      */
-    public void printSelections() {
-        System.out.println("===== CONFIGURACIÓN DEL JUEGO =====");
-        System.out.println("Modo de juego: " + gameMode);
-        System.out.println("Personaje 1: " + character1);
-        System.out.println("Personaje 2: " + character2);
-        System.out.println("Nivel seleccionado: " + selectedLevel);
-        System.out.println("Enemigo 1: " + selectedEnemy1);
-        System.out.println("Enemigo 2: " + selectedEnemy2);
-        System.out.println("Objeto seleccionado: " + selectedObjet);
-        System.out.println("===================================");
+    public void resetSelections() {
+        selectedFruits.clear();
+        selectedEnemies.clear();
+        selectedObject = null;
+        selectedLevel = 0;
+        gameMode = null;
+        character1 = null;
+        character2 = null;
     }
 }

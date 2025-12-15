@@ -38,7 +38,6 @@ public class GameGUI extends JPanel {
         setLayout(new BorderLayout());
 
         spriteManager = new SpriteManager();
-        gameControl.printSelections();
         loadGame();
 
         panel = new GamePanel(game, spriteManager);
