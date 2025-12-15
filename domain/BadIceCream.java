@@ -1,7 +1,12 @@
 package domain;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.ArrayList;
 import java.util.List;
+import java.io.IOException;
+import java.util.logging.FileHandler;
+import java.util.logging.SimpleFormatter;
 
 /**
  * Controla el estado general del juego Bad Ice Cream, incluyendo jugadores,
@@ -9,6 +14,7 @@ import java.util.List;
  * Permite registrar entidades, actualizar el juego, procesar movimientos y
  * restaurar el nivel a su estado inicial.
  */
+@SuppressWarnings("CallToPrintStackTrace")
 public class BadIceCream {
 
     private final List<IceCream> players;
@@ -16,6 +22,7 @@ public class BadIceCream {
     private final List<Fruit> fruits;
     private final GameMap gameMap;
     private final List<ControllerCream> controllers;
+    private static final Logger LOGGER = Logger.getLogger(BadIceCream.class.getName());
 
     private int score;
     private boolean gameWon;
@@ -37,10 +44,31 @@ public class BadIceCream {
     private boolean timeExpired = false;
 
     /**
+     * Inicializa el logger para el juego Bad Ice Cream.
+     */
+    static {
+        try {
+            FileHandler fileHandler = new FileHandler("logs/badicecream.log", true);
+            fileHandler.setFormatter(new SimpleFormatter());
+            LOGGER.addHandler(fileHandler);
+            LOGGER.setUseParentHandlers(false); // evita log en consola
+            LOGGER.setLevel(Level.ALL);
+        } catch (IOException e) {
+            System.err.println("No se pudo inicializar el log de BadIceCream");
+            e.printStackTrace();
+        }
+    }
+
+    /**
      * Crea el controlador principal del juego utilizando un mapa específico.
      * @param map mapa donde se desarrollará la partida
      */
     public BadIceCream(GameMap map) {
+        if (map == null) {
+            LOGGER.severe(BadIceCreamException.NULL_MAP);
+            throw new BadIceCreamException(BadIceCreamException.NULL_MAP);
+        }
+
         this.gameMap = map;
         this.players = new ArrayList<>();
         this.enemies = new ArrayList<>();
@@ -93,13 +121,23 @@ public class BadIceCream {
      * Inicializa el juego después de que el mapa ha sido cargado.
      */
     public void initializeAfterMapLoad() {
-        buildFruitWaves();
-        currentWave = 0;
-        startTime = System.currentTimeMillis();
-        remainingTime = MAX_TIME_MS;
+        try {
+            buildFruitWaves();
 
-        if (!fruitWaves.isEmpty()) {
-            spawnCurrentWave();
+            if (fruitWaves.isEmpty() && !fruits.isEmpty()) {
+                LOGGER.severe("No se pudieron construir oleadas de frutas");
+                throw new BadIceCreamException(BadIceCreamException.INVALID_WAVE_STATE);
+            }
+            currentWave = 0;
+            startTime = System.currentTimeMillis();
+            remainingTime = MAX_TIME_MS;
+        
+            if (!fruitWaves.isEmpty()) {
+                spawnCurrentWave();
+        }
+        } catch (BadIceCreamException e) {
+            LOGGER.log(Level.SEVERE, "Fallo crítico al inicializar el juego", e);
+            throw e;
         }
     }
 
@@ -107,7 +145,12 @@ public class BadIceCream {
      * Guarda el estado inicial de los bloques del mapa.
      */
     public void initializeLevel() {
-        gameMap.saveInitialBlockStates();
+        try {
+            gameMap.saveInitialBlockStates();
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error guardando estado inicial del mapa", e);
+            throw new BadIceCreamException(BadIceCreamException.MAP_INCONSISTENT_STATE, e);
+        }
     }
 
     /**
@@ -115,6 +158,10 @@ public class BadIceCream {
      * @param c controlador a agregar
      */
     public void addController(ControllerCream c) {
+        if (c == null) {
+            LOGGER.severe(BadIceCreamException.NULL_ENTITY);
+            throw new BadIceCreamException(BadIceCreamException.NULL_ENTITY);
+        }
         controllers.add(c);
     }
 
@@ -123,14 +170,23 @@ public class BadIceCream {
      * @param p jugador a registrar
      */
     public void addPlayer(IceCream p) {
-        p.setGameMap(gameMap);
-        players.add(p);
-        initialPlayerPositions.add(new Position(
+        if (p == null) {
+            LOGGER.severe(BadIceCreamException.NULL_ENTITY);
+            throw new BadIceCreamException(BadIceCreamException.NULL_ENTITY);
+        }
+        try {
+            p.setGameMap(gameMap);
+            players.add(p);
+            initialPlayerPositions.add(new Position(
                 p.getPosition().getRow(),
                 p.getPosition().getCol())
-        );
-        gameMap.addPlayer(p);
-        p.update();
+            );
+            gameMap.addPlayer(p);
+            p.update();
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Fallo crítico al registrar jugador", e);
+            throw new BadIceCreamException(BadIceCreamException.MAP_INCONSISTENT_STATE, e);
+        }
     }
 
     /**
@@ -138,15 +194,24 @@ public class BadIceCream {
      * @param e enemigo a registrar
      */
     public void addEnemy(Enemy e) {
-        e.setGameMap(gameMap);
-        e.setGame(this);
-        enemies.add(e);
-        initialEnemyPositions.add(new Position(
+        if (e == null) {
+            LOGGER.severe(BadIceCreamException.NULL_ENTITY);
+            throw new BadIceCreamException(BadIceCreamException.NULL_ENTITY);
+        }
+        try {
+            e.setGameMap(gameMap);
+            e.setGame(this);
+            enemies.add(e);
+            initialEnemyPositions.add(new Position(
                 e.getPosition().getRow(),
                 e.getPosition().getCol())
-        );
-        gameMap.addEnemy(e);
-        e.update();
+            );
+            gameMap.addEnemy(e);
+            e.update();
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "Fallo crítico al registrar enemigo", ex);
+            throw new BadIceCreamException(BadIceCreamException.MAP_INCONSISTENT_STATE, ex);
+        }
     }
 
     /**
@@ -154,13 +219,22 @@ public class BadIceCream {
      * @param f fruta a registrar
      */
     public void addFruit(Fruit f) {
-        fruits.add(f);
-        initialFruitPositions.add(new Position(
+        if (f == null) {
+            LOGGER.severe(BadIceCreamException.NULL_ENTITY);
+            throw new BadIceCreamException(BadIceCreamException.NULL_ENTITY);
+        }
+        try {
+            fruits.add(f);
+            initialFruitPositions.add(new Position(
                 f.getPosition().getRow(),
                 f.getPosition().getCol())
-        );
-        gameMap.addFruit(f);
-        f.upd(gameMap);
+            );
+            gameMap.addFruit(f);
+            f.upd(gameMap);
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Fallo crítico al registrar fruta", e);
+            throw new BadIceCreamException(BadIceCreamException.MAP_INCONSISTENT_STATE, e);
+        }
     }
 
     /**
@@ -170,19 +244,24 @@ public class BadIceCream {
      * @return true si el movimiento fue exitoso
      */
     public boolean movePlayer(int playerIndex, Direction d) {
+        if (playerIndex < 0 || playerIndex >= players.size()) {
+            LOGGER.severe(BadIceCreamException.INVALID_PLAYER_INDEX);
+            throw new BadIceCreamException(BadIceCreamException.INVALID_PLAYER_INDEX);
+        }
         if (gameLost || gameWon) return false;
-        if (playerIndex < 0 || playerIndex >= players.size()) return false;
-
         IceCream p = players.get(playerIndex);
         if (!p.isAlive()) return false;
 
-        boolean moved = p.move(d);
-
-        if (moved) {
-            checkCollisionsFor(p);
+        try {
+            boolean moved = p.move(d);
+            if (moved) {
+                checkCollisionsFor(p);
+            }
+            return moved;
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE,"Error crítico moviendo jugador", e);
+            throw new BadIceCreamException(BadIceCreamException.GAME_UPDATE_FAILURE, e);
         }
-
-        return moved;
     }
 
     /**
@@ -219,6 +298,7 @@ public class BadIceCream {
      * Finaliza la partida por tiempo agotado.
      */
     private void timeOver() {
+        LOGGER.warning("Juego perdido por tiempo agotado");
         for (IceCream p : players) {
             p.die();
         }
@@ -229,96 +309,93 @@ public class BadIceCream {
      * Actualiza el estado completo del juego.
      */
     public void updateGame() {
-        if (gameLost || gameWon) return;
+        if (gameLost || gameWon || paused) return;
 
-        if (paused) return;
-
-        long now = System.currentTimeMillis();
-        remainingTime = MAX_TIME_MS - (now - startTime);
-
-        if (remainingTime <= 0 && !timeExpired) {
-            timeExpired = true;
-            timeOver();
-            return;
-        }
-
-        if (fruitWaves.isEmpty()) return;
-
-        for (ControllerCream c : controllers) {
-            c.update();
-        }
-
-        for (Enemy e : enemies) {
-            if (e.usesAutoMovement()) {
-                Direction d = e.getNextDirection();
-                if (d != null) {
-                    e.move(d);
+        try {
+            long now = System.currentTimeMillis();
+            remainingTime = MAX_TIME_MS - (now - startTime);
+        
+            if (remainingTime <= 0 && !timeExpired) {
+                timeExpired = true;
+                timeOver();
+                return;
+            }
+            if (fruitWaves.isEmpty()) return;
+            for (ControllerCream c : controllers) {
+                c.update();
+            }
+        
+            for (Enemy e : enemies) {
+                if (e.usesAutoMovement()) {
+                    Direction d = e.getNextDirection();
+                    if (d != null) {
+                        e.move(d);
+                        e.update();
+                    }
+                } else {
                     e.update();
                 }
-            } else {
-                e.update();
             }
-        }
-
-        for (Enemy e : enemies) {
-            Position ePos = e.getPosition();
-
+            for (Enemy e : enemies) {
+                Position ePos = e.getPosition();
+                for (IceCream p : players) {
+                    if (!p.isAlive()) continue;
+                    if (p.getPosition().equals(ePos)) {
+                        p.die();
+                    }
+                }
+            }
+            boolean allDead = true;
+            for (IceCream ic : players) {
+                if (ic.isAlive()) {
+                    allDead = false;
+                    break;
+                }
+            }
+            if (allDead) {
+                gameLost = true;
+                return;
+            }
             for (IceCream p : players) {
-                if (!p.isAlive()) continue;
-
-                if (p.getPosition().equals(ePos)) {
-                    p.die();
+                if (p.isAlive()) {
+                    checkCollisionsFor(p);
+                    if (gameLost) return;
                 }
             }
-        }
-
-        boolean allDead = true;
-        for (IceCream ic : players) {
-            if (ic.isAlive()) {
-                allDead = false;
-                break;
-            }
-        }
-
-        if (allDead) {
-            gameLost = true;
-            return;
-        }
-
-        for (IceCream p : players) {
-            if (p.isAlive()) {
-                checkCollisionsFor(p);
-                if (gameLost) return;
-            }
-        }
-
-        for (Fruit f: fruits) {
-            if (f != null) {
-                try {
-                    f.upd(gameMap);
-                } catch (Exception ex) {
-                    System.err.println("Error actualizando fruta " + f + ": " + ex);
+            for (Fruit f: fruits) {
+                if (f != null) {
+                    try {
+                        f.upd(gameMap);
+                    } catch (Exception ex) {
+                        LOGGER.log(Level.WARNING, BadIceCreamException.FRUIT_FAILURE);
+                    }
                 }
             }
-        }
-
-        for (int r = 0; r < gameMap.getRows(); r++) {
-            for (int c = 0; c < gameMap.getCols(); c++) {
-                Boxy bloque = gameMap.getBlock(new Position(r, c));
-                if (bloque != null && bloque.getType() == BoxType.bonfire) {
-                    ((Bonfire) bloque).update(); // Aquí SÍ usamos casting pero es inevitable
+            for (int r = 0; r < gameMap.getRows(); r++) {
+                for (int c = 0; c < gameMap.getCols(); c++) {
+                    try {
+                        Boxy bloque = gameMap.getBlock(new Position(r, c));
+                        if (bloque != null && bloque.getType() == BoxType.bonfire) {
+                            ((Bonfire) bloque).update();
+                        }
+                    } catch (BadIceCreamException ex) {
+                        LOGGER.log(Level.SEVERE,"Acceso inválido al mapa en (" + r + "," + c + ")", ex);
+                        throw new BadIceCreamException(BadIceCreamException.MAP_INCONSISTENT_STATE, ex);
+                    }
                 }
             }
-        }
-
-        for (IceCream p : players) {
-            if (p.isAlive()) {
-                p.update();
-                checkCollisionsFor(p);
+            for (IceCream p : players) {
+                if (p.isAlive()) {
+                    p.update();
+                    checkCollisionsFor(p);
+                }
             }
+            totalScore();
+            checkWinCondition();
+        } catch (BadIceCreamException e) {
+            LOGGER.log(Level.SEVERE, "Error crítico actualizando el juego", e);
+            throw new BadIceCreamException(BadIceCreamException.GAME_UPDATE_FAILURE, e);
         }
-        totalScore();
-        checkWinCondition();
     }
 
     /**
@@ -326,8 +403,12 @@ public class BadIceCream {
      * @param p jugador a evaluar
      */
     public void checkCollisionsFor(IceCream p) {
-        Position pos = p.getPosition();
+        if (p == null || !players.contains(p)) {
+            LOGGER.severe("Jugador inválido en colisiones");
+            throw new BadIceCreamException(BadIceCreamException.INVALID_PLAYER_INDEX);
+        }
 
+        Position pos = p.getPosition();
         if (gameMap.hasEnemy(pos)) {
             p.die();
         }
@@ -378,7 +459,16 @@ public class BadIceCream {
      * Verifica si la condición de victoria ha sido alcanzada.
      */
     private void checkWinCondition() {
-        if (gameWon) return;
+        if (gameWon) {
+            LOGGER.info("Juego ganado. Puntuación final: {0}");
+            LOGGER.log(Level.INFO, "Juego ganado. Puntuación final: {0}", totalScore());
+            return;
+        }
+
+        if (fruitWaves.isEmpty() || currentWave >= fruitWaves.size()) {
+            LOGGER.severe(BadIceCreamException.INVALID_WAVE_STATE);
+            throw new BadIceCreamException(BadIceCreamException.INVALID_WAVE_STATE);
+        }
 
         Class<? extends Fruit> currentType = fruitWaves.get(currentWave);
 
@@ -412,6 +502,11 @@ public class BadIceCream {
 
         gameMap.clearEntities();
         gameMap.resetBlocks();
+
+        if (players.size() != initialPlayerPositions.size() || enemies.size() != initialEnemyPositions.size() || fruits.size() != initialFruitPositions.size()) {
+                LOGGER.severe("Desfase entre entidades y posiciones iniciales");
+                throw new BadIceCreamException(BadIceCreamException.MAP_INCONSISTENT_STATE);
+        }
 
         for (int i = 0; i < players.size(); i++) {
             IceCream p = players.get(i);
@@ -492,9 +587,11 @@ public class BadIceCream {
      */
     public void setPaused(boolean p) {
         if (!paused && p) {
+            LOGGER.info("Juego pausado");
             pauseStartTime = System.currentTimeMillis();
         }
         if (paused && !p) {
+            LOGGER.info("Juego reanudado");
             long pauseDuration = System.currentTimeMillis() - pauseStartTime;
             startTime += pauseDuration;
         }
