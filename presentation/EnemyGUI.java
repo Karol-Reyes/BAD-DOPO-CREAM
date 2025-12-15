@@ -13,7 +13,7 @@ public class EnemyGUI extends ResourcesGUI {
     //private String selectedEnemy2 = null;
 
     private PixelButton btnTroll;
-    private PixelButton btnFlowerPot;
+    private PixelButton btnFlowerpot;
     private PixelButton btnYellowSquid;
     private PixelButton btnNarwhal;
     private String pendingEnemy;
@@ -44,7 +44,7 @@ public class EnemyGUI extends ResourcesGUI {
             backButton();
             main_Text();
             troll();
-            flowerPot();
+            flowerpot();
             yellowSquid();
             narwhal();
             ready();
@@ -87,18 +87,18 @@ public class EnemyGUI extends ResourcesGUI {
     /**
      * Agrega el botón de la Maceta a la GUI.
      */
-    public void flowerPot() {
-        btnFlowerPot = new PixelButton("/Resources/enemy/flowerpot/flowerpot.jpg",
+    public void flowerpot() {
+        btnFlowerpot = new PixelButton("/Resources/enemy/flowerpot/flowerpot.jpg",
            140, 140);
-        btnFlowerPot.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btnFlowerPot.setBounds(90, 270, 150, 150);
-        btnFlowerPot.setDisabledIcon(btnFlowerPot.getIcon());
-        btnFlowerPot.addActionListener(e -> {
-            selectEnemy("FlowerPot", 4);
+        btnFlowerpot.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnFlowerpot.setBounds(90, 270, 150, 150);
+        btnFlowerpot.setDisabledIcon(btnFlowerpot.getIcon());
+        btnFlowerpot.addActionListener(e -> {
+            selectEnemy("Flowerpot", 4);
         });
 
-        contentLabel.add(btnFlowerPot);
-        contentLabel.setComponentZOrder(btnFlowerPot, 0);
+        contentLabel.add(btnFlowerpot);
+        contentLabel.setComponentZOrder(btnFlowerpot, 0);
         contentLabel.revalidate();
         contentLabel.repaint();
     }
@@ -204,7 +204,7 @@ public class EnemyGUI extends ResourcesGUI {
         main_Text();
 
         troll();
-        flowerPot();
+        flowerpot();
         yellowSquid();
         narwhal();
         ready();
@@ -220,7 +220,7 @@ public class EnemyGUI extends ResourcesGUI {
      */
     private void updateButtonStates() {
         btnTroll.setEnabled(!gameControl.isEnemySelected("Troll"));
-        btnFlowerPot.setEnabled(!gameControl.isEnemySelected("FlowerPot"));
+        btnFlowerpot.setEnabled(!gameControl.isEnemySelected("Flowerpot"));
         btnYellowSquid.setEnabled(!gameControl.isEnemySelected("YellowSquid"));
         btnNarwhal.setEnabled(!gameControl.isEnemySelected("Narwhal"));
 
