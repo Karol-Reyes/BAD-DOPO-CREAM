@@ -90,7 +90,6 @@ public class FloorGUI extends ResourcesGUI {
     public void ready() {
         btnReady = new PixelButton("/Resources/textos/Listo.png", 170, 40);
         btnReady.setBounds(260, 380, 170, 40);
-        btnReady.setEnabled(false);
         btnReady.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btnReady.setDisabledIcon(btnReady.getIcon());
         btnReady.addActionListener(e -> goToGame());
@@ -142,7 +141,6 @@ public class FloorGUI extends ResourcesGUI {
     private void updateButtonStates() {
         btnBonfire.setEnabled(!gameControl.isObjectSelected("Bonfire"));
         btnFire.setEnabled(!gameControl.isObjectSelected("Fire"));
-        btnReady.setEnabled(gameControl.hasObjects());
     }
 
     private void goToGame() {

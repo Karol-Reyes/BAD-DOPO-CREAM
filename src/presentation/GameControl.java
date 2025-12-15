@@ -16,8 +16,6 @@ public class GameControl {
     private String character1;
     private String character2;
     private int selectedLevel;
-    private String selectedObject;
-    private int selectedObjectAmount;
 
     /**
      * Constructor de la clase GameControl.
