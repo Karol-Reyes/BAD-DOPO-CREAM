@@ -3,272 +3,280 @@ package domain;
 import java.util.*;
 
 /**
- * Distribuye elementos (frutas, enemigos, obstáculos) simétricamente en el mapa
+ * Clase responsable de distribuir elementos del juego
+ * (frutas, enemigos y obstáculos) dentro del mapa de forma
+ * balanceada y, cuando es posible, simétrica.
  */
 public class MapDistributor {
-    
+
     private final Random random;
-    
+
+    /**
+     * Crea un distribuidor de mapa con un generador de números aleatorios.
+     */
     public MapDistributor() {
         this.random = new Random();
     }
-    
+
     /**
-     * Encuentra todas las posiciones vacías (0) en el mapa
+     * Encuentra todas las posiciones vacías representadas por el carácter '0'
+     * dentro del mapa textual.
+     * @param lines arreglo de strings que representan el mapa
+     * @return lista de posiciones vacías encontradas
      */
-    public List<Position> encontrarPosicionesVacias(String[] lineas) {
-        List<Position> vacias = new ArrayList<>();
-        
-        for (int r = 0; r < lineas.length; r++) {
-            String linea = lineas[r];
-            for (int c = 0; c < linea.length(); c++) {
-                if (linea.charAt(c) == '0') {
-                    vacias.add(new Position(r, c));
+    public List<Position> findEmptyPositions(String[] lines) {
+        List<Position> emptyPositions = new ArrayList<>();
+
+        for (int r = 0; r < lines.length; r++) {
+            String line = lines[r];
+            for (int c = 0; c < line.length(); c++) {
+                if (line.charAt(c) == '0') {
+                    emptyPositions.add(new Position(r, c));
                 }
             }
         }
-        
-        return vacias;
+        return emptyPositions;
     }
-    
+
     /**
-     * Divide el mapa en zonas para distribución equilibrada
+     * Divide el mapa en diferentes zonas para permitir una distribución
+     * equilibrada de entidades.
+     * @param positions lista de posiciones disponibles
+     * @param rows número total de filas del mapa
+     * @param cols número total de columnas del mapa
+     * @return mapa que asocia nombres de zonas con listas de posiciones
      */
-    public Map<String, List<Position>> dividirEnZonas(List<Position> posiciones, int rows, int cols) {
-        Map<String, List<Position>> zonas = new HashMap<>();
-        
-        zonas.put("ARRIBA", new ArrayList<>());
-        zonas.put("CENTRO", new ArrayList<>());
-        zonas.put("ABAJO", new ArrayList<>());
-        zonas.put("IZQUIERDA", new ArrayList<>());
-        zonas.put("DERECHA", new ArrayList<>());
-        
-        int tercioSuperior = rows / 3;
-        int tercioInferior = (rows * 2) / 3;
-        int tercioIzquierdo = cols / 3;
-        int tercioDerecho = (cols * 2) / 3;
-        
-        for (Position pos : posiciones) {
+    public Map<String, List<Position>> divideIntoZones(List<Position> positions, int rows, int cols) {
+        Map<String, List<Position>> zones = new HashMap<>();
+
+        zones.put("TOP", new ArrayList<>());
+        zones.put("CENTER", new ArrayList<>());
+        zones.put("BOTTOM", new ArrayList<>());
+        zones.put("LEFT", new ArrayList<>());
+        zones.put("RIGHT", new ArrayList<>());
+
+        int topLimit = rows / 3;
+        int bottomLimit = (rows * 2) / 3;
+        int leftLimit = cols / 3;
+        int rightLimit = (cols * 2) / 3;
+
+        for (Position pos : positions) {
             int r = pos.getRow();
             int c = pos.getCol();
-            
-            // Clasificar por zona vertical
-            if (r < tercioSuperior) {
-                zonas.get("ARRIBA").add(pos);
-            } else if (r > tercioInferior) {
-                zonas.get("ABAJO").add(pos);
+
+            if (r < topLimit) {
+                zones.get("TOP").add(pos);
+            } else if (r > bottomLimit) {
+                zones.get("BOTTOM").add(pos);
             } else {
-                zonas.get("CENTRO").add(pos);
+                zones.get("CENTER").add(pos);
             }
-            
-            // Clasificar por zona horizontal
-            if (c < tercioIzquierdo) {
-                zonas.get("IZQUIERDA").add(pos);
-            } else if (c > tercioDerecho) {
-                zonas.get("DERECHA").add(pos);
+
+            if (c < leftLimit) {
+                zones.get("LEFT").add(pos);
+            } else if (c > rightLimit) {
+                zones.get("RIGHT").add(pos);
             }
         }
-        
-        return zonas;
+        return zones;
     }
-    
+
     /**
-     * Distribuye frutas simétricamente
+     * Distribuye las frutas en el mapa de forma balanceada y simétrica
+     * según la cantidad total configurada.
+     * @param config configuración del juego
+     * @param emptyPositions posiciones disponibles
+     * @param rows número de filas del mapa
+     * @param cols número de columnas del mapa
+     * @param playerPositions posiciones iniciales de los jugadores
+     * @return mapa que asocia posiciones con tipos de frutas
      */
-    public Map<Position, String> distribuirFrutas(GameConfig config, List<Position> posicionesVacias, 
-                                                    int rows, int cols, List<Position> posicionesJugadores) {
-        Map<Position, String> distribucion = new HashMap<>();
-        Map<String, List<Position>> zonas = dividirEnZonas(posicionesVacias, rows, cols);
-        
-        Map<String, Integer> frutas = config.getFruits();
-        int totalFrutas = config.getTotalFruits();
-        
-        // Crear lista de frutas a distribuir
-        List<String> listaFrutas = new ArrayList<>();
-        for (Map.Entry<String, Integer> entry : frutas.entrySet()) {
+    public Map<Position, String> distributeFruits(GameConfig config, List<Position> emptyPositions, int rows,
+        int cols, List<Position> playerPositions) {
+
+        Map<Position, String> distribution = new HashMap<>();
+        Map<String, List<Position>> zones = divideIntoZones(emptyPositions, rows, cols);
+
+        Map<String, Integer> fruits = config.getFruits();
+        int totalFruits = config.getTotalFruits();
+
+        List<String> fruitList = new ArrayList<>();
+        for (Map.Entry<String, Integer> entry : fruits.entrySet()) {
             for (int i = 0; i < entry.getValue(); i++) {
-                listaFrutas.add(entry.getKey());
+                fruitList.add(entry.getKey());
             }
         }
-        
-        // Mezclar para distribución aleatoria
-        Collections.shuffle(listaFrutas, random);
-        
-        // ⭐ Distribución simétrica
-        List<Position> posicionesSeleccionadas;
-        
-        // Si hay pocas frutas (1-4), distribuir en esquinas/bordes
-        if (totalFrutas <= 4) {
-            posicionesSeleccionadas = distribuirEnEsquinas(zonas, totalFrutas);
+
+        Collections.shuffle(fruitList, random);
+        List<Position> selectedPositions;
+
+        if (totalFruits <= 4) {
+            selectedPositions = distributeCorners(zones, totalFruits);
+        } else if (totalFruits <= 12) {
+            selectedPositions = distributeBalanced(zones, totalFruits);
+        } else {
+            selectedPositions = distributeAcrossMap(emptyPositions, totalFruits, playerPositions);
         }
-        // Si hay frutas medias (5-12), distribuir en zonas balanceadas
-        else if (totalFrutas <= 12) {
-            posicionesSeleccionadas = distribuirBalanceado(zonas, totalFrutas);
+        for (int i = 0; i < Math.min(fruitList.size(), selectedPositions.size()); i++) {
+            distribution.put(selectedPositions.get(i), fruitList.get(i));
         }
-        // Si hay muchas frutas (13+), distribuir por todo el mapa
-        else {
-            posicionesSeleccionadas = distribuirPorTodoElMapa(posicionesVacias, totalFrutas, posicionesJugadores);
-        }
-        
-        // Asignar frutas a posiciones
-        for (int i = 0; i < Math.min(listaFrutas.size(), posicionesSeleccionadas.size()); i++) {
-            distribucion.put(posicionesSeleccionadas.get(i), listaFrutas.get(i));
-        }
-        
-        return distribucion;
+        return distribution;
     }
-    
+
     /**
-     * Distribuye enemigos alejados de los jugadores
+     * Distribuye enemigos en posiciones alejadas de los jugadores.
+     * @param config configuración del juego
+     * @param emptyPositions posiciones disponibles
+     * @param rows número de filas del mapa
+     * @param cols número de columnas del mapa
+     * @param playerPositions posiciones de los jugadores
+     * @param placedFruits frutas ya colocadas
+     * @return mapa que asocia posiciones con tipos de enemigos
      */
-    public Map<Position, String> distribuirEnemigos(GameConfig config, List<Position> posicionesVacias,
-                                                     int rows, int cols, List<Position> posicionesJugadores,
-                                                     Map<Position, String> frutasYaColocadas) {
-        Map<Position, String> distribucion = new HashMap<>();
-        
-        // Remover posiciones ocupadas por frutas
-        List<Position> disponibles = new ArrayList<>(posicionesVacias);
-        disponibles.removeAll(frutasYaColocadas.keySet());
-        
-        Map<String, Integer> enemigos = config.getEnemies();
-        int totalEnemigos = config.getTotalEnemies();
-        
-        // Crear lista de enemigos
-        List<String> listaEnemigos = new ArrayList<>();
-        for (Map.Entry<String, Integer> entry : enemigos.entrySet()) {
+    public Map<Position, String> distributeEnemies(GameConfig config, List<Position> emptyPositions, int rows,
+        int cols, List<Position> playerPositions, Map<Position, String> placedFruits) {
+
+        Map<Position, String> distribution = new HashMap<>();
+
+        List<Position> available = new ArrayList<>(emptyPositions);
+        available.removeAll(placedFruits.keySet());
+
+        Map<String, Integer> enemies = config.getEnemies();
+        int totalEnemies = config.getTotalEnemies();
+
+        List<String> enemyList = new ArrayList<>();
+        for (Map.Entry<String, Integer> entry : enemies.entrySet()) {
             for (int i = 0; i < entry.getValue(); i++) {
-                listaEnemigos.add(entry.getKey());
+                enemyList.add(entry.getKey());
             }
         }
-        
-        // ⭐ Filtrar posiciones ALEJADAS de los jugadores
-        List<Position> posicionesAlejadas = filtrarPosicionesAlejadas(disponibles, posicionesJugadores, 5);
-        
-        // Distribuir simétricamente
-        Map<String, List<Position>> zonas = dividirEnZonas(posicionesAlejadas, rows, cols);
-        List<Position> posicionesSeleccionadas = distribuirBalanceado(zonas, totalEnemigos);
-        
-        // Asignar enemigos
-        for (int i = 0; i < Math.min(listaEnemigos.size(), posicionesSeleccionadas.size()); i++) {
-            distribucion.put(posicionesSeleccionadas.get(i), listaEnemigos.get(i));
+
+        List<Position> farPositions = filterFarPositions(available, playerPositions, 5);
+        Map<String, List<Position>> zones = divideIntoZones(farPositions, rows, cols);
+        List<Position> selectedPositions = distributeBalanced(zones, totalEnemies);
+
+        for (int i = 0; i < Math.min(enemyList.size(), selectedPositions.size()); i++) {
+            distribution.put(selectedPositions.get(i), enemyList.get(i));
         }
-        
-        return distribucion;
+        return distribution;
     }
-    
+
     /**
-     * Distribuye obstáculos por el mapa
+     * Distribuye obstáculos de forma aleatoria evitando posiciones ocupadas.
+     * @param config configuración del juego
+     * @param emptyPositions posiciones disponibles
+     * @param placedFruits frutas ya colocadas
+     * @param placedEnemies enemigos ya colocados
+     * @return mapa que asocia posiciones con tipos de obstáculos
      */
-    public Map<Position, String> distribuirObstaculos(GameConfig config, List<Position> posicionesVacias,
-                                                       Map<Position, String> frutasYaColocadas,
-                                                       Map<Position, String> enemigosYaColocados) {
-        Map<Position, String> distribucion = new HashMap<>();
-        
-        // Remover posiciones ocupadas
-        List<Position> disponibles = new ArrayList<>(posicionesVacias);
-        disponibles.removeAll(frutasYaColocadas.keySet());
-        disponibles.removeAll(enemigosYaColocados.keySet());
-        
-        Map<String, Integer> obstaculos = config.getObstacles();
-        
-        // Crear lista de obstáculos
-        List<String> listaObstaculos = new ArrayList<>();
-        for (Map.Entry<String, Integer> entry : obstaculos.entrySet()) {
+    public Map<Position, String> distributeObstacles(GameConfig config, List<Position> emptyPositions,
+        Map<Position, String> placedFruits, Map<Position, String> placedEnemies) {
+
+        Map<Position, String> distribution = new HashMap<>();
+
+        List<Position> available = new ArrayList<>(emptyPositions);
+        available.removeAll(placedFruits.keySet());
+        available.removeAll(placedEnemies.keySet());
+
+        Map<String, Integer> obstacles = config.getObstacles();
+
+        List<String> obstacleList = new ArrayList<>();
+        for (Map.Entry<String, Integer> entry : obstacles.entrySet()) {
             for (int i = 0; i < entry.getValue(); i++) {
-                listaObstaculos.add(entry.getKey());
+                obstacleList.add(entry.getKey());
             }
         }
-        
-        // Distribuir aleatoriamente pero evitando agrupar
-        Collections.shuffle(disponibles, random);
-        
-        for (int i = 0; i < Math.min(listaObstaculos.size(), disponibles.size()); i++) {
-            distribucion.put(disponibles.get(i), listaObstaculos.get(i));
+
+        Collections.shuffle(available, random);
+
+        for (int i = 0; i < Math.min(obstacleList.size(), available.size()); i++) {
+            distribution.put(available.get(i), obstacleList.get(i));
         }
-        
-        return distribucion;
+
+        return distribution;
     }
-    
-    // ==================== MÉTODOS AUXILIARES ====================
-    
-    private List<Position> distribuirEnEsquinas(Map<String, List<Position>> zonas, int cantidad) {
-        List<Position> seleccionadas = new ArrayList<>();
-        
-        // Combinar arriba y abajo para simetría
-        List<Position> arriba = new ArrayList<>(zonas.get("ARRIBA"));
-        List<Position> abajo = new ArrayList<>(zonas.get("ABAJO"));
-        
-        Collections.shuffle(arriba, random);
-        Collections.shuffle(abajo, random);
-        
-        // Alternar arriba y abajo para simetría
-        for (int i = 0; i < cantidad; i++) {
-            if (i % 2 == 0 && !arriba.isEmpty()) {
-                seleccionadas.add(arriba.remove(0));
-            } else if (!abajo.isEmpty()) {
-                seleccionadas.add(abajo.remove(0));
-            } else if (!arriba.isEmpty()) {
-                seleccionadas.add(arriba.remove(0));
+
+    /**
+     * Selecciona posiciones alternando entre zonas superiores e inferiores.
+     */
+    private List<Position> distributeCorners(Map<String, List<Position>> zones, int amount) {
+        List<Position> selected = new ArrayList<>();
+
+        List<Position> top = new ArrayList<>(zones.get("TOP"));
+        List<Position> bottom = new ArrayList<>(zones.get("BOTTOM"));
+
+        Collections.shuffle(top, random);
+        Collections.shuffle(bottom, random);
+
+        for (int i = 0; i < amount; i++) {
+            if (i % 2 == 0 && !top.isEmpty()) {
+                selected.add(top.remove(0));
+            } else if (!bottom.isEmpty()) {
+                selected.add(bottom.remove(0));
+            } else if (!top.isEmpty()) {
+                selected.add(top.remove(0));
             }
         }
-        
-        return seleccionadas;
+        return selected;
     }
-    
-    private List<Position> distribuirBalanceado(Map<String, List<Position>> zonas, int cantidad) {
-        List<Position> seleccionadas = new ArrayList<>();
-        
-        List<Position> arriba = new ArrayList<>(zonas.get("ARRIBA"));
-        List<Position> centro = new ArrayList<>(zonas.get("CENTRO"));
-        List<Position> abajo = new ArrayList<>(zonas.get("ABAJO"));
-        
-        Collections.shuffle(arriba, random);
-        Collections.shuffle(centro, random);
-        Collections.shuffle(abajo, random);
-        
-        // Distribuir equitativamente
-        int porZona = cantidad / 3;
-        int resto = cantidad % 3;
-        
-        // Agregar de cada zona
-        seleccionadas.addAll(arriba.subList(0, Math.min(porZona + (resto > 0 ? 1 : 0), arriba.size())));
-        seleccionadas.addAll(centro.subList(0, Math.min(porZona + (resto > 1 ? 1 : 0), centro.size())));
-        seleccionadas.addAll(abajo.subList(0, Math.min(porZona, abajo.size())));
-        
-        return seleccionadas;
+
+    /**
+     * Distribuye posiciones equitativamente entre zonas del mapa.
+     */
+    private List<Position> distributeBalanced(Map<String, List<Position>> zones, int amount) {
+        List<Position> selected = new ArrayList<>();
+
+        List<Position> top = new ArrayList<>(zones.get("TOP"));
+        List<Position> center = new ArrayList<>(zones.get("CENTER"));
+        List<Position> bottom = new ArrayList<>(zones.get("BOTTOM"));
+
+        Collections.shuffle(top, random);
+        Collections.shuffle(center, random);
+        Collections.shuffle(bottom, random);
+
+        int perZone = amount / 3;
+        int remainder = amount % 3;
+
+        selected.addAll(top.subList(0, Math.min(perZone + (remainder > 0 ? 1 : 0), top.size())));
+        selected.addAll(center.subList(0, Math.min(perZone + (remainder > 1 ? 1 : 0), center.size())));
+        selected.addAll(bottom.subList(0, Math.min(perZone, bottom.size())));
+
+        return selected;
     }
-    
-    private List<Position> distribuirPorTodoElMapa(List<Position> posiciones, int cantidad,
-                                                    @SuppressWarnings("unused") List<Position> jugadores) {
-        List<Position> disponibles = new ArrayList<>(posiciones);
-        Collections.shuffle(disponibles, random);
-        
-        return disponibles.subList(0, Math.min(cantidad, disponibles.size()));
+
+    /**
+     * Distribuye posiciones a lo largo de todo el mapa sin restricciones.
+     */
+    private List<Position> distributeAcrossMap(List<Position> positions, 
+        int amount, @SuppressWarnings("unused") List<Position> players) {
+
+        List<Position> available = new ArrayList<>(positions);
+        Collections.shuffle(available, random);
+        return available.subList(0, Math.min(amount, available.size()));
     }
-    
-    private List<Position> filtrarPosicionesAlejadas(List<Position> posiciones, 
-                                                      List<Position> jugadores, 
-                                                      int distanciaMinima) {
-        List<Position> alejadas = new ArrayList<>();
-        
-        for (Position pos : posiciones) {
-            boolean estaAlejada = true;
-            
-            for (Position jugador : jugadores) {
-                int distancia = Math.abs(pos.getRow() - jugador.getRow()) + 
-                               Math.abs(pos.getCol() - jugador.getCol());
-                
-                if (distancia < distanciaMinima) {
-                    estaAlejada = false;
+
+    /**
+     * Filtra posiciones que se encuentren a una distancia mínima
+     * de los jugadores.
+     */
+    private List<Position> filterFarPositions(List<Position> positions, List<Position> players, int minDistance) {
+
+        List<Position> farPositions = new ArrayList<>();
+        for (Position pos : positions) {
+            boolean isFar = true;
+            for (Position player : players) {
+                int distance = Math.abs(pos.getRow() - player.getRow())
+                             + Math.abs(pos.getCol() - player.getCol());
+
+                if (distance < minDistance) {
+                    isFar = false;
                     break;
                 }
             }
-            
-            if (estaAlejada) {
-                alejadas.add(pos);
+            if (isFar) {
+                farPositions.add(pos);
             }
         }
-        
-        return alejadas;
+        return farPositions;
     }
 }

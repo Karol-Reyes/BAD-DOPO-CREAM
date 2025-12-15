@@ -94,12 +94,20 @@ public class FloorGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Maneja la selección de un objeto y navega a la pantalla de selección de cantidad.
+     * @param object Nombre del objeto seleccionado
+     * @param max Cantidad máxima seleccionable para el objeto
+     */
     private void selectObject(String object, int max) {
         pendingObject = object;
         pendingMax = max;
         goToAmountSelection();
     }
 
+    /**
+     * Muestra la pantalla de selección de cantidad de objetos.
+     */
     private void goToAmountSelection() {
         contentLabel.removeAll();
 
@@ -115,6 +123,9 @@ public class FloorGUI extends ResourcesGUI {
         });
     }
 
+    /**
+     * Regresa de la selección de cantidad a la pantalla principal de selección de objetos.
+     */
     private void returnFromAmountSelection() {
         contentLabel.removeAll();
 
@@ -133,12 +144,18 @@ public class FloorGUI extends ResourcesGUI {
         contentLabel.repaint();
     }
 
+    /**
+     * Actualiza el estado de los botones según los objetos seleccionados.
+     */
     private void updateButtonStates() {
         btnBonfire.setEnabled(!gameControl.isObjectSelected("Bonfire"));
         btnFire.setEnabled(!gameControl.isObjectSelected("Fire"));
         btnReady.setEnabled(gameControl.hasObjects());
     }
 
+    /**
+     * Navega a la pantalla del juego.
+     */
     private void goToGame() {
         Container parent = getParent();
         parent.remove(this);

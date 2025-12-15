@@ -168,7 +168,12 @@ public class EnemyGUI extends ResourcesGUI {
         pendingEnemy = enemy;
         goToAmountSelection(maxAmount);
     }
-private void goToAmountSelection(int maxAmount) {
+    
+    /**
+     * Muestra la pantalla de selección de cantidad de enemigos.
+     * @param maxAmount Cantidad máxima seleccionable para el enemigo.
+     */
+    private void goToAmountSelection(int maxAmount) {
         contentLabel.removeAll();
 
         showBackground();
@@ -186,6 +191,9 @@ private void goToAmountSelection(int maxAmount) {
         contentLabel.repaint();
     }
 
+    /**
+     * Regresa de la selección de cantidad a la pantalla principal de selección de enemigos.
+     */
     private void returnFromAmountSelection() {
         contentLabel.removeAll();
 
@@ -207,6 +215,9 @@ private void goToAmountSelection(int maxAmount) {
         contentLabel.repaint();
     }
 
+    /**
+     * Actualiza el estado de los botones según los enemigos seleccionados.
+     */
     private void updateButtonStates() {
         btnTroll.setEnabled(!gameControl.isEnemySelected("Troll"));
         btnFlowerPot.setEnabled(!gameControl.isEnemySelected("FlowerPot"));

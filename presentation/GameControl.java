@@ -17,8 +17,6 @@ public class GameControl {
     private String character1;
     private String character2;
     private int selectedLevel;
-    private String selectedObject;
-    private int selectedObjectAmount;
 
     /**
      * Constructor de la clase GameControl.
@@ -161,6 +159,11 @@ public class GameControl {
         return !selectedEnemies.isEmpty();
     }
 
+    /**
+     * Verifica si un enemigo específico ha sido seleccionado.
+     * @param enemy nombre del enemigo
+     * @return true si el enemigo ha sido seleccionado, false en caso contrario
+     */
     public boolean isEnemySelected(String enemy) {
         return selectedEnemies.containsKey(enemy);
     }
@@ -171,9 +174,13 @@ public class GameControl {
      * Establece el objeto seleccionado con su cantidad.
      * @param object nombre del objeto seleccionado
      */
-    // Objetos seleccionados
     private final Map<String, Integer> selectedObjects = new LinkedHashMap<>();
 
+    /**
+     * Agrega un objeto seleccionado con su cantidad.
+     * @param name nombre del objeto
+     * @param amount cantidad del objeto
+     */
     public void addObject(String name, int amount) {
         if (selectedObjects.size() >= 2) return;
         if (selectedObjects.containsKey(name)) return;
@@ -181,14 +188,27 @@ public class GameControl {
         selectedObjects.put(name, amount);
     }
 
+    /**
+     * Verifica si hay objetos seleccionados.
+     * @return true si hay objetos seleccionados, false en caso contrario
+     */
     public boolean hasObjects() {
         return !selectedObjects.isEmpty();
     }
 
+    /**
+     * Verifica si un objeto específico ha sido seleccionado.
+     * @param name nombre del objeto
+     * @return true si el objeto ha sido seleccionado, false en caso contrario
+     */
     public boolean isObjectSelected(String name) {
         return selectedObjects.containsKey(name);
     }
 
+    /**
+     * Obtiene los objetos seleccionados con sus cantidades.
+     * @return mapa de objetos seleccionados con sus cantidades
+     */
     public Map<String, Integer> getSelectedObjects() {
         return selectedObjects;
     }
@@ -209,7 +229,7 @@ public class GameControl {
 
         Map<String, Integer> obstacleMap = new HashMap<>();
         for (Map.Entry<String, Integer> entry : selectedObjects.entrySet()) {
-            obstacleMap.put(entry.getKey(), entry.getValue()); // Ajusta según tu estructura
+            obstacleMap.put(entry.getKey(), entry.getValue());
         }
 
         return new GameConfig(
@@ -230,7 +250,6 @@ public class GameControl {
         selectedFruits.clear();
         selectedEnemies.clear();
         selectedObjects.clear();
-        selectedObject = null;
         selectedLevel = 0;
         gameMode = null;
         character1 = null;
