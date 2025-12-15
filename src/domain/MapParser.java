@@ -5,16 +5,15 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Clase encargada de analizar una representación textual de un mapa
- * y construir completamente una instancia del juego a partir de ella.
+ * Analiza una representación textual del mapa y crea la instancia del juego correspondiente.
  */
 public class MapParser {
 
     /**
-     * Construye una instancia completa del juego a partir de un mapa en texto
-     * y una configuración inicial.
+     * Construye una instancia del juego a partir de un mapa en texto y la configuración inicial.
+     * Interpreta cada carácter del mapa, crea los objetos correspondientes y los registra en el juego.
      * @param mapText representación textual del mapa del nivel
-     * @param config configuración inicial del juego (jugadores, sabores, enemigos, etc.)
+     * @param config configuración del juego (sabores, jugadores, etc.)
      * @return instancia completamente inicializada del juego
      */
     public static BadIceCream parseMap(String mapText, GameConfig config) {
@@ -24,12 +23,12 @@ public class MapParser {
         int cols = lines[0].length();
 
         GameMap map = new GameMap(rows, cols);
-        MapDistributor distributor = new MapDistributor();
+        MapDistributor dist = new MapDistributor();
 
         List<IceCream> players = new ArrayList<>();
         List<Character> playerTypes = new ArrayList<>();
-        List<Position> playerPositions = new ArrayList<>();
-        List<Position> emptyPositions = new ArrayList<>();
+        List<Position> playerPos = new ArrayList<>();
+        List<Position> emptyPos = new ArrayList<>();
 
         for (int r = 0; r < rows; r++) {
             String line = lines[r];
@@ -39,43 +38,44 @@ public class MapParser {
 
                 if ("CSVRJE".indexOf(ch) >= 0) {
                     playerTypes.add(ch);
-                    playerPositions.add(pos);
+                    playerPos.add(pos);
                 }
 
                 if (ch == '0' || ch == 'F' || ch == 'G') {
-                    emptyPositions.add(pos);
+                    emptyPos.add(pos);
                 }
+
                 parseCell(ch, pos, map, players);
             }
         }
 
-        Map<Position, String> distributedFruits = distributor.distributeFruits(
-                config, emptyPositions, rows, cols, playerPositions
+        Map<Position, String> fruitMap = dist.placeFruits(
+                config, emptyPos, rows, cols, playerPos
         );
 
-        Map<Position, String> distributedEnemies = distributor.distributeEnemies(
-                config, emptyPositions, rows, cols, playerPositions, distributedFruits
+        Map<Position, String> enemyMap = dist.placeEnemies(
+                config, emptyPos, rows, cols, playerPos, fruitMap
         );
 
-        Map<Position, String> distributedObstacles = distributor.distributeObstacles(
-                config, emptyPositions, distributedFruits, distributedEnemies
+        Map<Position, String> obsMap = dist.placeObstacles(
+                config, emptyPos, fruitMap, enemyMap
         );
 
-        List<Fruit> fruits = createFruits(distributedFruits);
-        List<Enemy> enemies = createEnemies(distributedEnemies);
-        createObstacles(distributedObstacles, map);
+        List<Fruit> fruits = buildFruits(fruitMap);
+        List<Enemy> enemies = buildEnemies(enemyMap);
+        buildObstacles(obsMap, map);
 
         map.saveInitialBlockStates();
         BadIceCream game = new BadIceCream(map);
 
         for (int i = 0; i < players.size(); i++) {
-            IceCream player = players.get(i);
+            IceCream p = players.get(i);
             String flavor = (i == 0) ? config.getCharacter1() : config.getCharacter2();
-            player.setFlavor(flavor);
+            p.setFlavor(flavor);
         }
 
         for (int i = 0; i < players.size(); i++) {
-            IceCream player = players.get(i);
+            IceCream p = players.get(i);
 
             String flavor = (i == 0)
                     ? config.getCharacter1()
@@ -84,110 +84,113 @@ public class MapParser {
             if (flavor == null) {
                 flavor = "Vanilla";
             }
-            player.setFlavor(flavor);
+
+            p.setFlavor(flavor);
         }
 
         for (int i = 0; i < players.size(); i++) {
-            IceCream player = players.get(i);
+            IceCream p = players.get(i);
             char type = playerTypes.get(i);
 
-            player.setGameMap(map);
-            ControllerCream controller;
+            p.setGameMap(map);
+            ControllerCream ctrl;
 
             switch (type) {
-                case 'C', 'S', 'V' -> controller = new Player();
-                case 'R' -> controller = new Hungry(map, game);
-                case 'J' -> controller = new Fearful(map, game);
-                case 'E' -> controller = new Expert(map, game);
+                case 'C', 'S', 'V' -> ctrl = new Player();
+                case 'R' -> ctrl = new Hungry(map, game);
+                case 'J' -> ctrl = new Fearful(map, game);
+                case 'E' -> ctrl = new Expert(map, game);
                 default -> throw new IllegalArgumentException("Unknown player type: " + type);
             }
 
-            controller.setPlayer(player);
-            player.setController(controller);
-            game.addController(controller);
-            game.addPlayer(player);
-            map.addPlayer(player);
+            ctrl.setPlayer(p);
+            p.setController(ctrl);
+
+            game.addController(ctrl);
+            game.addPlayer(p);
+            map.addPlayer(p);
         }
 
-        for (Fruit fruit : fruits) {
-            game.addFruit(fruit);
-            map.addFruit(fruit);
+        for (Fruit f : fruits) {
+            game.addFruit(f);
+            map.addFruit(f);
         }
 
-        for (Enemy enemy : enemies) {
-            enemy.setGameMap(map);
-            game.addEnemy(enemy);
-            map.addEnemy(enemy);
+        for (Enemy e : enemies) {
+            e.setGameMap(map);
+            game.addEnemy(e);
+            map.addEnemy(e);
         }
+
         game.initializeAfterMapLoad();
         return game;
     }
 
     /**
-     * Interpreta un carácter del mapa y crea el bloque o entidad
-     * correspondiente en la posición indicada.
+     * Interpreta un carácter del mapa y crea el objeto correspondiente en la posición indicada.
      * @param ch carácter leído del mapa
      * @param pos posición dentro del mapa
      * @param map mapa del juego
-     * @param players lista donde se almacenan los jugadores detectados
+     * @param players lista de jugadores detectados
      */
     private static void parseCell(
             char ch,
             Position pos,
             GameMap map,
             List<IceCream> players) {
+
         map.setBlock(pos, new Floor(pos, BoxState.inactive));
 
         switch (ch) {
             case 'H' -> map.setBlock(pos, new Iron(pos, BoxState.indestructible));
             case '1' -> map.setBlock(pos, new Ice(pos, BoxState.created));
             case 'K' -> {
-                Fire fire = new Fire(pos, BoxState.on);
-                fire.setGameMap(map);
-                map.setBlock(pos, fire);
+                Fire f = new Fire(pos, BoxState.on);
+                f.setGameMap(map);
+                map.setBlock(pos, f);
             }
             case 'L' -> {
-                Bonfire bonfire = new Bonfire(pos, BoxState.on);
-                bonfire.setGameMap(map);
-                map.setBlock(pos, bonfire);
+                Bonfire b = new Bonfire(pos, BoxState.on);
+                b.setGameMap(map);
+                map.setBlock(pos, b);
             }
             case 'C', 'S', 'V' -> {
-                IceCream player = new IceCream(pos);
-                player.setGameMap(map);
-                players.add(player);
+                IceCream p = new IceCream(pos);
+                p.setGameMap(map);
+                players.add(p);
             }
             case 'R' -> {
-                IceCream player = new IceCream(pos);
-                player.setGameMap(map);
-                player.setFlavor("hungry");
-                players.add(player);
+                IceCream p = new IceCream(pos);
+                p.setGameMap(map);
+                p.setFlavor("hungry");
+                players.add(p);
             }
             case 'J' -> {
-                IceCream player = new IceCream(pos);
-                player.setGameMap(map);
-                player.setFlavor("fearful");
-                players.add(player);
+                IceCream p = new IceCream(pos);
+                p.setGameMap(map);
+                p.setFlavor("fearful");
+                players.add(p);
             }
             case 'E' -> {
-                IceCream player = new IceCream(pos);
-                player.setGameMap(map);
-                player.setFlavor("expert");
-                players.add(player);
+                IceCream p = new IceCream(pos);
+                p.setGameMap(map);
+                p.setFlavor("expert");
+                players.add(p);
             }
         }
     }
 
     /**
-     * Crea las frutas a partir de una distribución previamente calculada.
-     * @param distribution mapa que asocia posiciones con tipos de frutas
+     * Crea las frutas según la distribución proporcionada.
+     * @param distribucion mapa de posiciones a tipos de frutas
      * @return lista de frutas creadas
      */
-    private static List<Fruit> createFruits(Map<Position, String> distribution) {
+    private static List<Fruit> buildFruits(Map<Position, String> distribucion) {
         List<Fruit> fruits = new ArrayList<>();
 
-        for (Map.Entry<Position, String> entry : distribution.entrySet()) {
-            Position pos = entry.getKey();
-            String type = entry.getValue();
+        for (Map.Entry<Position, String> e : distribucion.entrySet()) {
+            Position pos = e.getKey();
+            String type = e.getValue();
 
             Fruit fruit = null;
             switch (type) {
@@ -206,16 +209,16 @@ public class MapParser {
     }
 
     /**
-     * Crea los enemigos a partir de una distribución previamente calculada.
-     * @param distribution mapa que asocia posiciones con tipos de enemigos
+     * Crea los enemigos según la distribución proporcionada.
+     * @param distribucion mapa de posiciones a tipos de enemigos
      * @return lista de enemigos creados
      */
-    private static List<Enemy> createEnemies(Map<Position, String> distribution) {
+    private static List<Enemy> buildEnemies(Map<Position, String> distribucion) {
         List<Enemy> enemies = new ArrayList<>();
 
-        for (Map.Entry<Position, String> entry : distribution.entrySet()) {
-            Position pos = entry.getKey();
-            String type = entry.getValue();
+        for (Map.Entry<Position, String> e : distribucion.entrySet()) {
+            Position pos = e.getKey();
+            String type = e.getValue();
 
             Enemy enemy = null;
             switch (type) {
@@ -233,24 +236,24 @@ public class MapParser {
     }
 
     /**
-     * Crea y coloca los obstáculos en el mapa según la distribución indicada.
-     * @param distribution mapa que asocia posiciones con tipos de obstáculos
-     * @param map mapa del juego donde se colocarán
+     * Crea los obstáculos según la distribución proporcionada y los añade al mapa.
+     * @param distribucion mapa de posiciones a tipos de obstáculos
+     * @param map mapa del juego donde se añadirán los obstáculos
      */
-    private static void createObstacles(Map<Position, String> distribution, GameMap map) {
-        for (Map.Entry<Position, String> entry : distribution.entrySet()) {
-            Position pos = entry.getKey();
-            String type = entry.getValue();
+    private static void buildObstacles(Map<Position, String> distribucion, GameMap map) {
+        for (Map.Entry<Position, String> e : distribucion.entrySet()) {
+            Position pos = e.getKey();
+            String type = e.getValue();
 
-            Boxy obstacle = null;
+            Boxy obs = null;
             switch (type) {
-                case "Fire" -> obstacle = new Fire(pos, BoxState.created);
-                case "Bonfire" -> obstacle = new Bonfire(pos, BoxState.on);
+                case "Fire" -> obs = new Fire(pos, BoxState.created);
+                case "Bonfire" -> obs = new Bonfire(pos, BoxState.on);
             }
 
-            if (obstacle != null) {
-                obstacle.setGameMap(map);
-                map.setBlock(pos, obstacle);
+            if (obs != null) {
+                obs.setGameMap(map);
+                map.setBlock(pos, obs);
             }
         }
     }

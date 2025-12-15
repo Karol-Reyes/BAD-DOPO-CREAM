@@ -3,280 +3,270 @@ package domain;
 import java.util.*;
 
 /**
- * Clase responsable de distribuir elementos del juego
- * (frutas, enemigos y obstáculos) dentro del mapa de forma
- * balanceada y, cuando es posible, simétrica.
+ * Clase responsable de distribuir elementos (frutas, enemigos, obstáculos) 
+ * en el mapa de manera equilibrada y estratégica.
  */
 public class MapDistributor {
 
-    private final Random random;
+    private final Random rnd;
 
     /**
-     * Crea un distribuidor de mapa con un generador de números aleatorios.
+     * Constructor de la clase MapDistributor.
      */
     public MapDistributor() {
-        this.random = new Random();
+        this.rnd = new Random();
     }
 
     /**
-     * Encuentra todas las posiciones vacías representadas por el carácter '0'
-     * dentro del mapa textual.
-     * @param lines arreglo de strings que representan el mapa
-     * @return lista de posiciones vacías encontradas
+     * Encuentra todas las posiciones vacías en el mapa.
+     * @param lines líneas del mapa representadas como cadenas
+     * @return lista de posiciones vacías
      */
-    public List<Position> findEmptyPositions(String[] lines) {
-        List<Position> emptyPositions = new ArrayList<>();
+    public List<Position> findEmpty(String[] lines) {
+        List<Position> empty = new ArrayList<>();
 
         for (int r = 0; r < lines.length; r++) {
             String line = lines[r];
             for (int c = 0; c < line.length(); c++) {
                 if (line.charAt(c) == '0') {
-                    emptyPositions.add(new Position(r, c));
+                    empty.add(new Position(r, c));
                 }
             }
         }
-        return emptyPositions;
+        return empty;
     }
 
     /**
-     * Divide el mapa en diferentes zonas para permitir una distribución
-     * equilibrada de entidades.
-     * @param positions lista de posiciones disponibles
-     * @param rows número total de filas del mapa
-     * @param cols número total de columnas del mapa
-     * @return mapa que asocia nombres de zonas con listas de posiciones
+     * Divide las posiciones en zonas del mapa.
+     * @param pos lista de posiciones a dividir
+     * @param rows número de filas del mapa
+     * @param cols número de columnas del mapa
+     * @return mapa de zonas con sus respectivas posiciones
      */
-    public Map<String, List<Position>> divideIntoZones(List<Position> positions, int rows, int cols) {
+    public Map<String, List<Position>> splitZones(List<Position> pos, int rows, int cols) {
         Map<String, List<Position>> zones = new HashMap<>();
 
         zones.put("TOP", new ArrayList<>());
-        zones.put("CENTER", new ArrayList<>());
-        zones.put("BOTTOM", new ArrayList<>());
+        zones.put("MID", new ArrayList<>());
+        zones.put("BOT", new ArrayList<>());
         zones.put("LEFT", new ArrayList<>());
         zones.put("RIGHT", new ArrayList<>());
 
-        int topLimit = rows / 3;
-        int bottomLimit = (rows * 2) / 3;
-        int leftLimit = cols / 3;
-        int rightLimit = (cols * 2) / 3;
+        int topLim = rows / 3;
+        int botLim = (rows * 2) / 3;
+        int leftLim = cols / 3;
+        int rightLim = (cols * 2) / 3;
 
-        for (Position pos : positions) {
-            int r = pos.getRow();
-            int c = pos.getCol();
+        for (Position p : pos) {
+            int r = p.getRow();
+            int c = p.getCol();
 
-            if (r < topLimit) {
-                zones.get("TOP").add(pos);
-            } else if (r > bottomLimit) {
-                zones.get("BOTTOM").add(pos);
-            } else {
-                zones.get("CENTER").add(pos);
-            }
+            if (r < topLim) zones.get("TOP").add(p);
+            else if (r > botLim) zones.get("BOT").add(p);
+            else zones.get("MID").add(p);
 
-            if (c < leftLimit) {
-                zones.get("LEFT").add(pos);
-            } else if (c > rightLimit) {
-                zones.get("RIGHT").add(pos);
-            }
+            if (c < leftLim) zones.get("LEFT").add(p);
+            else if (c > rightLim) zones.get("RIGHT").add(p);
         }
         return zones;
     }
 
     /**
-     * Distribuye las frutas en el mapa de forma balanceada y simétrica
-     * según la cantidad total configurada.
-     * @param config configuración del juego
-     * @param emptyPositions posiciones disponibles
+     * Distribuye las frutas en el mapa.
+     * @param cfg configuración del juego
+     * @param empty posiciones vacías disponibles
      * @param rows número de filas del mapa
      * @param cols número de columnas del mapa
-     * @param playerPositions posiciones iniciales de los jugadores
-     * @return mapa que asocia posiciones con tipos de frutas
+     * @param players posiciones de los jugadores
+     * @return mapa de posiciones a tipos de frutas distribuidas
      */
-    public Map<Position, String> distributeFruits(GameConfig config, List<Position> emptyPositions, int rows,
-        int cols, List<Position> playerPositions) {
+    public Map<Position, String> placeFruits(GameConfig cfg, List<Position> empty,
+                                             int rows, int cols, List<Position> players) {
+        Map<Position, String> out = new HashMap<>();
+        Map<String, List<Position>> zones = splitZones(empty, rows, cols);
 
-        Map<Position, String> distribution = new HashMap<>();
-        Map<String, List<Position>> zones = divideIntoZones(emptyPositions, rows, cols);
-
-        Map<String, Integer> fruits = config.getFruits();
-        int totalFruits = config.getTotalFruits();
+        Map<String, Integer> fruits = cfg.getFruits();
+        int total = cfg.getTotalFruits();
 
         List<String> fruitList = new ArrayList<>();
-        for (Map.Entry<String, Integer> entry : fruits.entrySet()) {
-            for (int i = 0; i < entry.getValue(); i++) {
-                fruitList.add(entry.getKey());
+        for (Map.Entry<String, Integer> e : fruits.entrySet()) {
+            for (int i = 0; i < e.getValue(); i++) {
+                fruitList.add(e.getKey());
             }
         }
 
-        Collections.shuffle(fruitList, random);
-        List<Position> selectedPositions;
+        Collections.shuffle(fruitList, rnd);
+        List<Position> picked;
 
-        if (totalFruits <= 4) {
-            selectedPositions = distributeCorners(zones, totalFruits);
-        } else if (totalFruits <= 12) {
-            selectedPositions = distributeBalanced(zones, totalFruits);
-        } else {
-            selectedPositions = distributeAcrossMap(emptyPositions, totalFruits, playerPositions);
+        if (total <= 4) picked = cornerPick(zones, total);
+        else if (total <= 12) picked = balancedPick(zones, total);
+        else picked = fullPick(empty, total, players);
+
+        for (int i = 0; i < Math.min(fruitList.size(), picked.size()); i++) {
+            out.put(picked.get(i), fruitList.get(i));
         }
-        for (int i = 0; i < Math.min(fruitList.size(), selectedPositions.size()); i++) {
-            distribution.put(selectedPositions.get(i), fruitList.get(i));
-        }
-        return distribution;
+        return out;
     }
 
     /**
-     * Distribuye enemigos en posiciones alejadas de los jugadores.
-     * @param config configuración del juego
-     * @param emptyPositions posiciones disponibles
+     * Distribuye los enemigos en el mapa.
+     * @param cfg configuración del juego
+     * @param empty posiciones vacías disponibles
      * @param rows número de filas del mapa
      * @param cols número de columnas del mapa
-     * @param playerPositions posiciones de los jugadores
-     * @param placedFruits frutas ya colocadas
-     * @return mapa que asocia posiciones con tipos de enemigos
+     * @param players posiciones de los jugadores
+     * @param fruitsPlaced frutas ya colocadas en el mapa
+     * @return mapa de posiciones a tipos de enemigos distribuidos
      */
-    public Map<Position, String> distributeEnemies(GameConfig config, List<Position> emptyPositions, int rows,
-        int cols, List<Position> playerPositions, Map<Position, String> placedFruits) {
+    public Map<Position, String> placeEnemies(GameConfig cfg, List<Position> empty,
+                                              int rows, int cols, List<Position> players,
+                                              Map<Position, String> fruitsPlaced) {
+        Map<Position, String> out = new HashMap<>();
 
-        Map<Position, String> distribution = new HashMap<>();
+        List<Position> free = new ArrayList<>(empty);
+        free.removeAll(fruitsPlaced.keySet());
 
-        List<Position> available = new ArrayList<>(emptyPositions);
-        available.removeAll(placedFruits.keySet());
-
-        Map<String, Integer> enemies = config.getEnemies();
-        int totalEnemies = config.getTotalEnemies();
+        Map<String, Integer> enemies = cfg.getEnemies();
+        int total = cfg.getTotalEnemies();
 
         List<String> enemyList = new ArrayList<>();
-        for (Map.Entry<String, Integer> entry : enemies.entrySet()) {
-            for (int i = 0; i < entry.getValue(); i++) {
-                enemyList.add(entry.getKey());
+        for (Map.Entry<String, Integer> e : enemies.entrySet()) {
+            for (int i = 0; i < e.getValue(); i++) {
+                enemyList.add(e.getKey());
             }
         }
 
-        List<Position> farPositions = filterFarPositions(available, playerPositions, 5);
-        Map<String, List<Position>> zones = divideIntoZones(farPositions, rows, cols);
-        List<Position> selectedPositions = distributeBalanced(zones, totalEnemies);
+        List<Position> far = filterFar(free, players, 5);
+        Map<String, List<Position>> zones = splitZones(far, rows, cols);
+        List<Position> picked = balancedPick(zones, total);
 
-        for (int i = 0; i < Math.min(enemyList.size(), selectedPositions.size()); i++) {
-            distribution.put(selectedPositions.get(i), enemyList.get(i));
+        for (int i = 0; i < Math.min(enemyList.size(), picked.size()); i++) {
+            out.put(picked.get(i), enemyList.get(i));
         }
-        return distribution;
+        return out;
     }
 
     /**
-     * Distribuye obstáculos de forma aleatoria evitando posiciones ocupadas.
-     * @param config configuración del juego
-     * @param emptyPositions posiciones disponibles
-     * @param placedFruits frutas ya colocadas
-     * @param placedEnemies enemigos ya colocados
-     * @return mapa que asocia posiciones con tipos de obstáculos
+     * Distribuye los obstáculos en el mapa.
+     * @param cfg configuración del juego
+     * @param empty posiciones vacías disponibles
+     * @param fruitsPlaced frutas ya colocadas en el mapa
+     * @param enemiesPlaced enemigos ya colocados en el mapa
+     * @return mapa de posiciones a tipos de obstáculos distribuidos
      */
-    public Map<Position, String> distributeObstacles(GameConfig config, List<Position> emptyPositions,
-        Map<Position, String> placedFruits, Map<Position, String> placedEnemies) {
+    public Map<Position, String> placeObstacles(GameConfig cfg, List<Position> empty,
+                                                Map<Position, String> fruitsPlaced,
+                                                Map<Position, String> enemiesPlaced) {
+        Map<Position, String> out = new HashMap<>();
 
-        Map<Position, String> distribution = new HashMap<>();
+        List<Position> free = new ArrayList<>(empty);
+        free.removeAll(fruitsPlaced.keySet());
+        free.removeAll(enemiesPlaced.keySet());
 
-        List<Position> available = new ArrayList<>(emptyPositions);
-        available.removeAll(placedFruits.keySet());
-        available.removeAll(placedEnemies.keySet());
+        Map<String, Integer> obs = cfg.getObstacles();
+        List<String> obsList = new ArrayList<>();
 
-        Map<String, Integer> obstacles = config.getObstacles();
-
-        List<String> obstacleList = new ArrayList<>();
-        for (Map.Entry<String, Integer> entry : obstacles.entrySet()) {
-            for (int i = 0; i < entry.getValue(); i++) {
-                obstacleList.add(entry.getKey());
+        for (Map.Entry<String, Integer> e : obs.entrySet()) {
+            for (int i = 0; i < e.getValue(); i++) {
+                obsList.add(e.getKey());
             }
         }
 
-        Collections.shuffle(available, random);
+        Collections.shuffle(free, rnd);
 
-        for (int i = 0; i < Math.min(obstacleList.size(), available.size()); i++) {
-            distribution.put(available.get(i), obstacleList.get(i));
+        for (int i = 0; i < Math.min(obsList.size(), free.size()); i++) {
+            out.put(free.get(i), obsList.get(i));
         }
+        return out;
+    }
 
-        return distribution;
+    // ==================== HELPERS ====================
+
+    /**
+     * Selecciona posiciones en las esquinas del mapa.
+     * @param zones zonas del mapa divididas
+     * @param count número de posiciones a seleccionar
+     * @return lista de posiciones seleccionadas
+     */
+    private List<Position> cornerPick(Map<String, List<Position>> zones, int count) {
+        List<Position> out = new ArrayList<>();
+        List<Position> top = new ArrayList<>(zones.get("TOP"));
+        List<Position> bot = new ArrayList<>(zones.get("BOT"));
+
+        Collections.shuffle(top, rnd);
+        Collections.shuffle(bot, rnd);
+
+        for (int i = 0; i < count; i++) {
+            if (i % 2 == 0 && !top.isEmpty()) out.add(top.remove(0));
+            else if (!bot.isEmpty()) out.add(bot.remove(0));
+            else if (!top.isEmpty()) out.add(top.remove(0));
+        }
+        return out;
     }
 
     /**
-     * Selecciona posiciones alternando entre zonas superiores e inferiores.
+     * Selecciona posiciones de manera equilibrada en el mapa.
+     * @param zones zonas del mapa divididas
+     * @param count número de posiciones a seleccionar
+     * @return lista de posiciones seleccionadas
      */
-    private List<Position> distributeCorners(Map<String, List<Position>> zones, int amount) {
-        List<Position> selected = new ArrayList<>();
+    private List<Position> balancedPick(Map<String, List<Position>> zones, int count) {
+        List<Position> out = new ArrayList<>();
 
         List<Position> top = new ArrayList<>(zones.get("TOP"));
-        List<Position> bottom = new ArrayList<>(zones.get("BOTTOM"));
+        List<Position> mid = new ArrayList<>(zones.get("MID"));
+        List<Position> bot = new ArrayList<>(zones.get("BOT"));
 
-        Collections.shuffle(top, random);
-        Collections.shuffle(bottom, random);
+        Collections.shuffle(top, rnd);
+        Collections.shuffle(mid, rnd);
+        Collections.shuffle(bot, rnd);
 
-        for (int i = 0; i < amount; i++) {
-            if (i % 2 == 0 && !top.isEmpty()) {
-                selected.add(top.remove(0));
-            } else if (!bottom.isEmpty()) {
-                selected.add(bottom.remove(0));
-            } else if (!top.isEmpty()) {
-                selected.add(top.remove(0));
-            }
-        }
-        return selected;
+        int per = count / 3;
+        int rem = count % 3;
+
+        out.addAll(top.subList(0, Math.min(per + (rem > 0 ? 1 : 0), top.size())));
+        out.addAll(mid.subList(0, Math.min(per + (rem > 1 ? 1 : 0), mid.size())));
+        out.addAll(bot.subList(0, Math.min(per, bot.size())));
+        return out;
     }
 
     /**
-     * Distribuye posiciones equitativamente entre zonas del mapa.
+     * Selecciona posiciones libremente en el mapa.
+     * @param pos lista de posiciones a seleccionar
+     * @param count número de posiciones a seleccionar
+     * @param players posiciones de los jugadores
+     * @return lista de posiciones seleccionadas
      */
-    private List<Position> distributeBalanced(Map<String, List<Position>> zones, int amount) {
-        List<Position> selected = new ArrayList<>();
-
-        List<Position> top = new ArrayList<>(zones.get("TOP"));
-        List<Position> center = new ArrayList<>(zones.get("CENTER"));
-        List<Position> bottom = new ArrayList<>(zones.get("BOTTOM"));
-
-        Collections.shuffle(top, random);
-        Collections.shuffle(center, random);
-        Collections.shuffle(bottom, random);
-
-        int perZone = amount / 3;
-        int remainder = amount % 3;
-
-        selected.addAll(top.subList(0, Math.min(perZone + (remainder > 0 ? 1 : 0), top.size())));
-        selected.addAll(center.subList(0, Math.min(perZone + (remainder > 1 ? 1 : 0), center.size())));
-        selected.addAll(bottom.subList(0, Math.min(perZone, bottom.size())));
-
-        return selected;
+    private List<Position> fullPick(List<Position> pos, int count,
+                                    @SuppressWarnings("unused") List<Position> players) {
+        List<Position> free = new ArrayList<>(pos);
+        Collections.shuffle(free, rnd);
+        return free.subList(0, Math.min(count, free.size()));
     }
 
     /**
-     * Distribuye posiciones a lo largo de todo el mapa sin restricciones.
+     * Filtra posiciones que estén lejos de los jugadores.
+     * @param pos lista de posiciones a filtrar
+     * @param players posiciones de los jugadores
+     * @param minDist distancia mínima requerida
+     * @return lista de posiciones filtradas
      */
-    private List<Position> distributeAcrossMap(List<Position> positions, 
-        int amount, @SuppressWarnings("unused") List<Position> players) {
+    private List<Position> filterFar(List<Position> pos, List<Position> players, int minDist) {
+        List<Position> out = new ArrayList<>();
 
-        List<Position> available = new ArrayList<>(positions);
-        Collections.shuffle(available, random);
-        return available.subList(0, Math.min(amount, available.size()));
-    }
+        for (Position p : pos) {
+            boolean ok = true;
 
-    /**
-     * Filtra posiciones que se encuentren a una distancia mínima
-     * de los jugadores.
-     */
-    private List<Position> filterFarPositions(List<Position> positions, List<Position> players, int minDistance) {
-
-        List<Position> farPositions = new ArrayList<>();
-        for (Position pos : positions) {
-            boolean isFar = true;
-            for (Position player : players) {
-                int distance = Math.abs(pos.getRow() - player.getRow())
-                             + Math.abs(pos.getCol() - player.getCol());
-
-                if (distance < minDistance) {
-                    isFar = false;
+            for (Position pl : players) {
+                int d = Math.abs(p.getRow() - pl.getRow())
+                      + Math.abs(p.getCol() - pl.getCol());
+                if (d < minDist) {
+                    ok = false;
                     break;
                 }
             }
-            if (isFar) {
-                farPositions.add(pos);
-            }
+            if (ok) out.add(p);
         }
-        return farPositions;
+        return out;
     }
 }

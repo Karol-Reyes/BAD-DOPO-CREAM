@@ -1,11 +1,11 @@
 package domain;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.io.IOException;
 import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
 /**
@@ -451,9 +451,9 @@ public class BadIceCream {
         int total = 0;
         for (IceCream c : players) {
             total += c.getScorePlayer();
-            System.out.println("Puntuación jugador " + gameMap.getPlayer(c.getPosition()) + ": " + c.getScorePlayer());
+            System.out.println("puntuacion jugador: " + c + c.getScorePlayer());
         }
-        System.out.println("Puntuación total: " + total);
+        System.out.println("puntuacion total: " + total);
         return total;
     }
 
@@ -611,9 +611,11 @@ public class BadIceCream {
     /**
      * @return tiempo restante en milisegundos
      */
-    public long getRemainingTimeMs() {
-        return Math.max(0, remainingTime);
+    public long[] getRemainingTimeMs() {
+        long timeLeft = Math.max(0, MAX_TIME_MS - (System.currentTimeMillis() - startTime));
+        return new long[] { timeLeft / 60000, (timeLeft % 60000) / 1000 };
     }
+
 
     /**
      * @return tiempo total de juego transcurrido

@@ -84,6 +84,7 @@ public class LevelLoader {
         } catch (Exception e) {
             return "";
         }
+
         return text.toString();
     }
 }
