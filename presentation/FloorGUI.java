@@ -9,8 +9,6 @@ public class FloorGUI extends ResourcesGUI {
 
     private PixelButton btnBonfire;
     private PixelButton btnFire;
-    @SuppressWarnings("unused")
-    private PixelButton btnNothing;
     private PixelButton btnReady;
 
     private String pendingObject;
@@ -39,7 +37,6 @@ public class FloorGUI extends ResourcesGUI {
             main_Text();
             bonfire();
             fire();
-            nothing();
             ready();
         });
         gifTimer.setRepeats(false);
@@ -50,12 +47,11 @@ public class FloorGUI extends ResourcesGUI {
      * Muestra el texto principal en la GUI.
      */
     private void main_Text() {
-        JLabel textLabel = ImageUtils.createScaledImageLabel("/Resources/textos/EscogerObjeto.png",
-           320, 40, 175, 45);
+        JLabel textLabel = ImageUtils.createScaledImageLabel(
+            "/Resources/textos/EscogerObjeto.png",
+            320, 40, 175, 45
+        );
         contentLabel.add(textLabel);
-        contentLabel.setComponentZOrder(textLabel, 0);
-        contentLabel.revalidate();
-        contentLabel.repaint();
     }
 
     /**
@@ -63,13 +59,8 @@ public class FloorGUI extends ResourcesGUI {
      */
     public void bonfire() {
         btnBonfire = new PixelButton("/Resources/box/bonfire.png", 140, 140);
-        btnBonfire.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btnBonfire.setBounds(80, 170, 140, 140);
-        btnBonfire.setDisabledIcon(btnBonfire.getIcon());
-        btnBonfire.addActionListener(e -> {
-            selectObject("Bonfire", 4);
-        });
-
+        btnBonfire.addActionListener(e -> selectObject("Bonfire", 4));
         contentLabel.add(btnBonfire);
         contentLabel.setComponentZOrder(btnBonfire, 0);
         contentLabel.revalidate();
@@ -81,33 +72,10 @@ public class FloorGUI extends ResourcesGUI {
      */
     public void fire() {
         btnFire = new PixelButton("/Resources/box/fire.png", 140, 140);
-        btnFire.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btnFire.setBounds(450, 170, 140, 140);
-        btnFire.setDisabledIcon(btnFire.getIcon());
-        btnFire.addActionListener(e -> {
-            selectObject("Fire", 20);
-        });
-
+        btnFire.addActionListener(e -> selectObject("Fire", 20));
         contentLabel.add(btnFire);
-        contentLabel.setComponentZOrder(btnFire, 0);
-        contentLabel.revalidate();
-        contentLabel.repaint();
-    }
-
-    /**
-     * Agrega el botón de ninguno a la GUI.
-     */
-    public void nothing() {
-        btnNothing = new PixelButton("/Resources/textos/Ninguno.png", 120, 40);
-        btnNothing.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btnNothing.setBounds(290, 330, 120, 40);
-        btnNothing.setDisabledIcon(btnNothing.getIcon());
-        btnNothing.addActionListener(e -> {
-            selectObject("Nothing", 0);
-        });
-
-        contentLabel.add(btnNothing);
-        contentLabel.setComponentZOrder(btnNothing, 0);
+        contentLabel.setComponentZOrder(btnFire,0);
         contentLabel.revalidate();
         contentLabel.repaint();
     }
@@ -117,47 +85,36 @@ public class FloorGUI extends ResourcesGUI {
      */
     public void ready() {
         btnReady = new PixelButton("/Resources/textos/Listo.png", 170, 40);
-        btnReady.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btnReady.setBounds(260, 380, 170, 40);
-        btnReady.setDisabledIcon(btnReady.getIcon());
-
-        btnReady.setEnabled(false); 
-
-        btnReady.addActionListener(e -> gameplay());
-
+        btnReady.setEnabled(false);
+        btnReady.addActionListener(e -> goToGame());
         contentLabel.add(btnReady);
         contentLabel.setComponentZOrder(btnReady, 0);
+        contentLabel.revalidate();
+        contentLabel.repaint();
     }
 
-    /**
-     * Maneja la selección de un objeto y su cantidad.
-     * @param object nombre del objeto seleccionado
-     * @param max cantidad máxima permitida para el objeto
-     */
     private void selectObject(String object, int max) {
         pendingObject = object;
         pendingMax = max;
         goToAmountSelection();
     }
 
-    /**
-     * Cambia a la pantalla de selección de cantidad.
-     */
     private void goToAmountSelection() {
         contentLabel.removeAll();
+
         showBackground();
         addIceCreamBackground();
         main_Text();
         background();
+        textAmount();
+
         createNumberButtons(pendingMax, amount -> {
-            gameControl.setSelectedObject(pendingObject, amount);
+            gameControl.addObject(pendingObject, amount);
             returnFromAmountSelection();
         });
     }
 
-    /**
-     * Regresa de la selección de cantidad a la selección de objeto.
-     */
     private void returnFromAmountSelection() {
         contentLabel.removeAll();
 
@@ -169,36 +126,24 @@ public class FloorGUI extends ResourcesGUI {
 
         bonfire();
         fire();
-        nothing();
+        ready();
         updateButtonStates();
+
         contentLabel.revalidate();
         contentLabel.repaint();
     }
 
-    /**
-     * Actualiza el estado de los botones según la selección actual.
-     */
     private void updateButtonStates() {
-        boolean selected = gameControl.hasObject();
-        btnBonfire.setEnabled(!selected);
-        btnFire.setEnabled(!selected);
+        btnBonfire.setEnabled(!gameControl.isObjectSelected("Bonfire"));
+        btnFire.setEnabled(!gameControl.isObjectSelected("Fire"));
+        btnReady.setEnabled(gameControl.hasObjects());
     }
 
-    /**
-     * Cambia a la pantalla de juego.
-     */
-    private void gameplay() {
-        if (gifTimer != null && gifTimer.isRunning()) {
-            gifTimer.stop();
-        }
-
+    private void goToGame() {
         Container parent = getParent();
-        if (parent != null) {
-            parent.remove(this);
-
-            parent.add(new GameGUI(gameControl));
-            parent.revalidate();
-            parent.repaint();
-        }
+        parent.remove(this);
+        parent.add(new GameGUI(gameControl));
+        parent.revalidate();
+        parent.repaint();
     }
 }

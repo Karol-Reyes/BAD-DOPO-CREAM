@@ -160,6 +160,10 @@ public class GameControl {
     public boolean hasEnemies() {
         return !selectedEnemies.isEmpty();
     }
+
+    public boolean isEnemySelected(String enemy) {
+        return selectedEnemies.containsKey(enemy);
+    }
 //---------------------------------------------------------------------
 // Objeto seleccionado con cantidad
 
@@ -167,30 +171,26 @@ public class GameControl {
      * Establece el objeto seleccionado con su cantidad.
      * @param object nombre del objeto seleccionado
      */
-    public void setSelectedObject(String object, int amount) {
-        this.selectedObject = object;
-        this.selectedObjectAmount = amount;
+    // Objetos seleccionados
+    private final Map<String, Integer> selectedObjects = new LinkedHashMap<>();
+
+    public void addObject(String name, int amount) {
+        if (selectedObjects.size() >= 2) return;
+        if (selectedObjects.containsKey(name)) return;
+
+        selectedObjects.put(name, amount);
     }
 
-    /**
-     * Verifica si hay un objeto seleccionado.
-     */
-    public boolean hasObject() {
-        return selectedObject != null;
+    public boolean hasObjects() {
+        return !selectedObjects.isEmpty();
     }
 
-    /**
-     * Obtiene el objeto seleccionado.
-     */
-    public String getSelectedObject() {
-        return selectedObject;
+    public boolean isObjectSelected(String name) {
+        return selectedObjects.containsKey(name);
     }
 
-    /**
-     * Obtiene la cantidad del objeto seleccionado.
-     */
-    public int getSelectedObjectAmount() {
-        return selectedObjectAmount;
+    public Map<String, Integer> getSelectedObjects() {
+        return selectedObjects;
     }
 
     /**
@@ -208,8 +208,8 @@ public class GameControl {
         }
 
         Map<String, Integer> obstacleMap = new HashMap<>();
-        if (selectedObject != null && !selectedObject.equals("Nothing")) {
-            obstacleMap.put(selectedObject, selectedObjectAmount); // Ajusta según tu estructura
+        for (Map.Entry<String, Integer> entry : selectedObjects.entrySet()) {
+            obstacleMap.put(entry.getKey(), entry.getValue()); // Ajusta según tu estructura
         }
 
         return new GameConfig(
@@ -229,6 +229,7 @@ public class GameControl {
     public void resetSelections() {
         selectedFruits.clear();
         selectedEnemies.clear();
+        selectedObjects.clear();
         selectedObject = null;
         selectedLevel = 0;
         gameMode = null;

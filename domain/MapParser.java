@@ -68,7 +68,7 @@ public class MapParser {
         
         // ⭐ PASO 5: Crear entidades
         List<Fruit> frutas = crearFrutas(frutasDistribuidas);
-        List<Enemy> enemigos = crearEnemigos(enemigosDistribuidos, map);
+        List<Enemy> enemigos = crearEnemigos(enemigosDistribuidos);
         crearObstaculos(obstaculosDistribuidos, map);
 
         map.saveInitialBlockStates();
@@ -196,21 +196,11 @@ public class MapParser {
             
             Fruit fruta = null;
             switch (tipo) {
-                case "Banana":
-                    fruta = new Banana(pos);
-                    break;
-                case "Grape":
-                    fruta = new Grape(pos);
-                    break;
-                case "Cherry":
-                    fruta = new Cherry(pos);
-                    break;
-                case "Pineapple":
-                    fruta = new Pineapple(pos);
-                    break;
-                case "Cactus":
-                    fruta = new Cactus(pos);
-                    break;
+                case "Banana" -> fruta = new Banana(pos);
+                case "Grape" -> fruta = new Grape(pos);
+                case "Cherry" -> fruta = new Cherry(pos);
+                case "Pineapple" -> fruta = new Pineapple(pos);
+                case "Cactus" -> fruta = new Cactus(pos);
             }
             
             if (fruta != null) {
@@ -221,7 +211,7 @@ public class MapParser {
         return frutas;
     }
     
-    private static List<Enemy> crearEnemigos(Map<Position, String> distribucion, GameMap map) {
+    private static List<Enemy> crearEnemigos(Map<Position, String> distribucion) {
         List<Enemy> enemigos = new ArrayList<>();
         
         for (Map.Entry<Position, String> entry : distribucion.entrySet()) {
@@ -230,18 +220,10 @@ public class MapParser {
             
             Enemy enemigo = null;
             switch (tipo) {
-                case "Troll":
-                    enemigo = new Troll(pos);
-                    break;
-                case "Flowerpot":
-                    enemigo = new Flowerpot(pos);
-                    break;
-                case "Narwhal":
-                    enemigo = new Narval(pos);
-                    break;
-                case "YellowSquid":
-                    enemigo = new YellowSquid(pos);
-                    break;
+                case "Troll" -> enemigo = new Troll(pos);
+                case "Flowerpot" -> enemigo = new Flowerpot(pos);
+                case "Narwhal" -> enemigo = new Narval(pos);
+                case "YellowSquid" -> enemigo = new YellowSquid(pos);
             }
             
             if (enemigo != null) {
@@ -259,12 +241,8 @@ public class MapParser {
             
             Boxy obstaculo = null;
             switch (tipo) {
-                case "Fire":
-                    obstaculo = new Fire(pos, BoxState.created);
-                    break;
-                case "Bonfire":
-                    obstaculo = new Bonfire(pos, BoxState.on);
-                    break;
+                case "Fire" -> obstaculo = new Fire(pos, BoxState.created);
+                case "Bonfire" -> obstaculo = new Bonfire(pos, BoxState.on);
             }
             
             if (obstaculo != null) {

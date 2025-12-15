@@ -166,33 +166,54 @@ public class EnemyGUI extends ResourcesGUI {
      */
     private void selectEnemy(String enemy, int maxAmount) {
         pendingEnemy = enemy;
+        goToAmountSelection(maxAmount);
+    }
+private void goToAmountSelection(int maxAmount) {
+        contentLabel.removeAll();
+
+        showBackground();
+        addIceCreamBackground();
+        main_Text();
+        background();
         textAmount();
+
         createNumberButtons(maxAmount, amount -> {
             gameControl.addEnemy(pendingEnemy, amount);
-            disableEnemyButton(pendingEnemy);
-            btnReady.setEnabled(true); 
+            returnFromAmountSelection();   
         });
+
+        contentLabel.revalidate();
+        contentLabel.repaint();
     }
 
-    /**
-     * Deshabilita los botones de los enemigos ya seleccionados.
-     * @param enemy Nombre del enemigo a deshabilitar.
-     */
-    private void disableEnemyButton(String enemy) {
-        switch (enemy) {
-            case "Troll" -> {
-                btnTroll.setEnabled(false);
-            }
-            case "FlowerPot" -> {
-                btnFlowerPot.setEnabled(false);
-            }
-            case "YellowSquid" -> {
-                btnYellowSquid.setEnabled(false);
-            }
-            case "Narwhal" -> {
-                btnNarwhal.setEnabled(false);
-            }
-        }
+    private void returnFromAmountSelection() {
+        contentLabel.removeAll();
+
+        showBackground();
+        addIceCreamBackground();
+        addBackBackground();
+        backButton();
+        main_Text();
+
+        troll();
+        flowerPot();
+        yellowSquid();
+        narwhal();
+        ready();
+
+        updateButtonStates();
+
+        contentLabel.revalidate();
+        contentLabel.repaint();
+    }
+
+    private void updateButtonStates() {
+        btnTroll.setEnabled(!gameControl.isEnemySelected("Troll"));
+        btnFlowerPot.setEnabled(!gameControl.isEnemySelected("FlowerPot"));
+        btnYellowSquid.setEnabled(!gameControl.isEnemySelected("YellowSquid"));
+        btnNarwhal.setEnabled(!gameControl.isEnemySelected("Narwhal"));
+
+        btnReady.setEnabled(gameControl.hasEnemies());
     }
 
     /**

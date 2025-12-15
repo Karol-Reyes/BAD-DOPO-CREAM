@@ -7,7 +7,7 @@ import java.util.*;
  */
 public class MapDistributor {
     
-    private Random random;
+    private final Random random;
     
     public MapDistributor() {
         this.random = new Random();
@@ -95,15 +95,15 @@ public class MapDistributor {
         Collections.shuffle(listaFrutas, random);
         
         // ⭐ Distribución simétrica
-        List<Position> posicionesSeleccionadas = new ArrayList<>();
+        List<Position> posicionesSeleccionadas;
         
         // Si hay pocas frutas (1-4), distribuir en esquinas/bordes
         if (totalFrutas <= 4) {
-            posicionesSeleccionadas = distribuirEnEsquinas(zonas, totalFrutas, posicionesJugadores);
+            posicionesSeleccionadas = distribuirEnEsquinas(zonas, totalFrutas);
         }
         // Si hay frutas medias (5-12), distribuir en zonas balanceadas
         else if (totalFrutas <= 12) {
-            posicionesSeleccionadas = distribuirBalanceado(zonas, totalFrutas, posicionesJugadores);
+            posicionesSeleccionadas = distribuirBalanceado(zonas, totalFrutas);
         }
         // Si hay muchas frutas (13+), distribuir por todo el mapa
         else {
@@ -146,7 +146,7 @@ public class MapDistributor {
         
         // Distribuir simétricamente
         Map<String, List<Position>> zonas = dividirEnZonas(posicionesAlejadas, rows, cols);
-        List<Position> posicionesSeleccionadas = distribuirBalanceado(zonas, totalEnemigos, posicionesJugadores);
+        List<Position> posicionesSeleccionadas = distribuirBalanceado(zonas, totalEnemigos);
         
         // Asignar enemigos
         for (int i = 0; i < Math.min(listaEnemigos.size(), posicionesSeleccionadas.size()); i++) {
@@ -191,8 +191,7 @@ public class MapDistributor {
     
     // ==================== MÉTODOS AUXILIARES ====================
     
-    private List<Position> distribuirEnEsquinas(Map<String, List<Position>> zonas, int cantidad,
-                                                 List<Position> jugadores) {
+    private List<Position> distribuirEnEsquinas(Map<String, List<Position>> zonas, int cantidad) {
         List<Position> seleccionadas = new ArrayList<>();
         
         // Combinar arriba y abajo para simetría
@@ -216,8 +215,7 @@ public class MapDistributor {
         return seleccionadas;
     }
     
-    private List<Position> distribuirBalanceado(Map<String, List<Position>> zonas, int cantidad,
-                                                 List<Position> jugadores) {
+    private List<Position> distribuirBalanceado(Map<String, List<Position>> zonas, int cantidad) {
         List<Position> seleccionadas = new ArrayList<>();
         
         List<Position> arriba = new ArrayList<>(zonas.get("ARRIBA"));
@@ -241,7 +239,7 @@ public class MapDistributor {
     }
     
     private List<Position> distribuirPorTodoElMapa(List<Position> posiciones, int cantidad,
-                                                    List<Position> jugadores) {
+                                                    @SuppressWarnings("unused") List<Position> jugadores) {
         List<Position> disponibles = new ArrayList<>(posiciones);
         Collections.shuffle(disponibles, random);
         
