@@ -3,6 +3,7 @@ package  presentation;
 import domain.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.ArrayList;
 import javax.swing.*;
 
 /**
@@ -33,6 +34,11 @@ public class GameGUI extends JPanel {
     private int visualTime = 180; 
     private Timer visualTimer;
 
+    // barra de frutas
+    private final java.util.List<JLabel> fruitIcons = new ArrayList<>();
+    private JLabel fruitIndicator;
+    private int currentFruitIndex = 0;
+    private int lastWave = -1;
 
     /**
      * Constructor que recibe la configuración del juego
@@ -57,6 +63,13 @@ public class GameGUI extends JPanel {
 
         if (!game.isGameWon() && !game.isGameLost()) {
             game.updateGame();
+            // ===== DETECTAR CAMBIO DE OLEADA =====
+            int wave = game.getCurrentWave();
+
+            if (wave != lastWave) {
+                setCurrentFruit(wave);
+                lastWave = wave;
+            }
         }
 
         if (game.isGameWon() && !winShown) {
@@ -281,15 +294,60 @@ public class GameGUI extends JPanel {
     private void addFruitBar() {
         panel.setLayout(null);
 
+        // Fondo de la barra
         fruitBar = ImageUtils.createScaledImageLabel(
-            "/Resources/game/fondoFrutas.png", 
-            580, 70,                         
-            0, 580                           
+            "/Resources/game/fondoFrutas.png",
+            580, 70,
+            0, 580
         );
-        panel.add(fruitBar);
-        panel.setComponentZOrder(fruitBar, 0);
+        panel.add(fruitBar);    
+
+        // === ICONOS DE FRUTAS ===
+        int startX = 120;
+        int y = 595;
+        int size = 35;
+        int spacing = 40;
+
+        fruitIcons.clear();
+
+        for (GameControl.FruitSelection f : gameControl.getSelectedFruits()) {
+            Image img = spriteManager.get(f.name.toLowerCase());
+            if (img == null) continue;
+
+            JLabel icon = new JLabel(new ImageIcon(
+                img.getScaledInstance(size, size, Image.SCALE_SMOOTH)
+            ));
+
+            icon.setBounds(startX, y, size, size);
+            panel.add(icon);
+            fruitIcons.add(icon);
+
+            startX += size + spacing;
+        }
+
+        // === INDICADOR AZUL ===
+        Image indicatorImg = spriteManager.get("fruit_indicator");
+
+        fruitIndicator = new JLabel(new ImageIcon(
+            indicatorImg.getScaledInstance(size + 8, size + 8, Image.SCALE_SMOOTH)
+        ));
+
+        if (!fruitIcons.isEmpty()) {
+            JLabel first = fruitIcons.get(0);
+            fruitIndicator.setBounds(
+                first.getX() - 4,
+                first.getY() - 4,
+                size + 8,
+                size + 8
+            );
+        }
+
+        panel.add(fruitIndicator);
+        panel.setComponentZOrder(fruitBar, panel.getComponentCount() - 1);
+        panel.setComponentZOrder(fruitIndicator, 0);
         panel.repaint();
     }
+
 
     /**
      * Agrega el botón de pausa al juego.
@@ -544,6 +602,22 @@ public class GameGUI extends JPanel {
         return visualTime;
     }
 
+    public void setCurrentFruit(int index) {
+        if (index < 0 || index >= fruitIcons.size()) return;
+
+        currentFruitIndex = index;
+
+        JLabel target = fruitIcons.get(index);
+
+        fruitIndicator.setLocation(
+            target.getX() - 4,
+            target.getY() - 4
+        );
+
+        panel.repaint();
+    }
+
+
 
     // =====================================================
     // PANEL INTERNO (FINAL)
@@ -558,6 +632,7 @@ public class GameGUI extends JPanel {
         private final SpriteManager spriteManager;
         private static final int TILE = 32;
         private int visualTime;
+        // GamePanel
 
         /**
          * Constructor del panel de juego.
@@ -567,7 +642,7 @@ public class GameGUI extends JPanel {
         public GamePanel(BadIceCream game, SpriteManager spriteManager) {
             this.game = game;
             this.spriteManager = spriteManager;
-            setBackground(Color.BLACK);
+            setBackground(Color.WHITE);
         }
 
         /**
@@ -637,7 +712,7 @@ public class GameGUI extends JPanel {
             for (IceCream pl : game.getPlayers()) {
 
                 String flavor = pl.getFlavor();               
-                String state = pl.isAlive() ? "alive" : "dead";
+                String state = pl.getSpriteKey();
 
                 String key = flavor + "_" + state;           
 
@@ -658,13 +733,14 @@ public class GameGUI extends JPanel {
 
             String text = String.format("%02d:%02d", min, sec);
 
-            g.setColor(Color.WHITE);
+            g.setColor(Color.BLACK);
             g.setFont(new Font("Arial", Font.BOLD, 25));
             g.drawString(text, 590, 35);
 
             // =============== SCORES ===============
             drawScores(g);
 
+            // =============== BARRA DE FRUTAS ===============
         }
 
         /**
@@ -683,7 +759,7 @@ public class GameGUI extends JPanel {
 
             java.util.List<IceCream> players = game.getPlayers();
 
-            g.setColor(Color.WHITE);
+            g.setColor(Color.BLACK);
             g.setFont(new Font("Arial", Font.BOLD, 20));
 
             // ===== JUGADOR 1 =====
@@ -703,6 +779,6 @@ public class GameGUI extends JPanel {
             g.drawString(String.valueOf(game.totalScore()), 600, 280);
         }
 
-
+        // BARRA DE FRUTAS
     }
 }

@@ -63,19 +63,51 @@ public class SpriteManager {
 
         // JUGADOR DEFAULT 
 
-        sprites.put("player_alive", load("/Resources/user/vainilla/static_down.png"));
-        sprites.put("player_dead", load("/Resources/user/vainilla/dead.png"));
+        sprites.put("Vanilla_dead", load("/Resources/user/vainilla/dead.png"));
+        sprites.put("Vanilla_broke", load("/Resources/user/vainilla/broke.png"));
+        sprites.put("Vanilla_static_down", load("/Resources/user/vainilla/static_down.png"));
+        sprites.put("Vanilla_static_up", load("/Resources/user/vainilla/static_up.png"));
+        sprites.put("Vanilla_static_left", load("/Resources/user/vainilla/static_left.png"));
+        sprites.put("Vanilla_static_right", load("/Resources/user/vainilla/static_right.png"));
+        sprites.put("Vanilla_froze_down", load("/Resources/user/vainilla/froze_down.png"));
+        sprites.put("Vanilla_froze_up", load("/Resources/user/vainilla/froze_up.png"));
+        sprites.put("Vanilla_froze_left", load("/Resources/user/vainilla/froze_left.png"));
+        sprites.put("Vanilla_froze_right", load("/Resources/user/vainilla/froze_right.png"));
 
         // JUGADORES
 
-        sprites.put("Chocolate_alive", load("/Resources/user/chocolate/static_down.png"));
         sprites.put("Chocolate_dead", load("/Resources/user/chocolate/dead.png"));
+        sprites.put("Chocolate_broke", load("/Resources/user/chocolate/broke.png"));
+        sprites.put("Chocolate_static_down", load("/Resources/user/chocolate/static_down.png"));
+        sprites.put("Chocolate_static_up", load("/Resources/user/chocolate/static_up.png"));
+        sprites.put("Chocolate_static_left", load("/Resources/user/chocolate/static_left.png"));
+        sprites.put("Chocolate_static_right", load("/Resources/user/chocolate/static_right.png"));
+        sprites.put("Chocolate_froze_down", load("/Resources/user/chocolate/froze_down.png"));
+        sprites.put("Chocolate_froze_up", load("/Resources/user/chocolate/froze_up.png"));
+        sprites.put("Chocolate_froze_left", load("/Resources/user/chocolate/froze_left.png"));
+        sprites.put("Chocolate_froze_right", load("/Resources/user/chocolate/froze_right.png"));
 
-        sprites.put("Strawberry_alive", load("/Resources/user/strawberry/static_down.png"));
         sprites.put("Strawberry_dead", load("/Resources/user/strawberry/dead.png"));
+        sprites.put("Strawberry_broke", load("/Resources/user/strawberry/broke.png"));
+        sprites.put("Strawberry_static_down", load("/Resources/user/strawberry/static_down.png"));
+        sprites.put("Strawberry_static_up", load("/Resources/user/strawberry/static_up.png"));
+        sprites.put("Strawberry_static_left", load("/Resources/user/strawberry/static_left.png"));
+        sprites.put("Strawberry_static_right", load("/Resources/user/strawberry/static_right.png"));
+        sprites.put("Strawberry_froze_down", load("/Resources/user/strawberry/froze_down.png"));
+        sprites.put("Strawberry_froze_up", load("/Resources/user/strawberry/froze_up.png"));
+        sprites.put("Strawberry_froze_left", load("/Resources/user/strawberry/froze_left.png"));
+        sprites.put("Strawberry_froze_right", load("/Resources/user/strawberry/froze_right.png"));
 
-        sprites.put("Vanilla_alive", load("/Resources/user/vainilla/static_down.png"));
         sprites.put("Vanilla_dead", load("/Resources/user/vainilla/dead.png"));
+        sprites.put("Vanilla_broke", load("/Resources/user/vainilla/broke.png"));
+        sprites.put("Vanilla_static_down", load("/Resources/user/vainilla/static_down.png"));
+        sprites.put("Vanilla_static_up", load("/Resources/user/vainilla/static_up.png"));
+        sprites.put("Vanilla_static_left", load("/Resources/user/vainilla/static_left.png"));
+        sprites.put("Vanilla_static_right", load("/Resources/user/vainilla/static_right.png"));
+        sprites.put("Vanilla_froze_down", load("/Resources/user/vainilla/froze_down.png"));
+        sprites.put("Vanilla_froze_up", load("/Resources/user/vainilla/froze_up.png"));
+        sprites.put("Vanilla_froze_left", load("/Resources/user/vainilla/froze_left.png"));
+        sprites.put("Vanilla_froze_right", load("/Resources/user/vainilla/froze_right.png"));
 
         sprites.put("Hungry_alive", load("/Resources/user/hungry/static_down.png"));
         sprites.put("Hungry_dead", load("/Resources/user/hungry/dead.png"));
@@ -85,6 +117,9 @@ public class SpriteManager {
 
         sprites.put("Expert_alive", load("/Resources/user/expert/static_down.png"));
         sprites.put("Expert_dead", load("/Resources/user/expert/dead.png"));
+
+        // Cuadro Azul
+        sprites.put("fruit_indicator", load("/Resources/game/CuadroEleccion.png"));
     }
 
     // ==========================================================

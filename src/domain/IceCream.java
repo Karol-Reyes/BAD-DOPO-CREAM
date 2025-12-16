@@ -14,6 +14,12 @@ public class IceCream implements SpriteProvider {
     private int score;
     private String flavor;
 
+    private boolean creatingIce = false;
+    private boolean destroyingIce = false;
+    private long actionEndTime = 0;
+    private static final long ACTION_TIME = 150;
+
+
     /**
      * Crea un jugador en una posición inicial.
      * @param pos posición inicial
@@ -70,6 +76,15 @@ public class IceCream implements SpriteProvider {
         if (ctrl != null && alive) {
             ctrl.update();
         }
+
+        long now = System.currentTimeMillis();
+    
+        if (now > actionEndTime) {
+            creatingIce = false;
+            destroyingIce = false;
+        }
+
+        moving = false;
     }
 
     /**
@@ -205,6 +220,11 @@ public class IceCream implements SpriteProvider {
     public int createIce(Direction d) {
         if (map == null) return 0;
 
+        this. dir = d;
+        creatingIce = true;
+        destroyingIce = false;
+        actionEndTime = System.currentTimeMillis() + ACTION_TIME;
+
         int count = 0;
         Position p = pos;
 
@@ -258,6 +278,11 @@ public class IceCream implements SpriteProvider {
     public int destroyIce(Direction d) {
         if (map == null) return 0;
 
+        this.dir = d;
+        destroyingIce = true;
+        creatingIce = false;
+        actionEndTime = System.currentTimeMillis() + ACTION_TIME;
+
         int count = 0;
         Position p = pos;
 
@@ -291,7 +316,25 @@ public class IceCream implements SpriteProvider {
      */
     @Override
     public String getSpriteKey() {
-        return "player_" + dir.name().toLowerCase();
+        if (!alive) {
+            return "dead";
+        }
+    
+        String d = dir.name().toLowerCase();
+    
+        if (creatingIce) {
+            return "froze_" + d;
+        }
+    
+        if (destroyingIce) {
+            return "broke";
+        }
+    
+        if (moving) {
+            return "static_" + d;
+        }
+    
+        return "static_" + d;
     }
 
     /**

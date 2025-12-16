@@ -620,4 +620,13 @@ public class BadIceCream {
     public long getGameTime() {
         return System.currentTimeMillis() - startTime;
     }
+
+    public int getCurrentWave() {
+        return currentWave;
+    }
+
+    public void setFruitWaveOrder(List<Class<? extends Fruit>> order) {
+        fruitWaves.clear();
+        fruitWaves.addAll(order);
+    }
 }
