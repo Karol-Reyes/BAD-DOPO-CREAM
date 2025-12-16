@@ -339,5 +339,5 @@ public class GameMap {
                 fruits[r][c] = null;
             }
         }
-    }
+    }   
 }

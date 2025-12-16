@@ -316,3 +316,21 @@ dic 16, 2025 11:46:16 A. M. domain.BadIceCream timeOver
 WARNING: Juego perdido por tiempo agotado
 dic 16, 2025 11:46:16 A. M. domain.BadIceCream setPaused
 INFO: Juego pausado
+dic 16, 2025 1:10:25 P. M. domain.BadIceCream setPaused
+INFO: Juego pausado
+dic 16, 2025 1:15:28 P. M. domain.BadIceCream timeOver
+WARNING: Juego perdido por tiempo agotado
+dic 16, 2025 1:15:28 P. M. domain.BadIceCream setPaused
+INFO: Juego pausado
+dic 16, 2025 1:30:12 P. M. domain.BadIceCream timeOver
+WARNING: Juego perdido por tiempo agotado
+dic 16, 2025 1:30:12 P. M. domain.BadIceCream setPaused
+INFO: Juego pausado
+dic 16, 2025 1:46:02 P. M. domain.BadIceCream timeOver
+WARNING: Juego perdido por tiempo agotado
+dic 16, 2025 1:46:02 P. M. domain.BadIceCream setPaused
+INFO: Juego pausado
+dic 16, 2025 3:45:08 P. M. domain.BadIceCream setPaused
+INFO: Juego pausado
+dic 16, 2025 3:45:30 P. M. domain.BadIceCream setPaused
+INFO: Juego pausado

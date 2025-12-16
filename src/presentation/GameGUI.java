@@ -662,6 +662,9 @@ public class GameGUI extends JPanel {
             g.setFont(new Font("Arial", Font.BOLD, 25));
             g.drawString(text, 590, 35);
 
+            // =============== SCORES ===============
+            drawScores(g);
+
         }
 
         /**
@@ -671,6 +674,35 @@ public class GameGUI extends JPanel {
         public void setVisualTime(int visualTime) {
             this.visualTime = visualTime;
         }
+
+        /**
+         * Dibuja los puntajes de los jugadores.
+         * @param g objeto Graphics utilizado para dibujar.
+         */
+        private void drawScores(Graphics g) {
+
+            java.util.List<IceCream> players = game.getPlayers();
+
+            g.setColor(Color.WHITE);
+            g.setFont(new Font("Arial", Font.BOLD, 20));
+
+            // ===== JUGADOR 1 =====
+            if (players.size() >= 1) {
+                g.drawString("Jug 1", 600, 130);
+                g.drawString(String.valueOf(players.get(0).getScorePlayer()), 600, 160);
+            }
+
+            // ===== JUGADOR 2 =====
+            if (players.size() >= 2) {
+                g.drawString("Jug 2", 600, 190);
+                g.drawString(String.valueOf(players.get(1).getScorePlayer()), 600, 220);
+            }
+
+            // ===== TOTAL =====
+            g.drawString("Total", 600, 250);
+            g.drawString(String.valueOf(game.totalScore()), 600, 280);
+        }
+
 
     }
 }

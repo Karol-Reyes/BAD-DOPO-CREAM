@@ -451,9 +451,7 @@ public class BadIceCream {
         int total = 0;
         for (IceCream c : players) {
             total += c.getScorePlayer();
-            System.out.println("puntuacion jugador: " + c.getScorePlayer());
         }
-        System.out.println("puntuacion total: " + total);
         return total;
     }
 
@@ -615,7 +613,6 @@ public class BadIceCream {
         long timeLeft = Math.max(0, MAX_TIME_MS - (System.currentTimeMillis() - startTime));
         return new long[] { timeLeft / 60000, (timeLeft % 60000) / 1000 };
     }
-
 
     /**
      * @return tiempo total de juego transcurrido
