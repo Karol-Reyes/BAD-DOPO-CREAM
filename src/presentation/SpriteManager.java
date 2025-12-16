@@ -109,14 +109,38 @@ public class SpriteManager {
         sprites.put("Vanilla_froze_left", load("/Resources/user/vainilla/froze_left.png"));
         sprites.put("Vanilla_froze_right", load("/Resources/user/vainilla/froze_right.png"));
 
-        sprites.put("Hungry_alive", load("/Resources/user/hungry/static_down.png"));
         sprites.put("Hungry_dead", load("/Resources/user/hungry/dead.png"));
-
-        sprites.put("Fearful_alive", load("/Resources/user/fearful/static_down.png"));
+        sprites.put("Hungry_broke", load("/Resources/user/hungry/broke.png"));
+        sprites.put("Hungry_static_down", load("/Resources/user/hungry/static_down.png"));
+        sprites.put("Hungry_static_up", load("/Resources/user/hungry/static_up.png"));
+        sprites.put("Hungry_static_left", load("/Resources/user/hungry/static_left.png"));
+        sprites.put("Hungry_static_right", load("/Resources/user/hungry/static_right.png"));
+        sprites.put("Hungry_froze_down", load("/Resources/user/hungry/froze_down.png"));
+        sprites.put("Hungry_froze_up", load("/Resources/user/hungry/froze_up.png"));
+        sprites.put("Hungry_froze_left", load("/Resources/user/hungry/froze_left.png"));
+        sprites.put("Hungry_froze_right", load("/Resources/user/hungry/froze_right.png"));
+        
         sprites.put("Fearful_dead", load("/Resources/user/fearful/dead.png"));
+        sprites.put("Fearful_broke", load("/Resources/user/fearful/broke.png"));
+        sprites.put("Fearful_static_down", load("/Resources/user/fearful/static_down.png"));
+        sprites.put("Fearful_static_up", load("/Resources/user/fearful/static_up.png"));
+        sprites.put("Fearful_static_left", load("/Resources/user/fearful/static_left.png"));
+        sprites.put("Fearful_static_right", load("/Resources/user/fearful/static_right.png"));
+        sprites.put("Fearful_froze_down", load("/Resources/user/fearful/froze_down.png"));
+        sprites.put("Fearful_froze_up", load("/Resources/user/fearful/froze_up.png"));
+        sprites.put("Fearful_froze_left", load("/Resources/user/fearful/froze_left.png"));
+        sprites.put("Fearful_froze_right", load("/Resources/user/fearful/froze_right.png"));
 
-        sprites.put("Expert_alive", load("/Resources/user/expert/static_down.png"));
         sprites.put("Expert_dead", load("/Resources/user/expert/dead.png"));
+        sprites.put("Expert_broke", load("/Resources/user/expert/broke.png"));
+        sprites.put("Expert_static_down", load("/Resources/user/expert/static_down.png"));
+        sprites.put("Expert_static_up", load("/Resources/user/expert/static_up.png"));
+        sprites.put("Expert_static_left", load("/Resources/user/expert/static_left.png"));
+        sprites.put("Expert_static_right", load("/Resources/user/expert/static_right.png"));
+        sprites.put("Expert_froze_down", load("/Resources/user/expert/froze_down.png"));
+        sprites.put("Expert_froze_up", load("/Resources/user/expert/froze_up.png"));
+        sprites.put("Expert_froze_left", load("/Resources/user/expert/froze_left.png"));
+        sprites.put("Expert_froze_right", load("/Resources/user/expert/froze_right.png"));
 
         // Cuadro Azul
         sprites.put("fruit_indicator", load("/Resources/game/CuadroEleccion.png"));
