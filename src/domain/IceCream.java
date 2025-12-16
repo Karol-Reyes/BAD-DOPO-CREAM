@@ -232,9 +232,9 @@ public class IceCream implements SpriteProvider {
                 continue;
             }
 
-            if (b != null && b.isCreated()) break;
+            if ((b != null && b.isCreated()) || b.getType() == BoxType.iron) break;
 
-            if (b == null || b.getType() == BoxType.floor || b.canBeCreated()) {
+            if (b == null || b.getType() == BoxType.floor || b.canBeCreated() ) {
                 if (map.hasFruit(next)) {
                     map.getFruit(next).freeze();
                 }
@@ -270,7 +270,7 @@ public class IceCream implements SpriteProvider {
             if (!map.isValid(next)) break;
 
             Boxy b = map.getBlock(next);
-            if (b == null || !b.canBeDestroyed()) break;
+            if (b == null || !b.canBeDestroyed() || b.getType() == BoxType.iron) break;
 
             if (map.hasFruit(next)) {
                 map.getFruit(next).unfreeze();

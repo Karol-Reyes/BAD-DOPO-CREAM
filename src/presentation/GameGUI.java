@@ -30,6 +30,10 @@ public class GameGUI extends JPanel {
     private JLabel loseOverlay;
     private boolean loseShown = false;
 
+    private int visualTime = 180; 
+    private Timer visualTimer;
+
+
     /**
      * Constructor que recibe la configuración del juego
      */
@@ -43,6 +47,8 @@ public class GameGUI extends JPanel {
         panel = new GamePanel(game, spriteManager);
         add(panel, BorderLayout.CENTER);
 
+        panel.setVisualTime(visualTime); 
+        startVisualTimer();
         addFruitBar();
         PauseButton();
         setupKeyBindings();
@@ -55,6 +61,7 @@ public class GameGUI extends JPanel {
 
         if (game.isGameWon() && !winShown) {
             timer.stop();
+            if (visualTimer != null) visualTimer.stop(); 
             showWinOverlay();
             winShown = true;
             return;
@@ -62,6 +69,7 @@ public class GameGUI extends JPanel {
 
         if (game.isGameLost() && !loseShown) {
             timer.stop();
+            if (visualTimer != null) visualTimer.stop(); 
             showLoseOverlay();
             loseShown = true;
             return;
@@ -77,6 +85,13 @@ public class GameGUI extends JPanel {
      */
     private void loadGame() {
         resetEndStates();
+        visualTime = 180;
+
+        if (visualTimer != null) {
+            visualTimer.restart();
+        }
+
+
         GameConfig config = gameControl.toGameConfig();
         game = LevelLoader.loadLevel(config.getLevel(), config);
 
@@ -506,6 +521,31 @@ public class GameGUI extends JPanel {
         this.requestFocusInWindow();
     }
 
+    /**
+     * Inicia el timer de visualización del juego.
+     */
+    private void startVisualTimer() {
+        visualTimer = new Timer(1000, e -> {
+            if (isPaused || winShown || loseShown) return;
+
+            if (visualTime > 0) {
+                visualTime--;
+                panel.setVisualTime(visualTime); 
+                panel.repaint();
+            }
+        });
+        visualTimer.start();
+    }
+
+    /**
+     * Obtiene el tiempo de visualización del juego.
+     * @return tiempo de visualización del juego.
+     */
+    public int getVisualTime() {
+        return visualTime;
+    }
+
+
     // =====================================================
     // PANEL INTERNO (FINAL)
     // =====================================================
@@ -518,6 +558,7 @@ public class GameGUI extends JPanel {
         private BadIceCream game;
         private final SpriteManager spriteManager;
         private static final int TILE = 32;
+        private int visualTime;
 
         /**
          * Constructor del panel de juego.
@@ -548,7 +589,7 @@ public class GameGUI extends JPanel {
             super.paintComponent(g);
 
             GameMap map = game.getMap();
-
+        
             // =============== MAPA ===============
             for (int r = 0; r < map.getRows(); r++) {
                 for (int c = 0; c < map.getCols(); c++) {
@@ -612,6 +653,25 @@ public class GameGUI extends JPanel {
                     null
                 );
             }
+            // =============== TIMER VISUAL ===============
+            int min = visualTime / 60;
+            int sec = visualTime % 60;
+
+            String text = String.format("%02d:%02d", min, sec);
+
+            g.setColor(Color.WHITE);
+            g.setFont(new Font("Arial", Font.BOLD, 25));
+            g.drawString(text, 590, 35);
+
         }
+
+        /**
+         * Establece el tiempo de visualización del juego.
+         * @param visualTime nuevo tiempo de visualización.
+         */
+        public void setVisualTime(int visualTime) {
+            this.visualTime = visualTime;
+        }
+
     }
 }
