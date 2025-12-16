@@ -135,7 +135,6 @@ public class GameGUI extends JPanel {
         // controles generales de la partida
         bind(im, am, "RESET", KeyEvent.VK_R, this::loadGame);
         bind(im, am, "PAUSE", KeyEvent.VK_P, this::togglePause);
-
     }
 
     /**

@@ -232,9 +232,9 @@ public class IceCream implements SpriteProvider {
                 continue;
             }
 
-            if ((b != null && b.isCreated()) || b.getType() == BoxType.iron) break;
+            if ((b != null && b.isCreated()) || (b != null && b.getType() == BoxType.iron)) break;
 
-            if (b == null || b.getType() == BoxType.floor || b.canBeCreated() ) {
+            if ( b == null || b.getType() == BoxType.floor || b.canBeCreated() ) {
                 if (map.hasFruit(next)) {
                     map.getFruit(next).freeze();
                 }
