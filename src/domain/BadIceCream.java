@@ -451,7 +451,7 @@ public class BadIceCream {
         int total = 0;
         for (IceCream c : players) {
             total += c.getScorePlayer();
-            System.out.println("puntuacion jugador: " + c + c.getScorePlayer());
+            System.out.println("puntuacion jugador: " + c.getScorePlayer());
         }
         System.out.println("puntuacion total: " + total);
         return total;
